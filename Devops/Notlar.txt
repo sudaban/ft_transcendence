@@ -1,0 +1,38 @@
+Anlık hazır olan kısımlar 
+
+-------------------------
+Frontend (SvelteKit + Tailwind)
+
+Node 20 Alpine multi-stage Dockerfile
+npm run build → SvelteKit production build
+node build/index.js → 3000 portunda çalışır
+Tailwind CSS + Forms plugin entegre
+Basit landing page örneği (/src/routes/)
+
+Backend (.NET 8)
+
+ASP.NET Core 8.0 Alpine multi-stage build
+PostgreSQL bağlantısı (appsettings.json)
+CORS aktif
+5000 portunda çalışır
+
+Nginx Reverse Proxy
+
+Port 8080 dış erişim
+WebSocket desteği aktif:
+Connection: upgrade header
+Upgrade header
+
+Routing:
+/ → Frontend (3000)
+/api/* → Backend (5000)
+/ws → Backend WebSocket
+
+Erişim Noktaları
+http://localhost:8080/        → Frontend
+http://localhost:8080/api/    → Backend API
+localhost:5432                → Database
+
+docker-compose up -d
+make logs              # Logları gör
+make shell-backend     # Backend container'a gir
