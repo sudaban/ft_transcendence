@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: transendence-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-transendence}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - transendence-network
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: transendence-backend
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=database;Port=5432;Database=${DB_NAME:-transendence};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}"
+      ASPNETCORE_URLS: "http://+:5000"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
+    ports:
+      - "5000:5000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: transendence-frontend
+    environment:
+      PUBLIC_API_URL: "http://localhost:8080/api"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: transendence-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  transendence-network:
+    driver: bridge
+
