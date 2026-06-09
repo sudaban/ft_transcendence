@@ -20,47 +20,47 @@ help:
 	@echo "make test-health     - Check service health"
 
 up:
-	docker-compose up -d
+	docker compose up -d
 
 down:
-	docker-compose down
+	docker compose down
 
 build:
-	docker-compose build
+	docker compose build
 
 rebuild:
-	docker-compose down -v
-	docker-compose up --build -d
+	docker compose down -v
+	docker compose up --build -d
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 logs-backend:
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
 logs-frontend:
-	docker-compose logs -f frontend
+	docker compose logs -f frontend
 
 logs-nginx:
-	docker-compose logs -f nginx
+	docker compose logs -f nginx
 
 logs-db:
-	docker-compose logs -f database
+	docker compose logs -f database
 
 clean:
-	docker-compose down -v
+	docker compose down -v
 
 shell-backend:
-	docker-compose exec backend sh
+	docker compose exec backend sh
 
 shell-frontend:
-	docker-compose exec frontend sh
+	docker compose exec frontend sh
 
 shell-nginx:
-	docker-compose exec nginx sh
+	docker compose exec nginx sh
 
 shell-db:
-	docker-compose exec database psql -U postgres -d transendence
+	docker compose exec database psql -U postgres -d transendence
 
 test-health:
 	@echo "Testing services health..."
