@@ -2,22 +2,23 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS builder
 
 WORKDIR /src
 
-COPY ["Backend.csproj", "./"]
-
-RUN dotnet restore "Backend.csproj"
+COPY Backend.csproj .
+RUN dotnet restore Backend.csproj
 
 COPY . .
+RUN dotnet publish Backend.csproj -c Release -o /app/publish
 
-RUN dotnet build "Backend.csproj" -c Release -o /app/build
-
-RUN dotnet publish "Backend.csproj" -c Release -o /app/publish
-
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine
 
 WORKDIR /app
 
 COPY --from=builder /app/publish .
+RUN dotnet tool install --global dotnet-ef --version 8.0.0
+ENV PATH="/root/.dotnet/tools:${PATH}"
+
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh && apk add --no-cache postgresql-client
 
 EXPOSE 5000
 
-ENTRYPOINT ["dotnet", "Backend.dll"]
+ENTRYPOINT ["/app/entrypoint.sh"]
