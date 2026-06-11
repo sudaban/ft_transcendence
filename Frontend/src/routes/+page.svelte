@@ -4,11 +4,11 @@
 
   // --- MOCK DATA ---
   let suggestions = $state([
-    { id: 1, username: 'enes_celten', handle: '@idkahram', avatar: 'NS' },
-    { id: 1, username: 'adalomer51', handle: '@omadali', avatar: 'NS' },
-    { id: 2, username: 'sametncs', handle: '@saincesu', avatar: 'CN' },
-    { id: 2, username: 'umutdbn77', handle: '@sdaban', avatar: 'CN' },
-    { id: 3, username: 'Ahmetks', handle: '@asezgin', avatar: 'GC' }
+    { id: 1, username: 'enes_celten', handle: '@idkahram', avatar: 'FE' },
+    { id: 1, username: 'adalomer51', handle: '@omadali', avatar: 'OP' },
+    { id: 2, username: 'sametncs', handle: '@saincesu', avatar: 'BE' },
+    { id: 2, username: 'umutdbn77', handle: '@sdaban', avatar: 'BE' },
+    { id: 3, username: 'Ahmetks', handle: '@asezgin', avatar: 'DB' }
   ]);
 
   let feedPosts = $state([
