@@ -31,9 +31,6 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
     ports:
       - "5000:5000"
-    depends_on:
-      database:
-        condition: service_healthy
     networks:
       - transendence-network
     restart: unless-stopped
@@ -47,8 +44,6 @@ services:
       PUBLIC_API_URL: "http://localhost:8080/api"
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
     networks:
       - transendence-network
     restart: unless-stopped
@@ -60,9 +55,6 @@ services:
     container_name: transendence-nginx
     ports:
       - "8080:80"
-    depends_on:
-      - frontend
-      - backend
     networks:
       - transendence-network
     restart: unless-stopped
