@@ -4,7 +4,8 @@
   let navItems = [
     { icon: '🌏', label: 'Home', href: '/' },
     { icon: '🗨️', label: 'Messages', href: '/chat' },
-    { icon: '🧠', label: 'AI', href: '/ai' }
+    { icon: '🧠', label: 'AI', href: '/ai' },
+    { icon: '⚙️', label: 'Settings', href: '/settings' }
   ];
 
   let pathname = $derived($page.url.pathname);
