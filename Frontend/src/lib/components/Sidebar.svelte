@@ -33,12 +33,6 @@
         </span>
       </a>
     {/each}
-
-    <!-- Action Button -->
-    <button class="mt-4 w-12 h-12 xl:w-[90%] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold text-[17px] transition-colors flex items-center justify-center shadow-md">
-      <span class="xl:hidden">+</span>
-      <span class="hidden xl:block">Post</span>
-    </button>
   </nav>
 
 </aside>
