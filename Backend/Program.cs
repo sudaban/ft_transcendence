@@ -1,6 +1,17 @@
+using Backend.Data; //hmm
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// connection string for psql
+var con_str = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("'DefaultConnection' not found.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(con_str, npgsqlOptions => 
+        npgsqlOptions.MigrationsAssembly("Backend"))
+);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
