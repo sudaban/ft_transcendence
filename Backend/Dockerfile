@@ -19,6 +19,7 @@ WORKDIR /app
 COPY --from=builder /app/publish .
 
 COPY --from=builder /src /src
+COPY --from=builder /root/.nuget /root/.nuget
 
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="/root/.dotnet/tools:${PATH}"
