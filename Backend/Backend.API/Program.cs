@@ -1,4 +1,4 @@
-using Backend.Data; //hmm
+using Backend.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +9,7 @@ var con_str = builder.Configuration.GetConnectionString("DefaultConnection")
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(con_str, npgsqlOptions => 
-        npgsqlOptions.MigrationsAssembly("Backend"))
+        npgsqlOptions.MigrationsAssembly("Backend.Persistence"))
 );
 
 builder.Services.AddCors(options =>

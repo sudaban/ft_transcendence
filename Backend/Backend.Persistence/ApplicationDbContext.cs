@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Backend.Models;
+using Backend.Domain.Entities;
 
-namespace Backend.Data;
+namespace Backend.Persistence;
 
 public class ApplicationDbContext : DbContext
 {
@@ -12,13 +12,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Follow> Follows { get; set; }
     public DbSet<Post> Posts { get; set; }
-    public DbSet<PostLike> PostLikes { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatRoomMember> ChatRoomMembers { get; set; }
     public DbSet<Message> Messages { get; set; }
 
-    protected override void OnModelCreating(mb mb)
+    protected override void OnModelCreating(ModelBuilder mb)
     {
         base.OnModelCreating(mb);
 
@@ -66,23 +65,6 @@ public class ApplicationDbContext : DbContext
                 .WithMany(u => u.Posts)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        mb.Entity<PostLike>(entity =>
-        {
-            entity.HasKey(e => new { e.PostId, e.UserId });
-
-            entity.HasOne(e => e.Post)
-                .WithMany(p => p.PostLikes)
-                .HasForeignKey(e => e.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.PostLikes)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         mb.Entity<Comment>(entity =>

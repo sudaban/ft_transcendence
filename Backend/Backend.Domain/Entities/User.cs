@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Backend.Models;
+namespace Backend.Domain.Entities;
 
 public class User
 {
@@ -36,8 +36,6 @@ public class User
     public ICollection<Follow> Following { get; set; } = new List<Follow>();
     
     public ICollection<Post> Posts { get; set; } = new List<Post>();
-    
-    public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
     
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     

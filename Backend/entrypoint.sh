@@ -11,12 +11,14 @@ for i in {1..30}; do
     sleep 1
 done
 
+cd /src
 echo "Creating Entity Framework migrations"
-dotnet ef migrations add InitialCreate --output-dir Migrations 2>/dev/null || echo "Migrations already exist"
+dotnet ef migrations add InitialCreate --project Backend.Persistence --startup-project Backend.API --output-dir Migrations 2>/dev/null || echo "Migrations already exist"
 
 echo "Applying Entity Framework migrations"
-dotnet ef database update
+dotnet ef database update --project Backend.Persistence --startup-project Backend.API
 
 echo "Migrations completed."
-echo "Starting Backend"
-exec dotnet Backend.dll
+cd /app
+echo "Starting Backend API"
+exec dotnet Backend.API.dll

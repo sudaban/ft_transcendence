@@ -1,6 +1,6 @@
 using System;
 
-namespace Backend.Models;
+namespace Backend.Domain.Entities;
 
 public class ChatRoomMember
 {
