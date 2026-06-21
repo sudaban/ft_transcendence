@@ -11,7 +11,7 @@ public class ChatRoom
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    public ICollection<ChatRoomMember> Members { get; set; } = new List<ChatRoomMember>();
+    public ICollection<ChatRoomMember> Members { get; set; } = new HashSet<ChatRoomMember>();
     
-    public ICollection<Message> Messages { get; set; } = new List<Message>();
+    public ICollection<Message> Messages { get; set; } = new HashSet<Message>();
 }
