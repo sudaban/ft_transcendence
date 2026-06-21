@@ -1,3 +1,5 @@
+using AutoMapper;
+using Backend.Application.Profiles;
 using Backend.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +13,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(con_str, npgsqlOptions => 
         npgsqlOptions.MigrationsAssembly("Backend.Persistence"))
 );
+
+//AutoMapper Konfigürasyonu
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.DisableConstructorMapping();
+}, typeof(MappingProfile).Assembly);
+
 
 builder.Services.AddCors(options =>
 {
