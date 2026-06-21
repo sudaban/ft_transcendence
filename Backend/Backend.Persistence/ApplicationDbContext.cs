@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Backend.Persistence;
 
@@ -16,112 +17,146 @@ public class ApplicationDbContext : DbContext
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatRoomMember> ChatRoomMembers { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<UserBlock> UserBlocks { get; set; }
+    public DbSet<PostLike> PostLikes { get; set; }
+    public DbSet<SavedPost> SavedPosts { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder mb)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(mb);
+        base.OnModelCreating(modelBuilder);
 
-        mb.Entity<User>(entity =>
+        // 1. User Yapılandırması
+        modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
-            entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.PasswordSalt).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.ProfilePictureUrl).HasMaxLength(500);
-            entity.Property(e => e.Bio).HasMaxLength(150);
-            entity.Property(e => e.TwoFactorSecret).HasMaxLength(128);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasIndex(e => e.Username).IsUnique();
-            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasKey(u => u.Id);
         });
 
-        mb.Entity<Follow>(entity =>
+        // 2. Post Yapılandırması
+        modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => new { e.FollowerId, e.FollowingId });
+            entity.HasKey(p => p.Id);
 
-            entity.HasOne(e => e.Follower)
-                .WithMany(u => u.FollowedBy)
-                .HasForeignKey(e => e.FollowerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.Following)
-                .WithMany(u => u.Following)
-                .HasForeignKey(e => e.FollowingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-        });
-
-        mb.Entity<Post>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
-            entity.Property(e => e.Caption).HasColumnType("text");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasOne(e => e.User)
+            entity.HasOne(p => p.User)
                 .WithMany(u => u.Posts)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // Kullanıcı silinirse gönderileri de silinsin
         });
 
-        mb.Entity<Comment>(entity =>
+        // 3. Comment (Yorum) İlişkileri
+        modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Content).IsRequired().HasMaxLength(1000);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasKey(c => c.Id);
 
-            entity.HasOne(e => e.Post)
+            entity.HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
-                .HasForeignKey(e => e.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(c => c.PostId)
+                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse yorumlar gitsin
 
-            entity.HasOne(e => e.User)
+            entity.HasOne(c => c.User)
                 .WithMany(u => u.Comments)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // PostgreSQL çakışan cascade yollarını engellemek için Restrict
         });
 
-        mb.Entity<ChatRoom>(entity =>
+        // 4. Follow (Takip) İlişkisi (Kendi İçinde Çoka-Çok)
+        modelBuilder.Entity<Follow>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasKey(f => new { f.FollowerId, f.FollowingId });
+
+            entity.HasOne(f => f.Follower)
+                .WithMany(u => u.Following)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(f => f.Following)
+                .WithMany(u => u.FollowedBy)
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        mb.Entity<ChatRoomMember>(entity =>
+        // 5. UserBlock (Engelleme) İlişkisi (Kendi İçinde Çoka-Çok)
+        modelBuilder.Entity<UserBlock>(entity =>
         {
-            entity.HasKey(e => new { e.ChatRoomId, e.UserId });
+            entity.HasKey(ub => new { ub.BlockerId, ub.BlockedId });
 
-            entity.HasOne(e => e.ChatRoom)
-                .WithMany(c => c.Members)
-                .HasForeignKey(e => e.ChatRoomId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(ub => ub.Blocker)
+                .WithMany(u => u.BlockedUsers)
+                .HasForeignKey(ub => ub.BlockerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.ChatRoomMemberships)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.Property(e => e.JoinedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(ub => ub.Blocked)
+                .WithMany(u => u.BlockedBy)
+                .HasForeignKey(ub => ub.BlockedId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        mb.Entity<Message>(entity =>
+        // 6. PostLike (Beğeni) İlişkisi
+        modelBuilder.Entity<PostLike>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Content).IsRequired().HasColumnType("text");
-            entity.Property(e => e.SentAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasKey(pl => new { pl.UserId, pl.PostId });
 
-            entity.HasOne(e => e.ChatRoom)
-                .WithMany(c => c.Messages)
-                .HasForeignKey(e => e.ChatRoomId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(pl => pl.User)
+                .WithMany(u => u.LikedPosts)
+                .HasForeignKey(pl => pl.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.Sender)
-                .WithMany(u => u.SentMessages)
-                .HasForeignKey(e => e.SenderId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(pl => pl.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(pl => pl.PostId)
+                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse beğeniler temizlensin
+        });
+
+        // 7. SavedPost (Kaydedilenler) İlişkisi
+        modelBuilder.Entity<SavedPost>(entity =>
+        {
+            entity.HasKey(sp => new { sp.UserId, sp.PostId });
+
+            entity.HasOne(sp => sp.User)
+                .WithMany(u => u.SavedPosts)
+                .HasForeignKey(sp => sp.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(sp => sp.Post)
+                .WithMany(p => p.SavedByUsers)
+                .HasForeignKey(sp => sp.PostId)
+                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse kaydedilenlerden düşsün
+        });
+
+        // 8. ChatRoom ve ChatRoomMember İlişkileri
+        modelBuilder.Entity<ChatRoom>(entity =>
+        {
+            entity.HasKey(cr => cr.Id);
+        });
+
+        modelBuilder.Entity<ChatRoomMember>(entity =>
+        {
+            entity.HasKey(crm => new { crm.ChatRoomId, crm.UserId });
+
+            entity.HasOne(crm => crm.ChatRoom)
+                .WithMany(cr => cr.Members)
+                .HasForeignKey(crm => crm.ChatRoomId)
+                .OnDelete(DeleteBehavior.Cascade); // Oda silinirse üyeler tablodan temizlensin
+
+            entity.HasOne(crm => crm.User)
+                .WithMany()
+                .HasForeignKey(crm => crm.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 9. Message (Mesajlar) İlişkileri
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+
+            entity.HasOne(m => m.ChatRoom)
+                .WithMany(cr => cr.Messages)
+                .HasForeignKey(m => m.ChatRoomId)
+                .OnDelete(DeleteBehavior.Cascade); // Oda silinirse içindeki mesajlar da silinsin
+
+            entity.HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
