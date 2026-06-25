@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <OutputPath>C:\TempDotNetBuilds\Backend.API\</OutputPath>
     <AssemblyName>Backend.API</AssemblyName>
     <RootNamespace>Backend.API</RootNamespace>
   </PropertyGroup>
