@@ -2,6 +2,8 @@ using AutoMapper;
 using Backend.Application.Profiles;
 using Backend.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Backend.Domain.Repositories;
+using Backend.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(con_str, npgsqlOptions => 
         npgsqlOptions.MigrationsAssembly("Backend.Persistence"))
 );
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 //AutoMapper Konfigürasyonu
 builder.Services.AddAutoMapper(cfg =>
