@@ -2,7 +2,7 @@
 {
     public record CreateCommentRequestDto
     (
-    int PostId,
-    string Content
+        int PostId,
+        string Content
     );
 }

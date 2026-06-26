@@ -2,8 +2,8 @@
 {
     public record UpdateProfileRequestDto
     (
-    string? FullName,
-    string? Bio,
-    string? ProfilePictureUrl
+        string? FullName,
+        string? Bio,
+        string? ProfilePictureUrl
     );
 }
