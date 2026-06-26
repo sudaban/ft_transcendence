@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="Middlewares\" />
     <Folder Include="Extensions\" />
   </ItemGroup>
 

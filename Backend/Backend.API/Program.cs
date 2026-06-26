@@ -1,9 +1,9 @@
-using AutoMapper;
 using Backend.Application.Profiles;
 using Backend.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Backend.Domain.Repositories;
 using Backend.Persistence.Repositories;
+using Backend.Application.Abstractions;
+using Backend.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(con_str, npgsqlOptions => 
         npgsqlOptions.MigrationsAssembly("Backend.Persistence"))
 );
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -42,6 +45,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
@@ -50,11 +54,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/", () => new { message = "Transendence Backend API" });
 app.MapGet("/health", () => new { status = "Backend healthy" });
 
 app.Run();
