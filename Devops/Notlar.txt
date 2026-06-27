@@ -43,3 +43,9 @@ version 2.0
 
 şuan temel oalrak build alıp çalıştırabiliyoruz sistemi fakat database yada farklı sayfalarda
 end point vs ayarlanmadığı iççin sağlıklı bir performans yok
+prometheus ve grafanayıda kurduk 2 deneme yaptım 2sinde de  çalıştı  
+--------
+
+grafana containerına localhost:3000 yerine localhost:3001 yaptım
+
+

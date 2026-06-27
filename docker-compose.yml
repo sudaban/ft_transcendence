@@ -1,9 +1,9 @@
-version: '3.8'
-
 services:
   database:
     image: postgres:16-alpine
     container_name: transendence-db
+    labels:
+      - "autoheal=true"
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -14,17 +14,21 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
+      start_period: 30s
     networks:
       - transendence-network
+    restart: unless-stopped
 
   backend:
     build:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: transendence-backend
+    labels:
+      - "autoheal=true"
     depends_on:
       database:
         condition: service_healthy
@@ -34,6 +38,12 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- http://localhost:5000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - transendence-network
     restart: unless-stopped
@@ -43,10 +53,18 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
     container_name: transendence-frontend
+    labels:
+      - "autoheal=true"
     environment:
       PUBLIC_API_URL: "https://localhost/api"
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - transendence-network
     restart: unless-stopped
@@ -56,17 +74,193 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     container_name: transendence-nginx
+    labels:
+      - "autoheal=true"
+    depends_on:
+      - frontend
+      - backend
+      - grafana
     ports:
       - "80:80"
       - "443:443"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8888/nginx_status || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  # ========================
+  # Monitoring Services
+  # ========================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: transendence-prometheus
+    labels:
+      - "autoheal=true"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: transendence-grafana
+    labels:
+      - "autoheal=true"
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-transendence42}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: "https://localhost/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: transendence-node-exporter
+    labels:
+      - "autoheal=true"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/metrics || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: transendence-cadvisor
+    labels:
+      - "autoheal=true"
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: transendence-postgres-exporter
+    labels:
+      - "autoheal=true"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@database:5432/${DB_NAME:-transendence}?sslmode=disable"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9187/metrics || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: transendence-nginx-exporter
+    labels:
+      - "autoheal=true"
+    depends_on:
+      - nginx
+    command:
+      - "--nginx.scrape-uri=http://nginx:8888/nginx_status"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9113/metrics || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - transendence-network
+    restart: unless-stopped
+
+  # ========================
+  # Auto-Heal
+  # ========================
+  autoheal:
+    build:
+      context: ./monitoring/autoheal
+      dockerfile: Dockerfile
+    container_name: transendence-autoheal
+    environment:
+      AUTOHEAL_INTERVAL: 30
+      AUTOHEAL_START_PERIOD: 60
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - transendence-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   transendence-network:
     driver: bridge
-

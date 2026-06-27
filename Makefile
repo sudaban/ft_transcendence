@@ -1,4 +1,4 @@
-.PHONY: help up down build rebuild logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health
+.PHONY: help up down build rebuild logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs
 
 help:
 	@echo "🐳 Transendence Docker Commands"
@@ -46,6 +46,11 @@ help:
 	@echo "  make nginx-up          - Start nginx + all services"
 	@echo "  make nginx-logs        - View nginx logs (-f)"
 	@echo "  make nginx-down        - Stop nginx"
+	@echo ""
+	@echo "📈 Monitoring (Prometheus & Grafana):"
+	@echo "  make monitoring-up     - Start monitoring services"
+	@echo "  make monitoring-down   - Stop monitoring services"
+	@echo "  make monitoring-logs   - View monitoring logs"
 	@echo ""
 	@echo "📊 Logs & Debug:"
 	@echo "  make logs-frontend     - Frontend logs"
@@ -212,16 +217,36 @@ shell-db:
 	docker compose exec database psql -U postgres -d transendence
 
 # ========================
+# Monitoring Commands
+# ========================
+monitoring-up:
+	@echo "📈 Starting Monitoring services..."
+	docker compose up -d prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+
+monitoring-down:
+	@echo "⛔ Stopping Monitoring services..."
+	docker compose stop prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+
+monitoring-logs:
+	docker compose logs -f prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+
+# ========================
 # Health Check
 # ========================
 test-health:
 	@echo "🏥 Testing services health..."
-	@echo "Frontend (via Nginx): http://localhost:8080"
-	@echo "Backend API (via Nginx): http://localhost:8080/api"
+	@echo "Frontend (via Nginx): https://localhost"
+	@echo "Backend API (via Nginx): https://localhost/api"
+	@echo "Grafana: https://localhost/grafana/"
+	@echo "Prometheus: http://localhost:9090"
 	@echo ""
-	@curl -s http://localhost:8080/ | head -20 || echo "❌ Frontend: FAILED"
+	@curl -sk https://localhost/ | head -20 || echo "❌ Frontend: FAILED"
 	@echo ""
-	@curl -s http://localhost:8080/api || echo "❌ Backend: FAILED"
+	@curl -sk https://localhost/api || echo "❌ Backend: FAILED"
+	@echo ""
+	@curl -s http://localhost:9090/-/healthy || echo "❌ Prometheus: FAILED"
+	@echo ""
+	@curl -sk https://localhost/grafana/api/health || echo "❌ Grafana: FAILED"
 	@echo ""
 	@echo "✅ Health check complete"
 
