@@ -44,7 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: transendence-frontend
     environment:
-      PUBLIC_API_URL: "http://localhost:8080/api"
+      PUBLIC_API_URL: "https://localhost/api"
     ports:
       - "3000:3000"
     networks:
@@ -57,7 +57,8 @@ services:
       dockerfile: Dockerfile
     container_name: transendence-nginx
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     networks:
       - transendence-network
     restart: unless-stopped
