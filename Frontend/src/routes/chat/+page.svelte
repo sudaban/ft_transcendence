@@ -91,7 +91,7 @@
 
       asciiHistory.push(asciiChar);
       
-      archivedSlices.push({
+      archivedSlices.unshift({
         id: Date.now(),
         label: `#0${archivedSlices.length + 1}`,
         char: asciiChar,
