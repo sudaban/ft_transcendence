@@ -36,6 +36,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=database;Port=5432;Database=${DB_NAME:-transendence};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}"
       ASPNETCORE_URLS: "http://+:5000"
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
+      DOTNET_EnableWriteXorExecute: "0"
     ports:
       - "5000:5000"
     healthcheck:
