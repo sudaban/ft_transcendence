@@ -138,10 +138,10 @@
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 text-white">
               <div class="flex items-center gap-5 text-xs font-mono tracking-wide">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-300">▲</span> {post.likes}
+                  <span class="text-slate-300">❤️</span> {post.likes}
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-300">⎔</span> {post.comments}
+                  <span class="text-slate-300">💬</span> {post.comments}
                 </div>
               </div>
               <div class="absolute top-4 right-4 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded text-[9px] font-mono tracking-widest text-white/80">
