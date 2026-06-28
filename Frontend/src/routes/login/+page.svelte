@@ -70,7 +70,7 @@
       return;
     }
     errorMsg = "";
-    alert("Backend"e bağlanılamıyor çünkü db daha tamamlanmadı ula");
+    alert("Backend'e bağlanılamıyor çünkü db daha tamamlanmadı ula");
   }
 </script>
 
