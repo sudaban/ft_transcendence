@@ -14,15 +14,8 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet = _context.Set<T>();
     }
 
-    public IQueryable<T> GetQueryable(bool asNoTracking = false)
-    {
-        var query = _dbSet.AsQueryable();
-
-        if (asNoTracking)
-            query = query.AsNoTracking();
-
-        return query;
-    }
+    public IQueryable<T> Table => _dbSet;
+    public IQueryable<T> TableNoTracking => _dbSet.AsNoTracking();
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {

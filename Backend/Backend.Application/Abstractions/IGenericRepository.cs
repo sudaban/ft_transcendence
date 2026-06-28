@@ -3,7 +3,8 @@ namespace Backend.Application.Abstractions;
 public interface IGenericRepository<T> where T : class
 {
 
-    IQueryable<T> GetQueryable(bool asNoTracking = false);
+    IQueryable<T> Table { get; }
+    IQueryable<T> TableNoTracking { get; }
     Task<IEnumerable<T>> GetAllAsync();
     Task<T?> GetByIdAsync(int id);
     Task AddAsync(T entity);
