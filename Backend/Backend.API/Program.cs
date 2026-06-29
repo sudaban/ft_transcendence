@@ -1,10 +1,10 @@
-using Backend.API.Middlewares;
-using Backend.Application.Abstractions;
 using Backend.Application.Profiles;
-using Backend.Infrastructure;
 using Backend.Persistence;
-using Backend.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Backend.Persistence.Repositories;
+using Backend.Application.Abstractions;
+using Backend.API.Middlewares;
+using Backend.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
