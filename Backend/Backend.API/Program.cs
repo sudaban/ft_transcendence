@@ -1,10 +1,11 @@
-using Backend.Application.Profiles;
-using Backend.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Backend.Persistence.Repositories;
-using Backend.Application.Abstractions;
 using Backend.API.Middlewares;
+using Backend.Application.Abstractions;
+using Backend.Application.Profiles;
+using Backend.Application.Services;
 using Backend.Infrastructure;
+using Backend.Persistence;
+using Backend.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 //AutoMapper Konfigürasyonu
 builder.Services.AddAutoMapper(cfg =>
