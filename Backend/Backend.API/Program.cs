@@ -5,11 +5,13 @@ using Backend.Application.Services;
 using Backend.Infrastructure;
 using Backend.Persistence;
 using Backend.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// connection string for psql
 var con_str = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new InvalidOperationException("'DefaultConnection' not found.");
 
@@ -29,12 +31,33 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-//AutoMapper Konfigürasyonu
+var secret_key = builder.Configuration["JwtOptions:SecretKey"] 
+    ?? throw new InvalidOperationException("JWT SecretKey is missing");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key)),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JwtOptions:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JwtOptions:Audience"],
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.DisableConstructorMapping();
 }, typeof(MappingProfile).Assembly);
-
 
 builder.Services.AddCors(options =>
 {
@@ -68,6 +91,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
