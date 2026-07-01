@@ -29,6 +29,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ITwoFactorService, Backend.Infrastructure.Services.TwoFactorService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var secret_key = builder.Configuration["JwtOptions:SecretKey"] 
