@@ -8,11 +8,11 @@ namespace Backend.Application.Validators.Auth
         public LoginRequestDtoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email adresi boş olamaz.")
-                .EmailAddress().WithMessage("Geçerli bir email adresi giriniz.");
+                .NotEmpty().WithMessage("Email address cannot be empty.")
+                .EmailAddress().WithMessage("Please enter a valid email address.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Şifre boş olamaz.");
+                .NotEmpty().WithMessage("Password cannot be empty.");
         }
     }
 }

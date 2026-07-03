@@ -8,11 +8,11 @@ namespace Backend.Application.Validators.Messages
         public SendMessageRequestDtoValidator()
         {
             RuleFor(x => x.ChatRoomId)
-                .GreaterThan(0).WithMessage("Geçerli bir sohbet odası ID'si giriniz.");
+                .GreaterThan(0).WithMessage("Please enter a valid chat room ID.");
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage("Mesaj boş olamaz.")
-                .MaximumLength(2000).WithMessage("Mesaj en fazla 2000 karakter olabilir.");
+                .NotEmpty().WithMessage("Message cannot be empty.")
+                .MaximumLength(2000).WithMessage("Message cannot exceed 2000 characters.");
         }
     }
 }

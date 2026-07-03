@@ -8,11 +8,11 @@ namespace Backend.Application.Validators.Comments
         public CreateCommentRequestDtoValidator()
         {
             RuleFor(x => x.PostId)
-                .GreaterThan(0).WithMessage("Geçerli bir gönderi ID'si giriniz.");
+                .GreaterThan(0).WithMessage("Please enter a valid post ID.");
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage("Yorum içeriği boş olamaz.")
-                .MaximumLength(500).WithMessage("Yorum 500 karakterden uzun olamaz.");
+                .NotEmpty().WithMessage("Comment content cannot be empty.")
+                .MaximumLength(500).WithMessage("Comment cannot exceed 500 characters.");
         }
     }
 }

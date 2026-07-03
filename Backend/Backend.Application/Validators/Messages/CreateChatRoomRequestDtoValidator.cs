@@ -9,11 +9,11 @@ namespace Backend.Application.Validators.Messages
         public CreateChatRoomRequestDtoValidator()
         {
             RuleFor(x => x.Name)
-                .MaximumLength(100).WithMessage("Oda adı en fazla 100 karakter olabilir.");
+                .MaximumLength(100).WithMessage("Room name cannot exceed 100 characters.");
 
             RuleFor(x => x.ParticipantIds)
-                .NotEmpty().WithMessage("Sohbet odasına en az bir katılımcı eklemelisiniz.")
-                .Must(x => x != null && x.Any()).WithMessage("Katılımcılar listesi boş olamaz.");
+                .NotEmpty().WithMessage("You must add at least one participant to the chat room.")
+                .Must(x => x != null && x.Any()).WithMessage("Participants list cannot be empty.");
         }
     }
 }
