@@ -47,5 +47,15 @@ prometheus ve grafanayıda kurduk 2 deneme yaptım 2sinde de  çalıştı
 --------
 
 grafana containerına localhost:3000 yerine localhost:3001 yaptım
+3000 olması gerekiyor galiba
+
+sudo service docker start   ile docker başlat wsl de bazen daemon kapalı oluyor ve yetkisi olmuyor
+
+port bağlantılarında çakışmalar olabilir kontrol edilmesi gerekiyor
+
+
+
+
+
 
 
