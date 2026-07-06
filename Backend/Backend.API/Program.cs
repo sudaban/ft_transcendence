@@ -2,6 +2,7 @@ using Backend.API.Middlewares;
 using Backend.Application.Abstractions;
 using Backend.Application.Profiles;
 using Backend.Application.Services;
+using Backend.Application;
 using Backend.Infrastructure;
 using Backend.Persistence;
 using Backend.Persistence.Repositories;
@@ -31,6 +32,8 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITwoFactorService, Backend.Infrastructure.Services.TwoFactorService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddApplicationServices();
 
 var secret_key = builder.Configuration["JwtOptions:SecretKey"] 
     ?? throw new InvalidOperationException("JWT SecretKey is missing");
