@@ -57,14 +57,17 @@
     scrollToBottom();
   });
 
-  async function scrollToBottom() {
+  async function scrollToBottom()
+  {
     await tick();
-    if (chatContainer) {
+    if (chatContainer)
+    {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
   }
 
-  function popIn(node: HTMLElement) {
+  function popIn(node: HTMLElement)
+  {
     gsap.fromTo(node, 
       { opacity: 0, y: 12, filter: 'blur(4px)' }, 
       { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.4, ease: 'power2.out' }
@@ -72,16 +75,19 @@
     scrollToBottom();
   }
 
-  function sendMessage(e?: Event) {
+  function sendMessage(e?: Event)
+  {
     if (e) e.preventDefault();
     if (!newMessage.trim()) return;
 
-    if (selectedSliceId !== null) {
+    if (selectedSliceId !== null)
+    {
       alert("Geçmiş modundasınız. Mesaj göndermek için sol üstten canlı yayına dönün.");
       return;
     }
 
-    if (liveMessages.length >= 8) {
+    if (liveMessages.length >= 8)
+    {
       const bitString = liveMessages.map(msg => msg.sender === currentLoopLeader ? '1' : '0').join('');
       const decimalValue = parseInt(bitString, 2);
       
@@ -91,7 +97,8 @@
 
       asciiHistory.push(asciiChar);
       
-      archivedSlices.unshift({
+      archivedSlices.unshift
+      ({
         id: Date.now(),
         label: `#0${archivedSlices.length + 1}`,
         char: asciiChar,
@@ -103,7 +110,8 @@
       currentLoopLeader = null;
     }
 
-    if (liveMessages.length === 0 && !currentLoopLeader) {
+    if (liveMessages.length === 0 && !currentLoopLeader)
+    {
       currentLoopLeader = 'Player 1';
     }
 
@@ -299,20 +307,25 @@
 </div>
 
 <style>
-  .no-scrollbar::-webkit-scrollbar {
+  .no-scrollbar::-webkit-scrollbar
+  {
     display: none;
   }
-  .no-scrollbar {
+  .no-scrollbar
+  {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .custom-scrollbar::-webkit-scrollbar {
+  .custom-scrollbar::-webkit-scrollbar
+  {
     width: 3px;
   }
-  .custom-scrollbar::-webkit-scrollbar-track {
+  .custom-scrollbar::-webkit-scrollbar-track
+  {
     background: transparent;
   }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
+  .custom-scrollbar::-webkit-scrollbar-thumb
+  {
     background: #e2e8f0;
   }
 </style>

@@ -1,10 +1,19 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import gsap from 'gsap';
+  import { ApiService } from '$lib/api';
 
+  // State
   let email = $state('');
   let password = $state('');
   let errorMsg = $state('');
+  let isSubmitting = $state(false);
+
+  // 2FA State
+  let is2faPending = $state(false);
+  let tempToken = $state('');
+  let otpValues = $state(['', '', '', '', '', '']);
+  let otpInputs: HTMLInputElement[] = [];
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -56,21 +65,138 @@
     return { x: dx, y: dy };
   });
 
-  function handleLogin(e: Event)
+  function triggerError(msg: string)
+  {
+    errorMsg = msg;
+    gsap.fromTo('.auth-container', 
+      { x: -8 }, 
+      { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => gsap.to('.auth-container', {x: 0, duration: 0.1}) }
+    );
+  }
+
+  async function handleLogin(e: Event)
   {
     e.preventDefault();
     if (!email || !password)
     {
-      errorMsg = "Lütfen tüm alanları doldurun.";
-      // GSAP Shake effect for error
-      gsap.fromTo('.auth-container', 
-        { x: -8 }, 
-        { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => gsap.to('.auth-container', {x: 0, duration: 0.1}) }
-      );
+      triggerError("Lütfen tüm alanları doldurun.");
       return;
     }
     errorMsg = "";
-    alert("Backend'e bağlanılamıyor çünkü db daha tamamlanmadı ula");
+    isSubmitting = true;
+
+    try
+    {
+      const res = await ApiService.login(email, password);
+      
+      if (res.requiresTwoFactor)
+      {
+        // Switch to 2FA view
+        tempToken = res.tempToken || '';
+        is2faPending = true;
+        // Animate the transition
+        gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
+        await tick();
+        otpInputs[0]?.focus();
+      }
+      else
+      {
+        localStorage.setItem('token', res.token || '');
+        window.location.href = '/'; // redirect to home
+      }
+    }
+    catch (err)
+    {
+      triggerError("Giriş başarısız oldu.");
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
+  }
+
+  // OTP Logic
+  async function handleOtpKeydown(e: KeyboardEvent, index: number)
+  {
+    if (e.key === 'Backspace')
+    {
+      if (!otpValues[index] && index > 0)
+      {
+        // Move to previous if empty
+        otpInputs[index - 1].focus();
+        // Prevent default to avoid jumping cursor issues
+        e.preventDefault(); 
+      }
+    }
+  }
+
+  async function handleOtpInput(e: Event, index: number)
+  {
+    const target = e.target as HTMLInputElement;
+    const val = target.value;
+    
+    if (val.length > 1)
+    {
+      // Handle paste directly into the input (some browsers)
+      const pasted = val.slice(0, 6).split('');
+      for (let i = 0; i < pasted.length && index + i < 6; i++)
+      {
+        otpValues[index + i] = pasted[i];
+      }
+      const nextIndex = Math.min(index + pasted.length, 5);
+      otpInputs[nextIndex]?.focus();
+      return;
+    }
+
+    if (val && index < 5)
+    {
+      otpInputs[index + 1]?.focus();
+    }
+    
+    checkCompleteOtp();
+  }
+
+  function handleOtpPaste(e: ClipboardEvent)
+  {
+    e.preventDefault();
+    const pastedData = e.clipboardData?.getData('text/plain').trim() || '';
+    if (!/^\d+$/.test(pastedData)) return; // Only numbers
+    
+    const chars = pastedData.slice(0, 6).split('');
+    chars.forEach((char, i) => {
+      if (i < 6) otpValues[i] = char;
+    });
+    
+    const nextIndex = Math.min(chars.length, 5);
+    otpInputs[nextIndex]?.focus();
+    checkCompleteOtp();
+  }
+
+  async function checkCompleteOtp()
+  {
+    const code = otpValues.join('');
+    if (code.length === 6)
+    {
+      isSubmitting = true;
+      errorMsg = '';
+      try
+      {
+        const res = await ApiService.login2fa(email, code, tempToken);
+        localStorage.setItem('token', res.token || '');
+        window.location.href = '/'; // Success
+      }
+      catch (err)
+      {
+        triggerError("Geçersiz kod.");
+        otpValues = ['', '', '', '', '', ''];
+        await tick();
+        otpInputs[0]?.focus();
+      }
+      finally
+      {
+        isSubmitting = false;
+      }
+    }
   }
 </script>
 
@@ -105,44 +231,86 @@
     </div>
 
     <h1 class="font-bold text-2xl tracking-tight mb-2" style="font-family: 'Instagram Sans', sans-serif;">Transcendence</h1>
-    <p class="text-sm text-social-secondary mb-8 text-center leading-relaxed">Giriş yap la</p>
+    <p class="text-sm text-social-secondary mb-8 text-center leading-relaxed">
+      {#if is2faPending}
+        İki aşamalı doğrulama kodunu girin
+      {:else}
+        Giriş yap la
+      {/if}
+    </p>
 
     {#if errorMsg}
       <div class="text-social-danger text-sm mb-4 font-medium text-center w-full">{errorMsg}</div>
     {/if}
 
-    <form class="w-full flex flex-col gap-3" onsubmit={handleLogin}>
-      <input 
-        type="email" 
-        bind:value={email}
-        placeholder="E-posta adresi" 
-        class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
-      >
-      <input 
-        type="password" 
-        bind:value={password}
-        placeholder="Şifre" 
-        class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
-      >
-      <button 
-        type="submit" 
-        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors"
-      >
-        Giriş Yap
-      </button>
-    </form>
+    {#if !is2faPending}
+      <form class="w-full flex flex-col gap-3" onsubmit={handleLogin}>
+        <input 
+          type="email" 
+          bind:value={email}
+          placeholder="E-posta adresi" 
+          disabled={isSubmitting}
+          class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
+        >
+        <input 
+          type="password" 
+          bind:value={password}
+          placeholder="Şifre" 
+          disabled={isSubmitting}
+          class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
+        >
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors flex items-center justify-center gap-2"
+        >
+          {#if isSubmitting}
+            <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          {/if}
+          Giriş Yap
+        </button>
+      </form>
 
-    <div class="w-full flex items-center gap-4 my-6">
-      <div class="flex-1 h-px bg-social-border"></div>
-      <span class="text-xs font-semibold text-social-secondary uppercase">YA DA</span>
-      <div class="flex-1 h-px bg-social-border"></div>
-    </div>
+      <div class="w-full flex items-center gap-4 my-6">
+        <div class="flex-1 h-px bg-social-border"></div>
+        <span class="text-xs font-semibold text-social-secondary uppercase">YA DA</span>
+        <div class="flex-1 h-px bg-social-border"></div>
+      </div>
 
-    <a href="#" class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center gap-2 mb-4">
-      42 Intra ile Giriş Yap
-    </a>
+      <a href="#" class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center gap-2 mb-4">
+        42 Intra ile Giriş Yap
+      </a>
 
-    <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>
+      <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>
+    
+    {:else}
+      <!-- 2FA OTP UI -->
+      <div class="otp-container w-full flex flex-col items-center">
+        <p class="text-xs text-social-secondary mb-4 text-center">
+          <span class="font-bold text-social-primary">{email}</span> adresine (veya Authenticator uygulamana) gönderilen 6 haneli kodu gir.
+        </p>
+        
+        <div class="flex justify-between w-full gap-2 mb-4" onpaste={handleOtpPaste}>
+          {#each otpValues as val, i}
+            <input 
+              type="text" 
+              inputmode="numeric" 
+              maxlength="1"
+              bind:this={otpInputs[i]}
+              bind:value={otpValues[i]}
+              onkeydown={(e) => handleOtpKeydown(e, i)}
+              oninput={(e) => handleOtpInput(e, i)}
+              disabled={isSubmitting}
+              class="w-10 h-12 text-center text-xl font-bold bg-social-bg border border-social-border rounded outline-none focus:border-social-accent focus:ring-1 focus:ring-social-accent transition-all"
+            >
+          {/each}
+        </div>
+        
+        {#if isSubmitting}
+          <span class="w-6 h-6 border-2 border-social-accent border-t-transparent rounded-full animate-spin mt-2"></span>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <div class="auth-container w-full max-w-[350px] bg-social-card border border-social-border rounded-lg p-6 mt-4 flex items-center justify-center shadow-sm relative z-10">

@@ -83,5 +83,67 @@ export const ApiService = {
         resolve(newPost);
       }, 800);
     });
+  },
+
+  // AUTHENTICATION ve 2FA endpointleri
+
+  register: async (data: any) => {
+    // const res = await fetch('http://localhost:5000/api/auth/register', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
+    // return res.json();
+    return new Promise((resolve) => setTimeout(() => resolve({ message: "Mock Register Success", token: "mock_jwt_token" }), 500));
+  },
+
+  login: async (email: string, password: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
+    // const res = await fetch('http://localhost:5000/api/auth/login', { method: 'POST', body: JSON.stringify({email, password}), headers: {'Content-Type': 'application/json'} });
+    // return res.json();
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (email === '2fa@test.com') {
+          resolve({ requiresTwoFactor: true, token: null, tempToken: "mock_temp_token_for_2fa" });
+        } else {
+          resolve({ requiresTwoFactor: false, token: "mock_final_jwt_token", tempToken: null });
+        }
+      }, 600);
+    });
+  },
+
+  login2fa: async (email: string, code: string, tempToken: string) => {
+    // const res = await fetch('http://localhost:5000/api/auth/2fa/login', { method: 'POST', body: JSON.stringify({email, code, tempToken}), headers: {'Content-Type': 'application/json'} });
+    // return res.json();
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (code === '123456') { // Mock valid code
+          resolve({ requiresTwoFactor: false, token: "mock_final_jwt_token", tempToken: null });
+        } else {
+          reject(new Error("Invalid 2FA Code"));
+        }
+      }, 500);
+    });
+  },
+
+  setup2fa: async (token: string) => {
+    // const res = await fetch('http://localhost:5000/api/auth/2fa/setup', { method: 'POST', headers: {'Authorization': `Bearer ${token}`} });
+    // return res.json();
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          secretKey: "ORSXG5BRGIZTINJWG44DS",
+          qrCodeUri: "otpauth://totp/ft_transcendence:dev%40example.com?secret=ORSXG5BRGIZTINJWG44DS&issuer=ft_transcendence&algorithm=SHA1&digits=6&period=30"
+        });
+      }, 400);
+    });
+  },
+
+  enable2fa: async (code: string, token: string) => {
+    // const res = await fetch('http://localhost:5000/api/auth/2fa/enable', { method: 'POST', body: JSON.stringify({code}), headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`} });
+    // return res.json();
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (code === '123456') resolve({ message: "2FA enabled." });
+        else reject(new Error("Invalid code."));
+      }, 400);
+    });
   }
 };
