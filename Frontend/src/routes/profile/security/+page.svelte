@@ -6,6 +6,14 @@
   import MobileNav from '$lib/components/MobileNav.svelte';
 
   let is2faEnabled = $state(false);
+
+  onMount(() => {
+    // Backend den kullanıcı profili getirme servisi (GET /api/users/me) henüz yazılmadığı için
+    // 2fa nın açık olup olmadığını geçici olarak localstorage de tutuyoruz ki sayfa yenilenince kaybolmasın
+    if (localStorage.getItem('is2faEnabled') === 'true') {
+      is2faEnabled = true;
+    }
+  });
   let isSettingUp = $state(false);
   let qrCodeDataUrl = $state('');
   let secretKey = $state('');
@@ -22,8 +30,8 @@
     
     try
     {
-      // Normalde localStorage'dan token alınır: const token = localStorage.getItem('token') || '';
-      const token = "mock_session_jwt_token";
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("Oturum bulunamadı. Lütfen giriş yapın.");
       
       const res = await ApiService.setup2fa(token);
       secretKey = res.secretKey;
@@ -59,16 +67,46 @@
     
     try
     {
-      const token = "mock_session_jwt_token";
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("Oturum bulunamadı.");
+      
       await ApiService.enable2fa(verificationCode, token);
       
       is2faEnabled = true;
+      localStorage.setItem('is2faEnabled', 'true');
       isSettingUp = false;
       successMsg = "İki aşamalı doğrulama başarıyla aktifleştirildi!";
     }
     catch (err)
     {
       errorMsg = "Geçersiz kod. Lütfen tekrar deneyin.";
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
+  }
+  async function disableSetup()
+  {
+    isSubmitting = true;
+    errorMsg = '';
+    try
+    {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("Oturum bulunamadı.");
+      
+      await ApiService.disable2fa(token);
+      
+      is2faEnabled = false;
+      localStorage.removeItem('is2faEnabled');
+      qrCodeDataUrl = '';
+      secretKey = '';
+      verificationCode = '';
+      successMsg = "İki aşamalı doğrulama devre dışı bırakıldı.";
+    }
+    catch (err)
+    {
+      errorMsg = "Devre dışı bırakılamadı.";
     }
     finally
     {
@@ -162,7 +200,14 @@
           <div class="flex items-center gap-3 text-green-600 font-bold mb-6">
             <span class="text-2xl">✓</span> İki aşamalı doğrulama aktif.
           </div>
-          <button class="border border-red-200 text-red-600 font-bold py-2 px-6 rounded-full hover:bg-red-50 transition-colors">
+          <button 
+            onclick={disableSetup}
+            disabled={isSubmitting}
+            class="border border-red-200 text-red-600 font-bold py-2 px-6 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50 flex items-center justify-center"
+          >
+            {#if isSubmitting}
+              <span class="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-2"></span>
+            {/if}
             Devre Dışı Bırak
           </button>
         {/if}

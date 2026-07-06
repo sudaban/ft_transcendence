@@ -14,6 +14,10 @@
   let tempToken = $state('');
   let otpValues = $state(['', '', '', '', '', '']);
   let otpInputs: HTMLInputElement[] = [];
+  
+  let timeRemaining = $state(300); // 5 dakika
+  let timerInterval: ReturnType<typeof setInterval>;
+  let formattedTime = $derived(`${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`);
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -35,7 +39,10 @@
       if (eyeElement) eyeRect = eyeElement.getBoundingClientRect();
     };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (timerInterval) clearInterval(timerInterval);
+    };
   });
 
   function handleMouseMove(e: MouseEvent)
@@ -94,6 +101,22 @@
         // Switch to 2FA view
         tempToken = res.tempToken || '';
         is2faPending = true;
+        timeRemaining = 300; // Reset timer
+        
+        // Start countdown
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          timeRemaining--;
+          if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            // Session expired
+            is2faPending = false;
+            tempToken = '';
+            otpValues = ['', '', '', '', '', ''];
+            triggerError("Güvenlik oturumu süresi doldu. Lütfen tekrar giriş yapın.");
+          }
+        }, 1000);
+
         // Animate the transition
         gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
         await tick();
@@ -182,6 +205,7 @@
       try
       {
         const res = await ApiService.login2fa(email, code, tempToken);
+        if (timerInterval) clearInterval(timerInterval);
         localStorage.setItem('token', res.token || '');
         window.location.href = '/'; // Success
       }
@@ -304,6 +328,10 @@
               class="w-10 h-12 text-center text-xl font-bold bg-social-bg border border-social-border rounded outline-none focus:border-social-accent focus:ring-1 focus:ring-social-accent transition-all"
             >
           {/each}
+        </div>
+        
+        <div class="text-xs font-semibold px-3 py-1 rounded-full {timeRemaining < 60 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-600'}">
+          Kalan Süre: {formattedTime}
         </div>
         
         {#if isSubmitting}

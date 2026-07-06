@@ -1,12 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import gsap from 'gsap';
+  import { ApiService } from '$lib/api';
 
   let username = $state('');
   let email = $state('');
   let password = $state('');
   let confirmPassword = $state('');
   let errorMsg = $state('');
+  let isSubmitting = $state(false);
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -58,7 +60,7 @@
     return { x: dx, y: dy };
   });
 
-  function handleRegister(e: Event)
+  async function handleRegister(e: Event)
   {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword)
@@ -79,8 +81,25 @@
       triggerErrorAnimation();
       return;
     }
+    
     errorMsg = "";
-    alert("Kayıt başarılı! Db bağlı değil dümenden yapıyoruz işte...");
+    isSubmitting = true;
+    
+    try
+    {
+      const res = await ApiService.register({ username, email, password });
+      // Simulate auto-login or redirect
+      window.location.href = '/login';
+    }
+    catch (err)
+    {
+      errorMsg = "Kayıt olurken bir hata oluştu.";
+      triggerErrorAnimation();
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
   }
 
   function triggerErrorAnimation()
@@ -143,24 +162,28 @@
         type="email" 
         bind:value={email}
         placeholder="E-posta adresi" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="text" 
         bind:value={username}
         placeholder="Kullanıcı adı" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="password" 
         bind:value={password}
         placeholder="Şifre" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="password" 
         bind:value={confirmPassword}
         placeholder="Şifreyi onayla" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       
@@ -170,8 +193,12 @@
 
       <button 
         type="submit" 
-        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors"
+        disabled={isSubmitting}
+        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors flex items-center justify-center gap-2"
       >
+        {#if isSubmitting}
+          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {/if}
         Kayıt Ol
       </button>
     </form>
