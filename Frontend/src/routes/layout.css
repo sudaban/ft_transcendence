@@ -1,38 +1,38 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Minimalist Instagram-Inspired Light Palette */
-  --color-social-bg: #fafafa;         /* App Background (Soft off-white) */
-  --color-social-card: #ffffff;       /* Card/Post Background (Pure white) */
-  
-  --color-social-border: #dbdbdb;     /* Borders */
+  --color-social-bg: #fafafa;
+  --color-social-card: #ffffff;
+
+  --color-social-border: #dbdbdb;
   --color-social-border-hover: #c7c7c7;
-  
-  --color-social-primary: #000000;    /* Primary Text / Bold Icons */
-  --color-social-secondary: #737373;  /* Subtitles / Timestamps / Muted Icons */
-  --color-social-accent: #0095f6;     /* Primary Accent (Links, active states) */
+
+  --color-social-primary: #000000;
+  --color-social-secondary: #737373;
+  --color-social-accent: #0095f6;
   --color-social-accent-hover: #1877f2;
-  
-  --color-social-danger: #ed4956;     /* Likes / Errors */
-  --color-social-success: #10b981;    /* Online dots */
+
+  --color-social-danger: #ed4956;
+  --color-social-success: #10b981;
 }
 
-/* Custom minimal scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background-color: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #dbdbdb;
   border-radius: 4px;
 }
+
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #a3a3a3;
 }
 
-/* Global body resets */
 body {
   margin: 0;
   background-color: var(--color-social-bg, #fafafa);
