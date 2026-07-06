@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import gsap from 'gsap';
+  import { spring } from 'svelte/motion';
   import { ApiService } from '$lib/api';
 
   let username = $state('');
@@ -39,7 +40,7 @@
     mouseY = e.clientY;
   }
 
-  let pupilPos = $derived.by(() => {
+  let targetPos = $derived.by(() => {
     if (!eyeRect.width) return { x: 0, y: 0 };
     
     const centerX = eyeRect.left + eyeRect.width / 2;
@@ -58,6 +59,15 @@
     }
     
     return { x: dx, y: dy };
+  });
+
+  let pupilSpring = spring({ x: 0, y: 0 }, {
+    stiffness: 0.1,
+    damping: 0.4
+  });
+
+  $effect(() => {
+    pupilSpring.set(targetPos);
   });
 
   async function handleRegister(e: Event)
@@ -128,9 +138,10 @@
       <div class="relative w-16 h-16 rounded-full bg-white border-[2px] border-social-border flex items-center justify-center shadow-inner mb-2">
         <!-- Pupil -->
         <div 
-          class="w-7 h-7 bg-social-primary rounded-full relative transition-transform duration-75 ease-out"
-          style="transform: translate({pupilPos.x}px, {pupilPos.y}px);"
+          class="w-7 h-7 bg-social-primary rounded-full relative"
+          style="transform: translate({$pupilSpring.x}px, {$pupilSpring.y}px);"
         >
+          <!-- Cute Light Reflection -->
           <div class="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-90"></div>
         </div>
       </div>
