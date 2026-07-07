@@ -57,6 +57,9 @@ namespace Backend.Application.Services
             if (user == null)
                 throw new NotFoundException("Invalid email or password.");
 
+            if (user.IsBanned)
+                throw new UnAuthorizedAccessException("Your account has been banned.");
+
             if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
                 throw new UnAuthorizedAccessException("Invalid email or password.");
 

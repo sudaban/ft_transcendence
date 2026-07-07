@@ -1,3 +1,5 @@
+using Backend.Domain.Enums;
+
 namespace Backend.Domain.Entities;
 
 public class User
@@ -27,6 +29,10 @@ public class User
     public DateTime? TosAcceptedAt { get; set; }
 
     public bool IsDeleted { get; set; } = false;
+
+    public bool IsBanned { get; set; } = false;
+
+    public UserRole Role { get; set; } = UserRole.User;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
