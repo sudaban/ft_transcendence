@@ -1,1 +1,1 @@
-# No matter where you turn, your ass is behind you.
+# You can shift the perspective, but the baseline remains absolute.
