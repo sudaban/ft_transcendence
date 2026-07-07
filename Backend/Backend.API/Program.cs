@@ -36,6 +36,7 @@ builder.Services.AddScoped<IFileUploadService, Backend.Infrastructure.Services.F
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, Backend.Application.Services.Users.UserService>();
 builder.Services.AddScoped<IChatRoomService, Backend.Application.Services.ChatRoom.ChatRoomService>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddApplicationServices();
 

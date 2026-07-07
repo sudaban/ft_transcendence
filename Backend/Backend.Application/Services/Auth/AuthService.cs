@@ -5,6 +5,10 @@ using Backend.Application.Exceptions;
 using Backend.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace Backend.Application.Services
 {
@@ -14,17 +18,23 @@ namespace Backend.Application.Services
         private readonly ITokenService _tokenService;
         private readonly ITwoFactorService _twoFactorService;
         private readonly IGenericRepository<User> _userRepository;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             IUnitOfWork unitOfWork,
             ITokenService tokenService,
             ITwoFactorService twoFactorService,
-            IGenericRepository<User> userRepository)
+            IGenericRepository<User> userRepository,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _tokenService = tokenService;
             _twoFactorService = twoFactorService;
             _userRepository = userRepository;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public async Task<string> RegisterAsync(RegisterRequestDto request)
@@ -143,6 +153,127 @@ namespace Backend.Application.Services
             await _userRepository.UpdateAsync(user);
             await _unitOfWork.CommitAsync();
             return true;
+        }
+
+        public async Task<LoginResponseDto> OAuthLoginAsync(OAuthLoginRequestDto request)
+        {
+            var provider = request.Provider.ToLowerInvariant();
+            string client_id = "";
+            string client_secret = "";
+            string token_endpoint = "";
+            string user_info_endpoint = "";
+
+            if (provider == "42")
+            {
+                client_id = _configuration["OAUTH_INTRA_CLIENT_ID"] ?? "";
+                client_secret = _configuration["OAUTH_INTRA_CLIENT_SECRET"] ?? "";
+                token_endpoint = "https://api.intra.42.fr/oauth/token";
+                user_info_endpoint = "https://api.intra.42.fr/v2/me";
+            }
+            else if (provider == "google")
+            {
+                client_id = _configuration["OAUTH_GOOGLE_CLIENT_ID"] ?? "";
+                client_secret = _configuration["OAUTH_GOOGLE_CLIENT_SECRET"] ?? "";
+                token_endpoint = "https://oauth2.googleapis.com/token";
+                user_info_endpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+            }
+            else
+            {
+                throw new BadRequestException("Unsupported OAuth provider.");
+            }
+
+            var http_client = _httpClientFactory.CreateClient();
+            var dict = new Dictionary<string, string>
+            {
+                { "grant_type", "authorization_code" },
+                { "client_id", client_id },
+                { "client_secret", client_secret },
+                { "code", request.Code },
+                { "redirect_uri", request.RedirectUri }
+            };
+
+            var req = new HttpRequestMessage(HttpMethod.Post, token_endpoint)
+            {
+                Content = new FormUrlEncodedContent(dict)
+            };
+
+            var res = await http_client.SendAsync(req);
+            if (!res.IsSuccessStatusCode)
+            {
+                throw new BadRequestException("Failed to exchange OAuth code for access token.");
+            }
+
+            var token_content = await res.Content.ReadAsStringAsync();
+            using var token_doc = JsonDocument.Parse(token_content);
+            var access_token = token_doc.RootElement.GetProperty("access_token").GetString();
+
+            if (string.IsNullOrEmpty(access_token))
+            {
+                throw new BadRequestException("Access token not found in response.");
+            }
+
+            var user_info_req = new HttpRequestMessage(HttpMethod.Get, user_info_endpoint);
+            user_info_req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+
+            var user_info_res = await http_client.SendAsync(user_info_req);
+            if (!user_info_res.IsSuccessStatusCode)
+            {
+                throw new BadRequestException("Failed to retrieve user info from provider.");
+            }
+
+            var user_info_content = await user_info_res.Content.ReadAsStringAsync();
+            using var user_info_doc = JsonDocument.Parse(user_info_content);
+            string email = "";
+            string username = "";
+
+            if (provider == "42")
+            {
+                email = user_info_doc.RootElement.GetProperty("email").GetString() ?? "";
+                username = user_info_doc.RootElement.GetProperty("login").GetString() ?? "";
+            }
+            else if (provider == "google")
+            {
+                email = user_info_doc.RootElement.GetProperty("email").GetString() ?? "";
+                username = user_info_doc.RootElement.TryGetProperty("name", out var name_prop) ? name_prop.GetString() ?? "" : email.Split('@')[0];
+            }
+
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new BadRequestException("Email not found in user info.");
+            }
+
+            var users = await _userRepository.GetAllAsync();
+            var user = users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                CreatePasswordHash(Guid.NewGuid().ToString(), out string password_hash, out string password_salt);
+
+                user = new User
+                {
+                    Username = username,
+                    Email = email,
+                    PasswordHash = password_hash,
+                    PasswordSalt = password_salt
+                };
+
+                await _userRepository.AddAsync(user);
+                await _unitOfWork.CommitAsync();
+            }
+
+            if (user.IsBanned)
+            {
+                throw new UnAuthorizedAccessException("Your account has been banned.");
+            }
+
+            if (user.IsTwoFactorEnabled)
+            {
+                var temp_token = _tokenService.CreateTempToken(user);
+                return new LoginResponseDto(true, null, temp_token);
+            }
+
+            var token = _tokenService.CreateToken(user);
+            return new LoginResponseDto(false, token, null);
         }
 
         private void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)

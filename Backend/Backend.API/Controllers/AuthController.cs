@@ -32,6 +32,13 @@ namespace Backend.API.Controllers
             return Ok(response);
         }
 
+        [HttpPost("oauth/login")]
+        public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequestDto request)
+        {
+            var response = await _authService.OAuthLoginAsync(request);
+            return Ok(response);
+        }
+
         [HttpPost("2fa/setup")]
         [Authorize]
         public async Task<IActionResult> SetupTwoFactor()
