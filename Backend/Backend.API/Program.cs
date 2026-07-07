@@ -32,6 +32,10 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITwoFactorService, Backend.Infrastructure.Services.TwoFactorService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFileUploadService, Backend.Infrastructure.Services.FileUploadService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserService, Backend.Application.Services.Users.UserService>();
+builder.Services.AddScoped<IChatRoomService, Backend.Application.Services.ChatRoom.ChatRoomService>();
 
 builder.Services.AddApplicationServices();
 
@@ -95,6 +99,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
