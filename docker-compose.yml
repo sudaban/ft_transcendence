@@ -37,6 +37,10 @@ services:
       ASPNETCORE_URLS: "http://+:5000"
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
       DOTNET_EnableWriteXorExecute: "0"
+      OAUTH_INTRA_CLIENT_ID: "${OAUTH_INTRA_CLIENT_ID:-default-42-client-id}"
+      OAUTH_INTRA_CLIENT_SECRET: "${OAUTH_INTRA_CLIENT_SECRET:-default-42-client-secret}"
+      OAUTH_GOOGLE_CLIENT_ID: "${OAUTH_GOOGLE_CLIENT_ID:-default-google-client-id}"
+      OAUTH_GOOGLE_CLIENT_SECRET: "${OAUTH_GOOGLE_CLIENT_SECRET:-default-google-client-secret}"
     ports:
       - "5000:5000"
     healthcheck:
