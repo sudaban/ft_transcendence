@@ -54,8 +54,10 @@ sudo service docker start   ile docker başlat wsl de bazen daemon kapalı oluyo
 port bağlantılarında çakışmalar olabilir kontrol edilmesi gerekiyor
 
 
+wsl ile çalıştığında çakışma olabiliyor: (docker ps çıktısında OS: Linux 6.18.33.2-microsoft-standard-WSL2 görünüyor)
 
+WSL2 içindeki localhost doğrudan Windows tarayıcısına yansımayabilir.  
 
-
+tarafında 80 veya 443 portunu başka bir uygulama (IIS, Skype vs.) kullanıyor olabilir. Windows PowerShell'de netstat -ano | findstr :443 ile kontrol edebilirsiniz.
 
 
