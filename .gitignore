@@ -12,3 +12,7 @@ coverage/
 *.swo
 *~
 .env.*.local
+
+# .NET (Backend) Build folders
+**/bin/
+**/obj/
