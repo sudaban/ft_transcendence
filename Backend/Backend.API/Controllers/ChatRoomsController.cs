@@ -20,24 +20,24 @@ public class ChatRoomsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAllChatRooms()
     {
-        var chatRooms = await _chatRoomService.GetAllChatRoomsAsync();
-        return Ok(chatRooms);
+        var chat_rooms = await _chatRoomService.GetAllChatRoomsAsync();
+        return Ok(chat_rooms);
     }
 
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetChatRoomById(int id)
     {
-        var chatRoom = await _chatRoomService.GetChatRoomByIdAsync(id);
-        return Ok(chatRoom);
+        var chat_room = await _chatRoomService.GetChatRoomByIdAsync(id);
+        return Ok(chat_room);
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateChatRoom([FromBody] CreateChatRoomDto request)
     {
-        var chatRoom = await _chatRoomService.CreateChatRoomAsync(request);
-        return Ok(chatRoom);
+        var chat_room = await _chatRoomService.CreateChatRoomAsync(request);
+        return Ok(chat_room);
     }
 
     [HttpDelete("{id}")]

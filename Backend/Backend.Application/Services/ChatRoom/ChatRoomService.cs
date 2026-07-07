@@ -29,66 +29,70 @@ public class ChatRoomService : IChatRoomService
 
     public async Task<ChatRoomDto> GetChatRoomByIdAsync(int id)
     {
-        var userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
         var query = _chatRoomRepository.TableNoTracking.Where(cr => cr.Id == id);
 
-        if (!isAdmin)
+        if (!is_admin)
         {
-            query = query.Where(cr => cr.Members.Any(m => m.UserId == userId));
+            query = query.Where(cr => cr.Members.Any(m => m.UserId == user_id));
         }
 
-        var chatRoom = await query.FirstOrDefaultAsync();
-        if (chatRoom == null)
+        var chat_room = await query.FirstOrDefaultAsync();
+        if (chat_room == null)
             throw new NotFoundException($"Chat room with ID {id} not found or access denied.");
 
-        return _mapper.Map<ChatRoomDto>(chatRoom);
+        return _mapper.Map<ChatRoomDto>(chat_room);
     }
 
     public async Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync()
     {
-        var userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
         var query = _chatRoomRepository.TableNoTracking;
 
-        if (!isAdmin)
+        if (!is_admin)
         {
-            query = query.Where(cr => cr.Members.Any(m => m.UserId == userId));
+            query = query.Where(cr => cr.Members.Any(m => m.UserId == user_id));
         }
 
-        var chatRooms = await query.ToListAsync();
-        return _mapper.Map<IEnumerable<ChatRoomDto>>(chatRooms);
+        var chat_rooms = await query.ToListAsync();
+        return _mapper.Map<IEnumerable<ChatRoomDto>>(chat_rooms);
     }
 
     public async Task<ChatRoomDto> CreateChatRoomAsync(CreateChatRoomDto request)
     {
-        // Kullanıcı giriş yapmış mı kontrol ediliyor
-        var userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
 
-        var chatRoom = new Backend.Domain.Entities.ChatRoom
+        var chat_room = new Backend.Domain.Entities.ChatRoom
         {
             IsGroup = request.IsGroup,
             CreatedAt = System.DateTime.UtcNow
         };
 
-        await _chatRoomRepository.AddAsync(chatRoom);
+        chat_room.Members.Add(new ChatRoomMember
+        {
+            UserId = user_id,
+            JoinedAt = System.DateTime.UtcNow
+        });
+
+        await _chatRoomRepository.AddAsync(chat_room);
         await _unitOfWork.CommitAsync();
 
-        return _mapper.Map<ChatRoomDto>(chatRoom);
+        return _mapper.Map<ChatRoomDto>(chat_room);
     }
 
     public async Task DeleteChatRoomAsync(int id)
     {
-        // Kullanıcı giriş yapmış mı kontrol ediliyor
-        var userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
 
-        var chatRoom = await _chatRoomRepository.GetByIdAsync(id);
-        if (chatRoom == null)
+        var chat_room = await _chatRoomRepository.GetByIdAsync(id);
+        if (chat_room == null)
             throw new NotFoundException($"ChatRoom with ID {id} not found.");
 
-        await _chatRoomRepository.DeleteAsync(chatRoom);
+        await _chatRoomRepository.DeleteAsync(chat_room);
         await _unitOfWork.CommitAsync();
     }
 }

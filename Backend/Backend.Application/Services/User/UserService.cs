@@ -30,10 +30,10 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        var isAdmin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
         var query = _userRepository.TableNoTracking;
 
-        if (isAdmin)
+        if (is_admin)
         {
             query = query.IgnoreQueryFilters();
         }
@@ -44,10 +44,10 @@ public class UserService : IUserService
 
     public async Task<UserDto> GetUserByIdAsync(int id)
     {
-        var isAdmin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
         var query = _userRepository.TableNoTracking.Where(u => u.Id == id);
 
-        if (isAdmin)
+        if (is_admin)
         {
             query = query.IgnoreQueryFilters();
         }
@@ -61,10 +61,10 @@ public class UserService : IUserService
 
     public async Task<UserDto> GetUserByUsernameAsync(string username)
     {
-        var isAdmin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
         var query = _userRepository.TableNoTracking.Where(u => u.Username == username);
 
-        if (isAdmin)
+        if (is_admin)
         {
             query = query.IgnoreQueryFilters();
         }
@@ -79,10 +79,10 @@ public class UserService : IUserService
 
     public async Task<DatabaseUserDto> GetDatabaseUserByIdAsync(int id)
     {
-        var isAdmin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
         var query = _userRepository.TableNoTracking.Where(u => u.Id == id);
 
-        if (isAdmin)
+        if (is_admin)
         {
             query = query.IgnoreQueryFilters();
         }
@@ -96,10 +96,10 @@ public class UserService : IUserService
 
     public async Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request)
     {
-        int userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var user = await _userRepository.GetByIdAsync(userId);
+        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user = await _userRepository.GetByIdAsync(user_id);
         if (user == null)
-            throw new NotFoundException($"User with ID {userId} not found.");
+            throw new NotFoundException($"User with ID {user_id} not found.");
 
         if (request.FullName != null) user.FullName = request.FullName;
         if (request.Bio != null) user.Bio = request.Bio;
@@ -113,12 +113,11 @@ public class UserService : IUserService
 
     public async Task DeleteUserAsync()
     {
-        int userId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var user = await _userRepository.GetByIdAsync(userId);
+        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user = await _userRepository.GetByIdAsync(user_id);
         if (user == null)
-            throw new NotFoundException($"User with ID {userId} not found.");
+            throw new NotFoundException($"User with ID {user_id} not found.");
 
-        // Soft delete
         user.IsDeleted = true;
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync();
@@ -128,12 +127,12 @@ public class UserService : IUserService
     {
         _httpContextAccessor.HttpContext!.User.CheckIfAdmin();
 
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
-        if (targetUser == null)
+        var target_user = await _userRepository.GetByIdAsync(targetUserId);
+        if (target_user == null)
             throw new NotFoundException($"User with ID {targetUserId} not found.");
 
-        targetUser.IsDeleted = true;
-        await _userRepository.UpdateAsync(targetUser);
+        target_user.IsDeleted = true;
+        await _userRepository.UpdateAsync(target_user);
         await _unitOfWork.CommitAsync();
     }
 
@@ -141,12 +140,12 @@ public class UserService : IUserService
     {
         _httpContextAccessor.HttpContext!.User.CheckIfAdmin();
 
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
-        if (targetUser == null)
+        var target_user = await _userRepository.GetByIdAsync(targetUserId);
+        if (target_user == null)
             throw new NotFoundException($"User with ID {targetUserId} not found.");
 
-        targetUser.IsBanned = isBanned;
-        await _userRepository.UpdateAsync(targetUser);
+        target_user.IsBanned = isBanned;
+        await _userRepository.UpdateAsync(target_user);
         await _unitOfWork.CommitAsync();
     }
 }

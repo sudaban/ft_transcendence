@@ -11,11 +11,10 @@ public class FileUploadService : IFileUploadService
 {
     private readonly string _uploadDirectory;
     private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
-    private readonly long _maxFileSize = 5 * 1024 * 1024; // 5 MB
+    private readonly long _maxFileSize = 5 * 1024 * 1024;
 
     public FileUploadService(IConfiguration configuration)
     {
-        // "Uploads" is a folder under wwwroot in the API project
         _uploadDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
         
         if (!Directory.Exists(_uploadDirectory))
@@ -42,28 +41,27 @@ public class FileUploadService : IFileUploadService
             throw new InvalidOperationException("Unsupported file type.");
         }
 
-        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(_uploadDirectory, uniqueFileName);
+        var unique_file_name = $"{Guid.NewGuid()}{extension}";
+        var file_path = Path.Combine(_uploadDirectory, unique_file_name);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        using (var stream = new FileStream(file_path, FileMode.Create))
         {
             await fileStream.CopyToAsync(stream);
         }
 
-        // Return relative path to access via HTTP
-        return $"/uploads/{uniqueFileName}";
+        return $"/uploads/{unique_file_name}";
     }
 
     public bool DeleteFile(string fileUrl)
     {
         if (string.IsNullOrEmpty(fileUrl)) return false;
 
-        var fileName = Path.GetFileName(fileUrl);
-        var filePath = Path.Combine(_uploadDirectory, fileName);
+        var file_name = Path.GetFileName(fileUrl);
+        var file_path = Path.Combine(_uploadDirectory, file_name);
 
-        if (File.Exists(filePath))
+        if (File.Exists(file_path))
         {
-            File.Delete(filePath);
+            File.Delete(file_path);
             return true;
         }
 

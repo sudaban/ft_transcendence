@@ -8,12 +8,12 @@ public static class ClaimsPrincipalExtensions
 {
     public static int GetCurrentUserId(this ClaimsPrincipal principal)
     {
-        var userIdString = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+        var user_id_string = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(user_id_string) || !int.TryParse(user_id_string, out var user_id))
         {
             throw new UnAuthorizedAccessException("No logged-in user found.");
         }
-        return userId;
+        return user_id;
     }
 
     public static void CheckIfAdmin(this ClaimsPrincipal principal)
@@ -26,7 +26,7 @@ public static class ClaimsPrincipalExtensions
 
     public static bool IsAdmin(this ClaimsPrincipal principal)
     {
-        var roleString = principal?.FindFirst(ClaimTypes.Role)?.Value;
-        return roleString == UserRole.Admin.ToString();
+        var role_string = principal?.FindFirst(ClaimTypes.Role)?.Value;
+        return role_string == UserRole.Admin.ToString();
     }
 }
