@@ -91,6 +91,42 @@ Validates email/password credentials and checks 2FA requirements.
 
 ---
 
+### 2b. OAuth 2.0 Remote Login (OAuth Login)
+Authenticates or registers a user via an external OAuth provider (42 or Google).
+
+* **HTTP Method**: `POST`
+* **Path**: `/api/auth/oauth/login`
+* **Authorization**: None (Public)
+
+**Request Body**:
+```json
+{
+  "provider": "42",
+  "code": "AUTH_CODE_FROM_PROVIDER",
+  "redirectUri": "https://localhost/auth/callback"
+}
+```
+
+**Response - Scenario A (2FA Disabled / Registered successfully)**:
+```json
+{
+  "requiresTwoFactor": false,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tempToken": null
+}
+```
+
+**Response - Scenario B (2FA Enabled)**:
+```json
+{
+  "requiresTwoFactor": true,
+  "token": null,
+  "tempToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+---
+
 ### 3. Second-Factor Verification (2FA Login)
 Validates the TOTP code against the temporary token generated during step 1.
 
