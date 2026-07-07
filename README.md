@@ -1,1 +1,1 @@
-# Fake it until you make it.
+# You can shift the perspective, but the baseline remains absolute.
