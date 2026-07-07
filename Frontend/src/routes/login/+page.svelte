@@ -3,6 +3,7 @@
   import gsap from 'gsap';
   import { spring } from 'svelte/motion';
   import { ApiService } from '$lib/api';
+  import { authStore } from '$lib/stores/auth.svelte';
 
   // State
   let email = $state('');
@@ -134,8 +135,10 @@
       }
       else
       {
-        localStorage.setItem('token', res.token || '');
-        window.location.href = '/'; // redirect to home
+        authStore.login(res.token || '');
+        // goto('/') is handled by authStore if it redirects, but authStore doesn't redirect on login.
+        // Wait, init() just sets state. We should redirect explicitly.
+        window.location.href = '/'; 
       }
     }
     catch (err)
@@ -216,7 +219,7 @@
       {
         const res = await ApiService.login2fa(email, code, tempToken);
         if (timerInterval) clearInterval(timerInterval);
-        localStorage.setItem('token', res.token || '');
+        authStore.login(res.token || '');
         window.location.href = '/'; // Success
       }
       catch (err)

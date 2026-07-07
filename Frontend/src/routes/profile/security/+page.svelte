@@ -4,6 +4,7 @@
   import { ApiService } from '$lib/api';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
+  import { authStore } from '$lib/stores/auth.svelte';
 
   let is2faEnabled = $state(false);
 
@@ -30,7 +31,7 @@
     
     try
     {
-      const token = localStorage.getItem('token');
+      const token = authStore.token;
       if (!token) throw new Error("Oturum bulunamadı. Lütfen giriş yapın.");
       
       const res = await ApiService.setup2fa(token);
@@ -67,7 +68,7 @@
     
     try
     {
-      const token = localStorage.getItem('token');
+      const token = authStore.token;
       if (!token) throw new Error("Oturum bulunamadı.");
       
       await ApiService.enable2fa(verificationCode, token);
@@ -92,7 +93,7 @@
     errorMsg = '';
     try
     {
-      const token = localStorage.getItem('token');
+      const token = authStore.token;
       if (!token) throw new Error("Oturum bulunamadı.");
       
       await ApiService.disable2fa(token);
