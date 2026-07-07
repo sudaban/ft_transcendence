@@ -1,10 +1,12 @@
-﻿using Backend.Domain.Entities;
+using Backend.Domain.Entities;
 using AutoMapper;
 using Backend.Application.DTOs.Responses.Users;
 using Backend.Application.DTOs.Requests.Auth;
 using Backend.Application.DTOs.Requests.Posts;
 using Backend.Application.DTOs.Requests.Users;
 using Backend.Application.DTOs.Responses.Posts;
+using Backend.Application.DTOs.Responses.ChatRooms;
+using Backend.Application.DTOs.Requests.ChatRooms;
 
 namespace Backend.Application.Profiles
 {
@@ -19,6 +21,7 @@ namespace Backend.Application.Profiles
 
             CreateMap<CreatePostRequestDto, Post>();
             CreateMap<UpdateProfileRequestDto, User>();
+            CreateMap<CreateChatRoomDto, ChatRoom>();
 
             // Dışarıya Gönderilecek Temel Veriler
             CreateMap<User, UserDto>()
@@ -31,6 +34,8 @@ namespace Backend.Application.Profiles
                 .ForCtorParam("LikesCount", opt => opt.MapFrom(src => src.Likes.Count()))
                 .ForCtorParam("RepliesCount", opt => opt.MapFrom(src => src.Comments.Count()))
                 .ForCtorParam("RepostsCount", opt => opt.MapFrom(src => src.SavedByUsers.Count()));
+
+            CreateMap<ChatRoom, ChatRoomDto>();
 
             // ==========================================
             //        Detaylı Veritabanı Verileri
