@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import gsap from 'gsap';
+  import { spring } from 'svelte/motion';
   import { ApiService } from '$lib/api';
+  import { authStore } from '$lib/stores/auth.svelte';
 
   // State
   let email = $state('');
@@ -14,6 +16,10 @@
   let tempToken = $state('');
   let otpValues = $state(['', '', '', '', '', '']);
   let otpInputs: HTMLInputElement[] = [];
+  
+  let timeRemaining = $state(300); // 5 dakika
+  let timerInterval: ReturnType<typeof setInterval>;
+  let formattedTime = $derived(`${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`);
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -35,7 +41,10 @@
       if (eyeElement) eyeRect = eyeElement.getBoundingClientRect();
     };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (timerInterval) clearInterval(timerInterval);
+    };
   });
 
   function handleMouseMove(e: MouseEvent)
@@ -44,7 +53,7 @@
     mouseY = e.clientY;
   }
 
-  let pupilPos = $derived.by(() => {
+  let targetPos = $derived.by(() => {
     if (!eyeRect.width) return { x: 0, y: 0 };
     
     const centerX = eyeRect.left + eyeRect.width / 2;
@@ -63,6 +72,15 @@
     }
     
     return { x: dx, y: dy };
+  });
+
+  let pupilSpring = spring({ x: 0, y: 0 }, {
+    stiffness: 0.1,
+    damping: 0.4
+  });
+
+  $effect(() => {
+    pupilSpring.set(targetPos);
   });
 
   function triggerError(msg: string)
@@ -94,6 +112,22 @@
         // Switch to 2FA view
         tempToken = res.tempToken || '';
         is2faPending = true;
+        timeRemaining = 300; // Reset timer
+        
+        // Start countdown
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          timeRemaining--;
+          if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            // Session expired
+            is2faPending = false;
+            tempToken = '';
+            otpValues = ['', '', '', '', '', ''];
+            triggerError("Güvenlik oturumu süresi doldu. Lütfen tekrar giriş yapın.");
+          }
+        }, 1000);
+
         // Animate the transition
         gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
         await tick();
@@ -101,8 +135,10 @@
       }
       else
       {
-        localStorage.setItem('token', res.token || '');
-        window.location.href = '/'; // redirect to home
+        authStore.login(res.token || '');
+        // goto('/') is handled by authStore if it redirects, but authStore doesn't redirect on login.
+        // Wait, init() just sets state. We should redirect explicitly.
+        window.location.href = '/'; 
       }
     }
     catch (err)
@@ -182,7 +218,8 @@
       try
       {
         const res = await ApiService.login2fa(email, code, tempToken);
-        localStorage.setItem('token', res.token || '');
+        if (timerInterval) clearInterval(timerInterval);
+        authStore.login(res.token || '');
         window.location.href = '/'; // Success
       }
       catch (err)
@@ -218,8 +255,8 @@
       <div class="relative w-16 h-16 rounded-full bg-white border-[2px] border-social-border flex items-center justify-center shadow-inner mb-2">
         <!-- Pupil -->
         <div 
-          class="w-7 h-7 bg-social-primary rounded-full relative transition-transform duration-75 ease-out"
-          style="transform: translate({pupilPos.x}px, {pupilPos.y}px);"
+          class="w-7 h-7 bg-social-primary rounded-full relative"
+          style="transform: translate({$pupilSpring.x}px, {$pupilSpring.y}px);"
         >
           <!-- Cute Light Reflection -->
           <div class="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-90"></div>
@@ -304,6 +341,10 @@
               class="w-10 h-12 text-center text-xl font-bold bg-social-bg border border-social-border rounded outline-none focus:border-social-accent focus:ring-1 focus:ring-social-accent transition-all"
             >
           {/each}
+        </div>
+        
+        <div class="text-xs font-semibold px-3 py-1 rounded-full {timeRemaining < 60 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-600'}">
+          Kalan Süre: {formattedTime}
         </div>
         
         {#if isSubmitting}

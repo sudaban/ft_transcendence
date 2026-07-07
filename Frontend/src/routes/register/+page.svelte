@@ -1,12 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import gsap from 'gsap';
+  import { spring } from 'svelte/motion';
+  import { ApiService } from '$lib/api';
 
   let username = $state('');
   let email = $state('');
   let password = $state('');
   let confirmPassword = $state('');
   let errorMsg = $state('');
+  let isSubmitting = $state(false);
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -37,7 +40,7 @@
     mouseY = e.clientY;
   }
 
-  let pupilPos = $derived.by(() => {
+  let targetPos = $derived.by(() => {
     if (!eyeRect.width) return { x: 0, y: 0 };
     
     const centerX = eyeRect.left + eyeRect.width / 2;
@@ -58,7 +61,16 @@
     return { x: dx, y: dy };
   });
 
-  function handleRegister(e: Event)
+  let pupilSpring = spring({ x: 0, y: 0 }, {
+    stiffness: 0.1,
+    damping: 0.4
+  });
+
+  $effect(() => {
+    pupilSpring.set(targetPos);
+  });
+
+  async function handleRegister(e: Event)
   {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword)
@@ -79,8 +91,25 @@
       triggerErrorAnimation();
       return;
     }
+    
     errorMsg = "";
-    alert("Kayıt başarılı! Db bağlı değil dümenden yapıyoruz işte...");
+    isSubmitting = true;
+    
+    try
+    {
+      const res = await ApiService.register({ username, email, password });
+      // Simulate auto-login or redirect
+      window.location.href = '/login';
+    }
+    catch (err)
+    {
+      errorMsg = "Kayıt olurken bir hata oluştu.";
+      triggerErrorAnimation();
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
   }
 
   function triggerErrorAnimation()
@@ -109,9 +138,10 @@
       <div class="relative w-16 h-16 rounded-full bg-white border-[2px] border-social-border flex items-center justify-center shadow-inner mb-2">
         <!-- Pupil -->
         <div 
-          class="w-7 h-7 bg-social-primary rounded-full relative transition-transform duration-75 ease-out"
-          style="transform: translate({pupilPos.x}px, {pupilPos.y}px);"
+          class="w-7 h-7 bg-social-primary rounded-full relative"
+          style="transform: translate({$pupilSpring.x}px, {$pupilSpring.y}px);"
         >
+          <!-- Cute Light Reflection -->
           <div class="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-90"></div>
         </div>
       </div>
@@ -143,24 +173,28 @@
         type="email" 
         bind:value={email}
         placeholder="E-posta adresi" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="text" 
         bind:value={username}
         placeholder="Kullanıcı adı" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="password" 
         bind:value={password}
         placeholder="Şifre" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       <input 
         type="password" 
         bind:value={confirmPassword}
         placeholder="Şifreyi onayla" 
+        disabled={isSubmitting}
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       
@@ -170,8 +204,12 @@
 
       <button 
         type="submit" 
-        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors"
+        disabled={isSubmitting}
+        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors flex items-center justify-center gap-2"
       >
+        {#if isSubmitting}
+          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {/if}
         Kayıt Ol
       </button>
     </form>
