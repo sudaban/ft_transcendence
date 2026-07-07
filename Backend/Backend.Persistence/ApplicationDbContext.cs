@@ -20,7 +20,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserBlock> UserBlocks { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
     public DbSet<SavedPost> SavedPosts { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +29,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
+            entity.HasQueryFilter(u => !u.IsDeleted);
         });
 
         // 2. Post Yapılandırması
@@ -160,20 +160,5 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // 10. Notification (Bildirim) İlişkileri
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasKey(n => n.Id);
-
-            entity.HasOne(n => n.User)
-                .WithMany()
-                .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Kullanıcı silinirse bildirimleri de silinsin
-
-            entity.HasOne(n => n.Actor)
-                .WithMany()
-                .HasForeignKey(n => n.ActorId)
-                .OnDelete(DeleteBehavior.Restrict); // Olayı tetikleyen silindiğinde kısıtlama
-        });
     }
 }
