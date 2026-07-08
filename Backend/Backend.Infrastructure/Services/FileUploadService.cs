@@ -10,8 +10,8 @@ namespace Backend.Infrastructure.Services;
 public class FileUploadService : IFileUploadService
 {
     private readonly string _uploadDirectory;
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
-    private readonly long _maxFileSize = 5 * 1024 * 1024;
+    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".mp4" };
+    private readonly long _maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     public FileUploadService(IConfiguration configuration)
     {
@@ -32,7 +32,7 @@ public class FileUploadService : IFileUploadService
 
         if (fileStream.Length > _maxFileSize)
         {
-            throw new InvalidOperationException($"File size exceeds the limit of 5 MB.");
+            throw new InvalidOperationException($"File size exceeds the limit of 10 MB.");
         }
 
         var extension = Path.GetExtension(fileName).ToLowerInvariant();

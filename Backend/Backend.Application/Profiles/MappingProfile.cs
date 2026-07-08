@@ -30,10 +30,9 @@ namespace Backend.Application.Profiles
                 .ForCtorParam("Avatar", opt => opt.MapFrom(src => src.ProfilePictureUrl ?? ""));
             
             CreateMap<Post, PostDto>()
-                .ForCtorParam("Id", opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForCtorParam("LikesCount", opt => opt.MapFrom(src => src.Likes.Count()))
-                .ForCtorParam("RepliesCount", opt => opt.MapFrom(src => src.Comments.Count()))
-                .ForCtorParam("RepostsCount", opt => opt.MapFrom(src => src.SavedByUsers.Count()));
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.LikesCount, opt => opt.MapFrom(src => src.Likes.Count))
+                .ForMember(dest => dest.CommentsCount, opt => opt.MapFrom(src => src.Comments.Count));
 
             CreateMap<ChatRoom, ChatRoomDto>();
 
