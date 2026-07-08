@@ -4,7 +4,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package.json package-lock.json* ./
+COPY package.json ./
 RUN npm install
 
 # Copy the rest of the application code
@@ -18,3 +18,4 @@ EXPOSE 3000
 
 # Start the built app
 CMD ["node", "build/index.js"]
+
