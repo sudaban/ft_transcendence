@@ -10,7 +10,6 @@ public interface IUserService
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<UserDto> GetUserByIdAsync(int id);
     Task<UserDto> GetUserByUsernameAsync(string username);
-    Task<DatabaseUserDto> GetDatabaseUserByIdAsync(int id);
     Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request);
     Task DeleteUserAsync();
     

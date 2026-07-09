@@ -10,5 +10,6 @@ public record UserDto
     string? Bio,
     int FollowersCount,
     int FollowingCount,
-    int PostsCount
+    int PostsCount,
+    bool IsTwoFactorEnabled
 );
