@@ -67,10 +67,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.DisableConstructorMapping();
-}, typeof(MappingProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
 builder.Services.AddCors(options =>
 {
