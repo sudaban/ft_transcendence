@@ -88,31 +88,6 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
 
-    public async Task<DatabaseUserDto> GetDatabaseUserByIdAsync(int id)
-    {
-        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
-        IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
-            .Include(u => u.FollowedBy)
-            .Include(u => u.Following)
-            .Include(u => u.BlockedUsers)
-            .Include(u => u.LikedPosts)
-            .Include(u => u.SavedPosts)
-            .Include(u => u.Comments)
-            .Include(u => u.ChatRoomMemberships)
-            .Include(u => u.Posts)
-            .Where(u => u.Id == id);
-
-        if (is_admin)
-        {
-            query = query.IgnoreQueryFilters();
-        }
-
-        var user = await query.FirstOrDefaultAsync();
-        if (user == null)
-            throw new NotFoundException($"User with ID {id} not found.");
-
-        return _mapper.Map<DatabaseUserDto>(user);
-    }
 
     public async Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request)
     {
