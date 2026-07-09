@@ -33,17 +33,23 @@ export interface DatabasePost {
 export interface UserDTO {
   id: string;
   username: string;
-  handle: string; // @username şeklinde yapmıştım ama siz bilirsiniz
-  avatar: string; // resim URL'si için
+  handle: string;
+  avatar: string;
+  fullName?: string;
+  bio?: string;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
 }
 
 export interface PostDTO {
-  id: string;
+  id: number;
   author: UserDTO;
-  content: string;
+  imageUrl: string;
+  content?: string;
+  viewsCount: number;
+  isVideo: boolean;
   createdAt: string;
   likesCount: number;
-  repostsCount: number; // kaydedilenler veya paylaşılanlar mantığı için
-  repliesCount: number;
-  viewsCount: number;
+  commentsCount: number;
 }
