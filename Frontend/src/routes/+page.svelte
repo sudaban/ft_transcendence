@@ -139,16 +139,16 @@
         <article class="p-4 border-b border-social-border flex gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
           <!-- Left Avatar -->
           <div class="shrink-0">
-            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm">
+            <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity">
               {post.author.avatar}
-            </div>
+            </a>
           </div>
           
           <!-- Right Content -->
           <div class="flex-1 flex flex-col">
             <!-- Header -->
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="font-bold text-[15px] hover:underline truncate">{post.author.username}</span>
+              <a href="/profile/{post.author.username}" class="font-bold text-[15px] hover:underline truncate">{post.author.username}</a>
               <span class="text-social-secondary text-[15px] truncate">{post.author.handle}</span>
               <span class="text-social-secondary text-[15px]">·</span>
               <span class="text-social-secondary text-[15px] hover:underline">{post.createdAt}</span>
@@ -209,17 +209,17 @@
         {#each suggestions as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm">
+              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80">
                 {user.avatar}
-              </div>
+              </a>
               <div class="flex flex-col">
-                <span class="font-bold text-[15px] hover:underline">{user.username}</span>
+                <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>
                 <span class="text-social-secondary text-[15px]">{user.handle}</span>
               </div>
             </div>
-            <button class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
-              Follow
-            </button>
+            <a href="/profile/{user.username}" class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
+              Profil
+            </a>
           </div>
         {/each}
       {/if}

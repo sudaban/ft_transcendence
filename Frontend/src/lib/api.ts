@@ -131,5 +131,42 @@ export const ApiService = {
     });
     if (!res.ok) throw new Error("Failed to update profile");
     return res.json();
+  },
+
+  getUserByUsername: async (username: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/users/username/${username}`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch user by username");
+    return res.json();
+  },
+
+  // FOLLOW endpoints
+  followUser: async (targetUserId: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/follows/${targetUserId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to follow user");
+    return res.json();
+  },
+
+  unfollowUser: async (targetUserId: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/follows/${targetUserId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to unfollow user");
+    return res.json();
+  },
+
+  getFollowing: async (userId: string, token: string): Promise<UserDTO[]> => {
+    const res = await fetch(`http://localhost:5000/api/follows/${userId}/following`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch following");
+    return res.json();
   }
 };
