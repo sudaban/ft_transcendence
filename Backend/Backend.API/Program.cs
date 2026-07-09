@@ -1,4 +1,5 @@
 using Backend.API.Middlewares;
+using Backend.API.Extensions;
 using Backend.Application.Abstractions;
 using Backend.Application.Profiles;
 using Backend.Application.Services;
@@ -37,6 +38,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, Backend.Application.Services.Users.UserService>();
 builder.Services.AddScoped<IChatRoomService, Backend.Application.Services.ChatRoom.ChatRoomService>();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IUserBlockService, Backend.Application.Services.Users.UserBlockService>();
+builder.Services.AddScoped<IFollowService, Backend.Application.Services.Users.FollowService>();
+builder.Services.AddScoped<IPostService, Backend.Application.Services.Posts.PostService>();
 
 builder.Services.AddApplicationServices();
 
@@ -80,7 +84,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerDocumentation();
 
 var app = builder.Build();
 

@@ -31,7 +31,10 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
         var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
-        var query = _userRepository.TableNoTracking;
+        IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts);
 
         if (is_admin)
         {
@@ -45,7 +48,11 @@ public class UserService : IUserService
     public async Task<UserDto> GetUserByIdAsync(int id)
     {
         var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
-        var query = _userRepository.TableNoTracking.Where(u => u.Id == id);
+        IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
+            .Where(u => u.Id == id);
 
         if (is_admin)
         {
@@ -62,7 +69,11 @@ public class UserService : IUserService
     public async Task<UserDto> GetUserByUsernameAsync(string username)
     {
         var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
-        var query = _userRepository.TableNoTracking.Where(u => u.Username == username);
+        IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
+            .Where(u => u.Username == username);
 
         if (is_admin)
         {
@@ -80,7 +91,16 @@ public class UserService : IUserService
     public async Task<DatabaseUserDto> GetDatabaseUserByIdAsync(int id)
     {
         var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
-        var query = _userRepository.TableNoTracking.Where(u => u.Id == id);
+        IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.BlockedUsers)
+            .Include(u => u.LikedPosts)
+            .Include(u => u.SavedPosts)
+            .Include(u => u.Comments)
+            .Include(u => u.ChatRoomMemberships)
+            .Include(u => u.Posts)
+            .Where(u => u.Id == id);
 
         if (is_admin)
         {
@@ -97,7 +117,11 @@ public class UserService : IUserService
     public async Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request)
     {
         int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var user = await _userRepository.GetByIdAsync(user_id);
+        var user = await _userRepository.Table
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
+            .FirstOrDefaultAsync(u => u.Id == user_id);
         if (user == null)
             throw new NotFoundException($"User with ID {user_id} not found.");
 

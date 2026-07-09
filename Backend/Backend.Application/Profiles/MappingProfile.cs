@@ -27,13 +27,17 @@ namespace Backend.Application.Profiles
             CreateMap<User, UserDto>()
                 .ForCtorParam("Id", opt => opt.MapFrom(src => src.Id.ToString()))
                 .ForCtorParam("Handle", opt => opt.MapFrom(src => $"@{src.Username}"))
-                .ForCtorParam("Avatar", opt => opt.MapFrom(src => src.ProfilePictureUrl ?? ""));
+                .ForCtorParam("Avatar", opt => opt.MapFrom(src => src.ProfilePictureUrl ?? ""))
+                .ForCtorParam("FullName", opt => opt.MapFrom(src => src.FullName))
+                .ForCtorParam("Bio", opt => opt.MapFrom(src => src.Bio))
+                .ForCtorParam("FollowersCount", opt => opt.MapFrom(src => src.FollowedBy.Count))
+                .ForCtorParam("FollowingCount", opt => opt.MapFrom(src => src.Following.Count))
+                .ForCtorParam("PostsCount", opt => opt.MapFrom(src => src.Posts.Count));
             
             CreateMap<Post, PostDto>()
-                .ForCtorParam("Id", opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForCtorParam("LikesCount", opt => opt.MapFrom(src => src.Likes.Count()))
-                .ForCtorParam("RepliesCount", opt => opt.MapFrom(src => src.Comments.Count()))
-                .ForCtorParam("RepostsCount", opt => opt.MapFrom(src => src.SavedByUsers.Count()));
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.LikesCount, opt => opt.MapFrom(src => src.Likes.Count))
+                .ForMember(dest => dest.CommentsCount, opt => opt.MapFrom(src => src.Comments.Count));
 
             CreateMap<ChatRoom, ChatRoomDto>();
 
