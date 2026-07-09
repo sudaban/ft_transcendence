@@ -173,9 +173,6 @@
         <button onclick={openEditModal} class="w-full bg-slate-900 text-white text-xs font-semibold tracking-wide uppercase py-3 rounded-xl hover:bg-black transition-colors shadow-sm">
           Edit Settings
         </button>
-        <button class="w-full bg-slate-50 text-slate-500 text-xs font-medium py-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-colors border border-slate-200/40">
-          View Archive
-        </button>
       </div>
 
     </section>
