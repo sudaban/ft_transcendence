@@ -88,60 +88,83 @@ export const ApiService = {
   // AUTHENTICATION ve 2FA endpointleri
 
   register: async (data: any) => {
-    const res = await fetch('http://localhost:5000/api/auth/register', { 
-      method: 'POST', 
-      body: JSON.stringify(data), 
-      headers: {'Content-Type': 'application/json'} 
+    const res = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error("Registration failed");
     return res.json();
   },
 
   login: async (email: string, password: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
-    const res = await fetch('http://localhost:5000/api/auth/login', { 
-      method: 'POST', 
-      body: JSON.stringify({email, password}), 
-      headers: {'Content-Type': 'application/json'} 
+    const res = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+      headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error("Login failed");
     return res.json();
   },
 
   login2fa: async (email: string, code: string, tempToken: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/2fa/login', { 
-      method: 'POST', 
-      body: JSON.stringify({email, code, tempToken}), 
-      headers: {'Content-Type': 'application/json'} 
+    const res = await fetch('http://localhost:5000/api/auth/2fa/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, tempToken }),
+      headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error("Invalid 2FA Code");
     return res.json();
   },
 
   setup2fa: async (token: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/2fa/setup', { 
-      method: 'POST', 
-      headers: {'Authorization': `Bearer ${token}`} 
+    const res = await fetch('http://localhost:5000/api/auth/2fa/setup', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Setup failed");
     return res.json();
   },
 
   enable2fa: async (code: string, token: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/2fa/enable', { 
-      method: 'POST', 
-      body: JSON.stringify({code}), 
-      headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`} 
+    const res = await fetch('http://localhost:5000/api/auth/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Invalid code");
     return res.json();
   },
 
   disable2fa: async (token: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/2fa/disable', { 
-      method: 'POST', 
-      headers: {'Authorization': `Bearer ${token}`} 
+    const res = await fetch('http://localhost:5000/api/auth/2fa/disable', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Disable failed");
+    return res.json();
+  },
+
+  // USER endpoints
+  getUserById: async (id: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+      method: 'GET',
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+    if (!res.ok) throw new Error("Failed to fetch user");
+    return res.json();
+  },
+
+  updateProfile: async (data: { FullName?: string; Bio?: string; ProfilePictureUrl?: string; }, token: string) => {
+    const res = await fetch('http://localhost:5000/api/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) throw new Error("Failed to update profile");
     return res.json();
   }
 };
