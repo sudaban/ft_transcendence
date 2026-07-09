@@ -4,8 +4,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm install --prefer-offline --no-audit --no-fund --maxsockets=5
 
 # Copy the rest of the application code
 COPY . .

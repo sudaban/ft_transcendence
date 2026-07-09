@@ -60,4 +60,11 @@ WSL2 içindeki localhost doğrudan Windows tarayıcısına yansımayabilir.
 
 tarafında 80 veya 443 portunu başka bir uygulama (IIS, Skype vs.) kullanıyor olabilir. Windows PowerShell'de netstat -ano | findstr :443 ile kontrol edebilirsiniz.
 
+package-lock.json kopyalanması	Versiyon çözümleme isteklerini tamamen ortadan kaldırır
+--no-audit	npm audit HTTP isteklerini atlar (güvenlik taraması)
+--no-fund	Funding bilgisi isteklerini atlar
+--prefer-offline	Önce local cache'e bakar, bulamazsa internete gider
+--maxsockets=5	Paralel bağlantıları sınırlar (WSL2 DNS'inin boğulmasını engeller)
 
+Container → Docker Bridge → WSL2 VM NAT → Windows Host → İnternet
+Bu her HTTP isteğine ekstra ~50-100ms latency ekliyor. 200 paket × 50ms = +10 saniye sadece latency'den. Paket çözümleme istekleri ile bu katlanıyor.
