@@ -69,7 +69,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAutoMapper(cfg =>
 {
-    // cfg.DisableConstructorMapping();
+    cfg.DisableConstructorMapping();
 }, typeof(MappingProfile).Assembly);
 
 builder.Services.AddCors(options =>
