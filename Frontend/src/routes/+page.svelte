@@ -210,7 +210,7 @@
             
             {#if post.imageUrl}
               <div class="mb-3 rounded-2xl overflow-hidden border border-social-border">
-                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
+                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : '${API_BASE_URL}' + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
               </div>
             {/if}
             

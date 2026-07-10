@@ -42,7 +42,7 @@
       <!-- Left: Image -->
       <div class="w-full md:w-[60%] bg-black flex items-center justify-center">
         {#if post.imageUrl}
-          <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
+          <img src={post.imageUrl.startsWith('http') ? post.imageUrl : '${API_BASE_URL}' + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
         {:else}
           <div class="text-white/50 text-sm">Resim yok</div>
         {/if}

@@ -26,7 +26,7 @@
       chatRooms = await ApiService.getChatRooms(authStore.token);
       
       hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/chathub", {
+        .withUrl(`${API_BASE_URL}/chathub`, {
           accessTokenFactory: () => authStore.token || ''
         })
         .withAutomaticReconnect()
