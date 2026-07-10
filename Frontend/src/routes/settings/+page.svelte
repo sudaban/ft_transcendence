@@ -15,6 +15,23 @@
   let verifyCode = $state('');
   let isVerifying = $state(false);
   let setupMode = $state(false);
+  let is2faEnabled = $state(false);
+  let isFetchingStatus = $state(true);
+
+  onMount(async () => {
+    if (authStore.isAuthenticated && authStore.user && authStore.token) {
+      try {
+        const user = await ApiService.getUserById(authStore.user.id, authStore.token);
+        is2faEnabled = user.isTwoFactorEnabled;
+      } catch (err) {
+        console.error("Güvenlik durumu alınamadı", err);
+      } finally {
+        isFetchingStatus = false;
+      }
+    } else {
+      isFetchingStatus = false;
+    }
+  });
 
   async function start2FaSetup() {
     if (!authStore.token) return;
@@ -39,6 +56,7 @@
       await ApiService.enable2fa(verifyCode, authStore.token);
       alert("Harika! İki Aşamalı Doğrulama başarıyla aktifleştirildi!");
       setupMode = false;
+      is2faEnabled = true;
       secretKey = '';
       qrCodeDataUrl = '';
       verifyCode = '';
@@ -58,6 +76,7 @@
       await ApiService.disable2fa(authStore.token);
       alert("2FA başarıyla devre dışı bırakıldı.");
       setupMode = false;
+      is2faEnabled = false;
     } catch (err) {
       console.error(err);
       alert("2FA devre dışı bırakılamadı.");
@@ -108,7 +127,11 @@
           </div>
           <p class="text-slate-500 mb-10 leading-relaxed max-w-2xl text-[15px]">Hesabınızı güvende tutmak için ekstra bir güvenlik katmanı ekleyin. Giriş yaparken şifrenize ek olarak telefonunuzdaki uygulamadan (Örn: Google Authenticator) alacağınız dinamik kodu girmeniz gerekecektir.</p>
 
-          {#if setupMode}
+          {#if isFetchingStatus}
+            <div class="flex items-center justify-center p-8">
+              <span class="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+            </div>
+          {:else if setupMode}
             <div class="flex flex-col md:flex-row gap-10 bg-slate-50/50 p-8 rounded-2xl border border-slate-100 items-start shadow-inner">
               
               {#if qrCodeDataUrl}
@@ -149,24 +172,41 @@
 
             </div>
           {:else}
-            <div class="flex flex-col sm:flex-row gap-4">
-              <button onclick={start2FaSetup} disabled={is2FaLoading} class="px-8 py-3.5 text-[15px] font-bold text-white bg-slate-900 hover:bg-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-md hover:shadow-lg hover:-translate-y-0.5">
-                {#if is2FaLoading}
-                  <span class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                {:else}
-                  <span class="text-lg">🔒</span>
-                {/if}
-                2FA Kurulumunu Başlat
-              </button>
-              
-              <button onclick={disable2Fa} disabled={is2FaLoading} class="px-8 py-3.5 text-[14px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50 border border-red-100 hover:border-red-200">
-                2FA'yı Devre Dışı Bırak
-              </button>
-            </div>
-            <div class="mt-8 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 text-[13px] flex gap-3 items-start">
-              <span class="text-lg">💡</span>
-              <p>Güvenlik durumu (2FA'nın açık/kapalı olduğu) anlık olarak gösterilemiyor. Eğer daha önce aktifleştirdiyseniz doğrudan "Devre Dışı Bırak" butonunu kullanabilirsiniz. Yeniden kurmak için "Başlat" butonuna tıklayın.</p>
-            </div>
+            {#if is2faEnabled}
+              <div class="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-center gap-4">
+                  <span class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">✅</span>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-[15px]">İki Aşamalı Doğrulama Aktif</h3>
+                    <p class="text-[13px] text-slate-600 mt-1">Hesabınız şu anda ekstra güvenlik katmanıyla korunuyor.</p>
+                  </div>
+                </div>
+                <button onclick={disable2Fa} disabled={is2FaLoading} class="px-6 py-3 text-[14px] font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-xl transition-colors disabled:opacity-50 shrink-0">
+                  {#if is2FaLoading}
+                    <span class="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin inline-block align-middle"></span>
+                  {:else}
+                    Devre Dışı Bırak
+                  {/if}
+                </button>
+              </div>
+            {:else}
+              <div class="p-6 rounded-2xl bg-amber-50 border border-amber-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-center gap-4">
+                  <span class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl">⚠️</span>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-[15px]">İki Aşamalı Doğrulama Kapalı</h3>
+                    <p class="text-[13px] text-slate-600 mt-1">Hesabınızın güvenliğini artırmak için 2FA kurulumunu tamamlayın.</p>
+                  </div>
+                </div>
+                <button onclick={start2FaSetup} disabled={is2FaLoading} class="px-6 py-3 text-[14px] font-bold text-white bg-slate-900 hover:bg-black rounded-xl transition-colors disabled:opacity-50 shrink-0 shadow-md">
+                  {#if is2FaLoading}
+                    <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block align-middle"></span>
+                  {:else}
+                    Kurulumu Başlat
+                  {/if}
+                </button>
+              </div>
+            {/if}
           {/if}
         </div>
       {:else if activeTab === 'general'}

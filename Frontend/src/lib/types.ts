@@ -40,6 +40,7 @@ export interface UserDTO {
   followersCount: number;
   followingCount: number;
   postsCount: number;
+  isTwoFactorEnabled: boolean;
 }
 
 export interface PostDTO {
