@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Backend.Domain.Entities;
 
@@ -19,4 +20,6 @@ public class Message
     public ChatRoom ChatRoom { get; set; } = null!;
     
     public User Sender { get; set; } = null!;
+    
+    public ICollection<DeletedMessage> DeletedByUsers { get; set; } = new List<DeletedMessage>();
 }
