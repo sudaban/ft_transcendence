@@ -3,30 +3,35 @@
   import gsap from 'gsap';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
+  import { authStore } from '$lib/stores/auth.svelte';
+  import { ApiService } from '$lib/api';
+
+  let isLoading = $state(true);
+  let isEditing = $state(false);
+  let isSaving = $state(false);
 
   let user = $state({
-    username: 'Celten',
-    fullName: 'Enes',
-    bio: 'Frontend Developer \n @Transcendence',
+    id: '',
+    username: '',
+    fullName: '',
+    bio: '',
     posts: 0,
-    followers: 100,
-    following: 105,
+    followers: 0,
+    following: 0,
     avatarColor: 'bg-slate-900 border border-slate-800 text-white shadow-sm shadow-slate-200',
-    avatarLetter: 'C'
+    avatarLetter: ''
   });
 
-  let posts = $state([
-    { id: 1, type: 'image', color: 'bg-slate-100 border border-slate-200/60', likes: 120, comments: 14, size: 'col-span-2 row-span-2 h-[340px]' }, // Öne çıkan büyük kart
-    { id: 2, type: 'image', color: 'bg-slate-50 border border-slate-200/60', likes: 89, comments: 2, size: 'col-span-1 row-span-1 h-[160px]' },
-    { id: 3, type: 'image', color: 'bg-slate-900', likes: 450, comments: 42, size: 'col-span-1 row-span-2 h-[340px]' }, // Koyu kontrast dikey kart
-    { id: 4, type: 'image', color: 'bg-slate-100/70 border border-slate-200/40', likes: 32, comments: 1, size: 'col-span-1 row-span-1 h-[160px]' },
-    { id: 5, type: 'image', color: 'bg-slate-50 border border-slate-200/60', likes: 210, comments: 8, size: 'col-span-2 row-span-1 h-[160px]' }, // Geniş yatay kart
-    { id: 6, type: 'image', color: 'bg-slate-200/50', likes: 15, comments: 0, size: 'col-span-1 row-span-1 h-[160px]' }
-  ]);
+  let editForm = $state({
+    fullName: '',
+    bio: ''
+  });
+
+  let posts: any[] = $state([]);
 
   let fileInput: HTMLInputElement;
 
-  onMount(() => {
+  onMount(async () => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
     tl.fromTo('.editorial-sidebar', 
@@ -38,7 +43,67 @@
       { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
       "-=0.5"
     );
+
+    if (authStore.isAuthenticated && authStore.user && authStore.token) {
+      try {
+        const data = await ApiService.getUserById(authStore.user.id, authStore.token);
+        user.id = data.id || '';
+        user.username = data.username || '';
+        user.fullName = data.fullName || '';
+        user.bio = data.bio || "Bir Dev Bir Dev'e ne demiş Gel beraber Dev olalım demiş";
+        user.followers = data.followersCount || 0;
+        user.following = data.followingCount || 0;
+        user.posts = data.postsCount || 0;
+        user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
+
+        // Fetch User Posts
+        const userPostsData = await ApiService.getUserPosts(authStore.user.id, authStore.token);
+        posts = userPostsData.map((p, index) => ({
+          ...p,
+          size: index === 0 ? 'col-span-2 row-span-2 h-[340px]' : 
+                index === 2 ? 'col-span-1 row-span-2 h-[340px]' : 
+                index === 4 ? 'col-span-2 row-span-1 h-[160px]' : 
+                'col-span-1 row-span-1 h-[160px]'
+        }));
+      } catch (err) {
+        console.error("Profil yüklenemedi", err);
+      } finally {
+        isLoading = false;
+      }
+    } else {
+      isLoading = false;
+    }
   });
+
+  function openEditModal() {
+    editForm.fullName = user.fullName;
+    editForm.bio = user.bio;
+    isEditing = true;
+  }
+
+  function closeEditModal() {
+    isEditing = false;
+  }
+
+  async function saveProfile() {
+    if (!authStore.token) return;
+    isSaving = true;
+    try {
+      await ApiService.updateProfile({
+        FullName: editForm.fullName,
+        Bio: editForm.bio
+      }, authStore.token);
+      
+      user.fullName = editForm.fullName;
+      user.bio = editForm.bio;
+      isEditing = false;
+    } catch (err) {
+      console.error("Güncelleme hatası:", err);
+      alert("Profil güncellenirken bir hata oluştu.");
+    } finally {
+      isSaving = false;
+    }
+  }
 
   function handleAvatarClick() {
     fileInput.click();
@@ -108,7 +173,7 @@
       </div>
 
       <div class="flex flex-col gap-2 mt-8 lg:mt-0 w-full">
-        <button class="w-full bg-slate-900 text-white text-xs font-semibold tracking-wide uppercase py-3 rounded-xl hover:bg-black transition-colors shadow-sm">
+        <button onclick={openEditModal} class="w-full bg-slate-900 text-white text-xs font-semibold tracking-wide uppercase py-3 rounded-xl hover:bg-black transition-colors shadow-sm">
           Edit Settings
         </button>
         <button class="w-full bg-slate-50 text-slate-500 text-xs font-medium py-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-colors border border-slate-200/40">
@@ -131,17 +196,21 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 auto-rows-max max-w-4xl">
         {#each posts as post}
-          <div class="portfolio-item {post.size} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1">
+          <div class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1">
             
-            <div class="w-full h-full {post.color} transition-transform duration-500 group-hover:scale-[1.02]"></div>
+            {#if post.imageUrl}
+              <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
+            {:else}
+              <div class="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-[1.02]"></div>
+            {/if}
 
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 text-white">
               <div class="flex items-center gap-5 text-xs font-mono tracking-wide">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-300">❤️</span> {post.likes}
+                  <span class="text-slate-300">❤️</span> {post.likesCount || 0}
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-300">💬</span> {post.comments}
+                  <span class="text-slate-300">💬</span> {post.commentsCount || 0}
                 </div>
               </div>
               <div class="absolute top-4 right-4 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded text-[9px] font-mono tracking-widest text-white/80">
@@ -160,6 +229,42 @@
   <MobileNav />
 
 </div>
+
+<!-- Edit Profile Modal -->
+{#if isEditing}
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-[400px] shadow-2xl p-6 flex flex-col gap-4 animate-fade-in-up">
+    
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <h3 class="text-lg font-bold text-slate-900">Edit Profile</h3>
+      <button onclick={closeEditModal} class="text-slate-400 hover:text-slate-700 transition-colors">✕</button>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name</span>
+        <input type="text" bind:value={editForm.fullName} class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-slate-900 transition-colors" placeholder="Adınız Soyadınız">
+      </label>
+
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Bio</span>
+        <textarea bind:value={editForm.bio} rows="4" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-slate-900 transition-colors resize-none" placeholder="Kendinizden bahsedin..."></textarea>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-slate-100">
+      <button onclick={closeEditModal} class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">İptal</button>
+      <button onclick={saveProfile} disabled={isSaving} class="px-5 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-black rounded-lg transition-colors flex items-center gap-2">
+        {#if isSaving}
+          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {/if}
+        Kaydet
+      </button>
+    </div>
+
+  </div>
+</div>
+{/if}
 
 <style>
   .custom-scrollbar::-webkit-scrollbar

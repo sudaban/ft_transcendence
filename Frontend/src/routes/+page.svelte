@@ -3,6 +3,7 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
   import { ApiService } from '$lib/api';
+  import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
 
   let suggestions = $state<UserDTO[]>([]);
@@ -11,11 +12,18 @@
   
   let newPostContent = $state('');
   let isSubmitting = $state(false);
+  
+  let fileInput: HTMLInputElement;
+  let selectedFile = $state<File | null>(null);
 
   onMount(async () => {
+    if (!authStore.isAuthenticated || !authStore.token) {
+      isLoading = false;
+      return;
+    }
     try {
       const [postsRes, usersRes] = await Promise.all([
-        ApiService.getFeedPosts(),
+        ApiService.getFeedPosts(authStore.token),
         ApiService.getSuggestedUsers()
       ]);
       
@@ -28,14 +36,37 @@
     }
   });
 
+  function triggerFileInput() {
+    fileInput.click();
+  }
+
+  function handleFileChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      selectedFile = target.files[0];
+    }
+  }
+
   async function handlePostSubmit() {
-    if (!newPostContent.trim()) return;
+    if (!authStore.token) return;
+    if (!selectedFile) {
+      alert("Bir fotoğraf seçmelisiniz!");
+      return;
+    }
     
     isSubmitting = true;
     try {
-      const newPost = await ApiService.createPost(newPostContent);
+      const formData = new FormData();
+      formData.append('File', selectedFile);
+      if (newPostContent.trim()) {
+        formData.append('Content', newPostContent.trim());
+      }
+      
+      const newPost = await ApiService.createPost(formData, authStore.token);
       feedPosts = [newPost, ...feedPosts];
       newPostContent = '';
+      selectedFile = null;
+      if (fileInput) fileInput.value = '';
     } catch (error) {
       console.error("Post paylaşılamadı:", error);
     } finally {
@@ -71,9 +102,16 @@
           disabled={isSubmitting}
         ></textarea>
         
+        {#if selectedFile}
+          <div class="mt-2 text-sm text-[#1d9bf0] font-mono">
+            📎 {selectedFile.name}
+          </div>
+        {/if}
+        
         <div class="border-t border-social-border mt-3 pt-3 flex justify-between items-center">
           <div class="flex gap-2 text-[#1d9bf0]">
-            <button class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>🖼️</button>
+            <button onclick={triggerFileInput} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>🖼️</button>
+            <input bind:this={fileInput} type="file" accept="image/*,video/*" class="hidden" onchange={handleFileChange} />
             <button class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>😊</button>
           </div>
           <button 
@@ -101,16 +139,16 @@
         <article class="p-4 border-b border-social-border flex gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
           <!-- Left Avatar -->
           <div class="shrink-0">
-            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm">
+            <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity">
               {post.author.avatar}
-            </div>
+            </a>
           </div>
           
           <!-- Right Content -->
           <div class="flex-1 flex flex-col">
             <!-- Header -->
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="font-bold text-[15px] hover:underline truncate">{post.author.username}</span>
+              <a href="/profile/{post.author.username}" class="font-bold text-[15px] hover:underline truncate">{post.author.username}</a>
               <span class="text-social-secondary text-[15px] truncate">{post.author.handle}</span>
               <span class="text-social-secondary text-[15px]">·</span>
               <span class="text-social-secondary text-[15px] hover:underline">{post.createdAt}</span>
@@ -118,22 +156,28 @@
             
             <!-- Body -->
             <div class="text-[15px] leading-normal text-social-primary mb-3 whitespace-pre-wrap">
-              {post.content}
+              {post.content || ''}
             </div>
+            
+            {#if post.imageUrl}
+              <div class="mb-3 rounded-2xl overflow-hidden border border-social-border">
+                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
+              </div>
+            {/if}
             
             <!-- Actions -->
             <div class="flex items-center justify-between text-social-secondary max-w-[425px]">
               <button class="flex items-center gap-2 hover:text-[#1d9bf0] transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#1d9bf0]/10 flex items-center justify-center">💬</span>
-                <span class="text-xs -ml-1">{post.repliesCount}</span>
+                <span class="text-xs -ml-1">{post.commentsCount || 0}</span>
               </button>
               <button class="flex items-center gap-2 hover:text-[#00ba7c] transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#00ba7c]/10 flex items-center justify-center">🔁</span>
-                <span class="text-xs -ml-1">{post.repostsCount}</span>
+                <span class="text-xs -ml-1">0</span>
               </button>
               <button class="flex items-center gap-2 hover:text-[#f91880] transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#f91880]/10 flex items-center justify-center">❤️</span>
-                <span class="text-xs -ml-1">{post.likesCount}</span>
+                <span class="text-xs -ml-1">{post.likesCount || 0}</span>
               </button>
             </div>
           </div>
@@ -165,17 +209,17 @@
         {#each suggestions as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm">
+              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80">
                 {user.avatar}
-              </div>
+              </a>
               <div class="flex flex-col">
-                <span class="font-bold text-[15px] hover:underline">{user.username}</span>
+                <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>
                 <span class="text-social-secondary text-[15px]">{user.handle}</span>
               </div>
             </div>
-            <button class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
-              Follow
-            </button>
+            <a href="/profile/{user.username}" class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
+              Profil
+            </a>
           </div>
         {/each}
       {/if}

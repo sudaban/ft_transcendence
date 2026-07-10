@@ -18,4 +18,3 @@ EXPOSE 3000
 
 # Start the built app
 CMD ["node", "build/index.js"]
-
