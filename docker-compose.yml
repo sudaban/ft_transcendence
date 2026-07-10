@@ -46,7 +46,7 @@ services:
     volumes:
       - ./uploads:/app/wwwroot/uploads
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-check-certificate -qO- http://localhost:5000/ || exit 1"]
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- http://127.0.0.1:5000/swagger/index.html || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -67,7 +67,7 @@ services:
     ports:
       - "3000:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -91,7 +91,7 @@ services:
       - "80:80"
       - "443:443"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8888/nginx_status || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8888/nginx_status || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -120,7 +120,7 @@ services:
     ports:
       - "9090:9090"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9090/-/healthy || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -150,7 +150,7 @@ services:
     ports:
       - "3001:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -174,7 +174,7 @@ services:
       - "--path.sysfs=/host/sys"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/metrics || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9100/metrics || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -198,7 +198,7 @@ services:
     devices:
       - /dev/kmsg:/dev/kmsg
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -218,7 +218,7 @@ services:
     environment:
       DATA_SOURCE_NAME: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@database:5432/${DB_NAME:-transendence}?sslmode=disable"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9187/metrics || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9187/metrics || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -237,7 +237,7 @@ services:
     command:
       - "--nginx.scrape-uri=http://nginx:8888/nginx_status"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9113/metrics || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9113/metrics || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
