@@ -41,6 +41,8 @@ namespace Backend.Application.Profiles
                 .ForMember(dest => dest.CommentsCount, opt => opt.MapFrom(src => src.Comments.Count));
 
             CreateMap<ChatRoom, ChatRoomDto>();
+            CreateMap<Comment, CommentDto>();
+            CreateMap<Message, MessageDto>();
 
             // ==========================================
             //        Detaylı Veritabanı Verileri
