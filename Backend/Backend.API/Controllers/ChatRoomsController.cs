@@ -24,6 +24,14 @@ public class ChatRoomsController : ControllerBase
         return Ok(chat_rooms);
     }
 
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyChatRooms()
+    {
+        var chat_rooms = await _chatRoomService.GetMyChatRoomsAsync();
+        return Ok(chat_rooms);
+    }
+
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetChatRoomById(int id)
@@ -46,5 +54,13 @@ public class ChatRoomsController : ControllerBase
     {
         await _chatRoomService.DeleteChatRoomAsync(id);
         return Ok(new { Message = "Chat room deleted successfully." });
+    }
+
+    [HttpDelete("{id}/hide")]
+    [Authorize]
+    public async Task<IActionResult> HideChatRoom(int id)
+    {
+        await _chatRoomService.HideChatRoomAsync(id);
+        return Ok(new { Message = "Chat room hidden for user." });
     }
 }
