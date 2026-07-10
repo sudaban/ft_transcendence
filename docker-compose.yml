@@ -25,7 +25,7 @@ services:
   backend:
     build:
       context: ./Backend
-      dockerfile: Dockerfile
+      dockerfile: ../Devops/docker/backend.Dockerfile
     container_name: transendence-backend
     labels:
       - "autoheal=true"
@@ -58,7 +58,7 @@ services:
   frontend:
     build:
       context: ./Frontend
-      dockerfile: Dockerfile
+      dockerfile: ../Devops/docker/frontend.Dockerfile
     container_name: transendence-frontend
     labels:
       - "autoheal=true"
@@ -79,7 +79,7 @@ services:
   nginx:
     build:
       context: ./nginx
-      dockerfile: Dockerfile
+      dockerfile: ../Devops/docker/nginx.Dockerfile
     container_name: transendence-nginx
     labels:
       - "autoheal=true"
@@ -252,7 +252,7 @@ services:
   autoheal:
     build:
       context: ./monitoring/autoheal
-      dockerfile: Dockerfile
+      dockerfile: ../../Devops/docker/autoheal.Dockerfile
     container_name: transendence-autoheal
     environment:
       AUTOHEAL_INTERVAL: 30
