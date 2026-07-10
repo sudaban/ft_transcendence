@@ -43,6 +43,15 @@ export interface UserDTO {
   isTwoFactorEnabled: boolean;
 }
 
+export interface CommentDTO {
+  id: number;
+  postId: number;
+  userId: number;
+  content: string;
+  createdAt: string;
+  user: UserDTO;
+}
+
 export interface PostDTO {
   id: number;
   author: UserDTO;
@@ -53,4 +62,22 @@ export interface PostDTO {
   createdAt: string;
   likesCount: number;
   commentsCount: number;
+  isLiked?: boolean;
+}
+
+export interface ChatRoomDTO {
+  id: number;
+  isGroup: boolean;
+  createdAt: string;
+  members: UserDTO[];
+}
+
+export interface MessageDTO {
+  id: number;
+  chatRoomId: number;
+  senderId: number;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+  sender: UserDTO;
 }

@@ -7,6 +7,8 @@
   import MobileNav from '$lib/components/MobileNav.svelte';
   import { authStore } from '$lib/stores/auth.svelte';
   import { ApiService } from '$lib/api';
+  import type { PostDTO } from '$lib/types';
+  import PostModal from '$lib/components/PostModal.svelte';
   
   let targetUsername = $derived($page.params.username);
 
@@ -27,6 +29,7 @@
   });
 
   let posts: any[] = $state([]);
+  let selectedPost = $state<PostDTO | null>(null);
 
   $effect(() => {
     if (authStore.isAuthenticated && authStore.user && authStore.token) {
@@ -111,6 +114,17 @@
     }
   }
 
+  async function startMessage() {
+    if (!user.id || !authStore.token) return;
+    try {
+      await ApiService.createChatRoom(parseInt(user.id), authStore.token);
+      goto('/messages');
+    } catch (err) {
+      console.error("Mesaj başlatılamadı", err);
+      goto('/messages');
+    }
+  }
+
 </script>
 
 <svelte:head>
@@ -170,23 +184,30 @@
         </div>
 
         <div class="flex flex-col gap-2 mt-8 lg:mt-0 w-full">
-          {#if isFollowing}
-            <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-50 text-slate-900 text-[14px] font-bold py-3.5 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all shadow-sm disabled:opacity-50 border border-slate-200 hover:border-red-200 flex justify-center items-center h-12">
-              {#if isActionLoading}
-                <span class="inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-              {:else}
-                Takipten Çık
-              {/if}
+          <div class="flex gap-2 w-full">
+            <button onclick={startMessage} title="Mesaj Gönder" class="w-12 h-12 shrink-0 rounded-xl bg-slate-100 border border-slate-200 text-slate-900 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-sm">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="w-6 h-6 fill-current"><g><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"></path></g></svg>
             </button>
-          {:else}
-            <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-900 text-white text-[14px] font-bold py-3.5 rounded-xl hover:bg-black transition-all shadow-sm shadow-slate-900/20 hover:shadow-md hover:shadow-slate-900/30 hover:-translate-y-0.5 disabled:opacity-50 flex justify-center items-center h-12">
-              {#if isActionLoading}
-                <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <div class="flex-1">
+              {#if isFollowing}
+                <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-50 text-slate-900 text-[14px] font-bold py-3.5 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all shadow-sm disabled:opacity-50 border border-slate-200 hover:border-red-200 flex justify-center items-center h-12">
+                  {#if isActionLoading}
+                    <span class="inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+                  {:else}
+                    Takipten Çık
+                  {/if}
+                </button>
               {:else}
-                Takip Et
+                <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-900 text-white text-[14px] font-bold py-3.5 rounded-xl hover:bg-black transition-all shadow-sm shadow-slate-900/20 hover:shadow-md hover:shadow-slate-900/30 hover:-translate-y-0.5 disabled:opacity-50 flex justify-center items-center h-12">
+                  {#if isActionLoading}
+                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  {:else}
+                    Takip Et
+                  {/if}
+                </button>
               {/if}
-            </button>
-          {/if}
+            </div>
+          </div>
         </div>
 
       </section>
@@ -207,7 +228,7 @@
         {:else}
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 auto-rows-max max-w-4xl">
             {#each posts as post}
-              <div class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md border border-slate-100">
+              <button onclick={() => selectedPost = post} class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md border border-slate-100 p-0 text-left w-full block">
                 
                 {#if post.imageUrl}
                   <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
@@ -226,7 +247,7 @@
                   </div>
                 </div>
 
-              </div>
+              </button>
             {/each}
           </div>
         {/if}
@@ -236,6 +257,8 @@
   </main>
 
   <MobileNav />
+
+  <PostModal bind:post={selectedPost} onClose={() => selectedPost = null} />
 
 </div>
 

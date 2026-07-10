@@ -5,6 +5,7 @@
   import { ApiService } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
+  import CommentsSection from '$lib/components/CommentsSection.svelte';
 
   let suggestions = $state<UserDTO[]>([]);
   let feedPosts = $state<PostDTO[]>([]);
@@ -47,6 +48,34 @@
     }
   }
 
+  let openComments = $state<Record<number, boolean>>({});
+
+  function toggleComments(postId: number) {
+    openComments[postId] = !openComments[postId];
+  }
+
+  async function toggleLike(post: PostDTO) {
+    if (!authStore.token) return;
+    
+    // Optimistic UI update
+    const currentlyLiked = post.isLiked ?? false;
+    post.isLiked = !currentlyLiked;
+    post.likesCount += currentlyLiked ? -1 : 1;
+
+    try {
+      if (!currentlyLiked) {
+        await ApiService.likePost(post.id, authStore.token);
+      } else {
+        await ApiService.unlikePost(post.id, authStore.token);
+      }
+    } catch (err) {
+      console.error("Beğeni işlemi başarısız", err);
+      // Revert optimistic update
+      post.isLiked = currentlyLiked;
+      post.likesCount += currentlyLiked ? 1 : -1;
+    }
+  }
+
   async function handlePostSubmit() {
     if (!authStore.token) return;
     if (!selectedFile) {
@@ -71,6 +100,19 @@
       console.error("Post paylaşılamadı:", error);
     } finally {
       isSubmitting = false;
+    }
+  }
+
+  async function handleDeletePost(postId: number) {
+    if (!authStore.token) return;
+    if (!confirm("Bu gönderiyi silmek istediğine emin misin?")) return;
+    
+    try {
+      await ApiService.deletePost(postId, authStore.token);
+      feedPosts = feedPosts.filter(p => p.id !== postId);
+    } catch (err) {
+      console.error("Post silinemedi", err);
+      alert("Gönderi silinirken bir hata oluştu.");
     }
   }
 </script>
@@ -147,11 +189,18 @@
           <!-- Right Content -->
           <div class="flex-1 flex flex-col">
             <!-- Header -->
-            <div class="flex items-center gap-1 mb-0.5">
+            <div class="flex items-center gap-1 mb-0.5 relative">
               <a href="/profile/{post.author.username}" class="font-bold text-[15px] hover:underline truncate">{post.author.username}</a>
               <span class="text-social-secondary text-[15px] truncate">{post.author.handle}</span>
               <span class="text-social-secondary text-[15px]">·</span>
-              <span class="text-social-secondary text-[15px] hover:underline">{post.createdAt}</span>
+              <span class="text-social-secondary text-[15px] hover:underline">
+                {new Date(post.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}
+              </span>
+              {#if authStore.user?.id?.toString() === post.author.id?.toString()}
+                <button onclick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }} class="ml-auto text-gray-400 hover:text-red-500 transition-colors" title="Gönderiyi Sil">
+                  🗑️
+                </button>
+              {/if}
             </div>
             
             <!-- Body -->
@@ -167,7 +216,7 @@
             
             <!-- Actions -->
             <div class="flex items-center justify-between text-social-secondary max-w-[425px]">
-              <button class="flex items-center gap-2 hover:text-[#1d9bf0] transition-colors group">
+              <button onclick={() => toggleComments(post.id)} class="flex items-center gap-2 hover:text-[#1d9bf0] transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#1d9bf0]/10 flex items-center justify-center">💬</span>
                 <span class="text-xs -ml-1">{post.commentsCount || 0}</span>
               </button>
@@ -175,11 +224,21 @@
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#00ba7c]/10 flex items-center justify-center">🔁</span>
                 <span class="text-xs -ml-1">0</span>
               </button>
-              <button class="flex items-center gap-2 hover:text-[#f91880] transition-colors group">
-                <span class="w-8 h-8 rounded-full group-hover:bg-[#f91880]/10 flex items-center justify-center">❤️</span>
+              <button onclick={() => toggleLike(post)} class="flex items-center gap-2 {post.isLiked ? 'text-[#f91880]' : 'hover:text-[#f91880]'} transition-colors group">
+                <span class="w-8 h-8 rounded-full group-hover:bg-[#f91880]/10 flex items-center justify-center text-lg">
+                  {post.isLiked ? '❤️' : '🤍'}
+                </span>
                 <span class="text-xs -ml-1">{post.likesCount || 0}</span>
               </button>
             </div>
+            
+            {#if openComments[post.id]}
+              <CommentsSection 
+                postId={post.id} 
+                onCommentAdded={() => post.commentsCount++} 
+                onCommentDeleted={() => Math.max(0, post.commentsCount--)}
+              />
+            {/if}
           </div>
         </article>
       {/each}

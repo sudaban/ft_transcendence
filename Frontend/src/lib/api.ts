@@ -50,6 +50,15 @@ export const ApiService = {
     return res.json();
   },
 
+  deletePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to delete post");
+    return res.json();
+  },
+
   // AUTHENTICATION ve 2FA endpointleri
 
   register: async (data: any) => {
@@ -167,6 +176,101 @@ export const ApiService = {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Failed to fetch following");
+    return res.json();
+  },
+
+  // LIKES & COMMENTS endpoints
+  likePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/likes`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to like post");
+    return res.json();
+  },
+
+  unlikePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/likes`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to unlike post");
+    return res.json();
+  },
+
+  getComments: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch comments");
+    return res.json();
+  },
+
+  addComment: async (postId: number, content: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) throw new Error("Failed to add comment");
+    return res.json();
+  },
+
+  deleteComment: async (commentId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to delete comment");
+    return res.json();
+  },
+
+  // CHAT endpoints
+  getChatRooms: async (token: string) => {
+    const res = await fetch(`http://localhost:5000/api/ChatRooms/my`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch chat rooms");
+    return res.json();
+  },
+
+  getChatMessages: async (roomId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/chat-rooms/${roomId}/messages`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch messages");
+    return res.json();
+  },
+
+  sendMessage: async (roomId: number, content: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/chat-rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) throw new Error("Failed to send message");
+    return res.json();
+  },
+
+  createChatRoom: async (targetUserId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/ChatRooms`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ isGroup: false, memberIds: [targetUserId] })
+    });
+    if (!res.ok) throw new Error("Failed to create chat room");
     return res.json();
   }
 };
