@@ -261,7 +261,7 @@ services:
   # ELK Stack (Log Management)
   # ========================
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
     container_name: transendence-elasticsearch
     environment:
       - discovery.type=single-node
@@ -282,7 +282,7 @@ services:
     restart: unless-stopped
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:8.11.1
+    image: docker.elastic.co/logstash/logstash:8.17.1
     container_name: transendence-logstash
     depends_on:
       elasticsearch:
@@ -296,7 +296,7 @@ services:
     restart: unless-stopped
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.1
+    image: docker.elastic.co/kibana/kibana:8.17.1
     container_name: transendence-kibana
     depends_on:
       elasticsearch:
@@ -310,7 +310,7 @@ services:
     restart: unless-stopped
 
   filebeat:
-    image: docker.elastic.co/beats/filebeat:8.11.1
+    image: docker.elastic.co/beats/filebeat:8.17.1
     container_name: transendence-filebeat
     user: root
     depends_on:
@@ -319,7 +319,7 @@ services:
       - ./monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: filebeat -e -strict.perms=false
+    command: filebeat -e --strict.perms=false
     networks:
       - transendence-network
     restart: unless-stopped
