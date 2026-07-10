@@ -54,7 +54,9 @@ public class PostService : IPostService
         await _postRepository.AddAsync(post);
         await _unitOfWork.CommitAsync();
 
-        return _mapper.Map<PostDto>(post);
+        var dto = _mapper.Map<PostDto>(post);
+        dto.IsLiked = false;
+        return dto;
     }
 
     public async Task DeletePostAsync(int id)
@@ -98,7 +100,9 @@ public class PostService : IPostService
                 throw new UnAuthorizedAccessException("You cannot view this post.");
         }
 
-        return _mapper.Map<PostDto>(post);
+        var dto = _mapper.Map<PostDto>(post);
+        dto.IsLiked = post.Likes.Any(l => l.UserId == currentUserId);
+        return dto;
     }
 
     public async Task<IEnumerable<PostDto>> GetFeedAsync()
@@ -127,7 +131,12 @@ public class PostService : IPostService
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<PostDto>>(posts);
+        return posts.Select(p =>
+        {
+            var dto = _mapper.Map<PostDto>(p);
+            dto.IsLiked = p.Likes.Any(l => l.UserId == currentUserId);
+            return dto;
+        });
     }
 
     public async Task<IEnumerable<PostDto>> GetUserPostsAsync(int userId)
@@ -153,7 +162,12 @@ public class PostService : IPostService
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<PostDto>>(posts);
+        return posts.Select(p =>
+        {
+            var dto = _mapper.Map<PostDto>(p);
+            dto.IsLiked = p.Likes.Any(l => l.UserId == currentUserId);
+            return dto;
+        });
     }
 
     

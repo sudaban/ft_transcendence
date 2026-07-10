@@ -32,7 +32,10 @@ public class ChatRoomService : IChatRoomService
         var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        var query = _chatRoomRepository.TableNoTracking.Where(cr => cr.Id == id);
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User)
+            .Where(cr => cr.Id == id);
 
         if (!is_admin)
         {
@@ -51,7 +54,9 @@ public class ChatRoomService : IChatRoomService
         var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        var query = _chatRoomRepository.TableNoTracking;
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User);
 
         if (!is_admin)
         {
@@ -66,7 +71,9 @@ public class ChatRoomService : IChatRoomService
     {
         var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
 
-        var query = _chatRoomRepository.TableNoTracking
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User)
             .Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
 
         var chat_rooms = await query.ToListAsync();

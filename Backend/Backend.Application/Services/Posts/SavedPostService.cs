@@ -93,6 +93,11 @@ public class SavedPostService : ISavedPostService
             .Select(sp => sp.Post)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<PostDto>>(savedPosts);
+        return savedPosts.Select(p =>
+        {
+            var dto = _mapper.Map<PostDto>(p);
+            dto.IsLiked = p.Likes.Any(l => l.UserId == currentUserId);
+            return dto;
+        });
     }
 }
