@@ -87,9 +87,11 @@ namespace Backend.Infrastructure.Services
             if (string.IsNullOrEmpty(cleaned))
                 return Array.Empty<byte>();
 
-            var byte_list = new List<byte>();
+            var length = (cleaned.Length * 5) / 8;
+            var result = new byte[length];
             var buffer = 0;
             var bits_left = 0;
+            var index = 0;
 
             foreach (var c in cleaned)
             {
@@ -104,13 +106,13 @@ namespace Backend.Infrastructure.Services
                 bits_left += 5;
                 if (bits_left >= 8)
                 {
-                    byte_list.Add((byte)(buffer >> (bits_left - 8)));
+                    result[index++] = (byte)(buffer >> (bits_left - 8));
                     bits_left -= 8;
                     buffer &= (1 << bits_left) - 1;
                 }
             }
 
-            return byte_list.ToArray();
+            return result;
         }
 
         private string GenerateTotp(byte[] key, long counter)

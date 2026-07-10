@@ -44,8 +44,8 @@ public class UserBlockService : IUserBlockService
         if (currentUserId == targetUserId)
             throw new BadRequestException("You cannot block yourself.");
 
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
-        if (targetUser == null)
+        var targetUserExists = await _userRepository.TableNoTracking.AnyAsync(u => u.Id == targetUserId);
+        if (!targetUserExists)
             throw new NotFoundException($"User with ID {targetUserId} not found.");
 
         var isBlocked = await _userBlockRepository.TableNoTracking
@@ -94,8 +94,10 @@ public class UserBlockService : IUserBlockService
 
         var blockedUsers = await _userBlockRepository.TableNoTracking
             .Where(ub => ub.BlockerId == currentUserId)
-            .Include(ub => ub.Blocked)
             .Select(ub => ub.Blocked)
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
             .ToListAsync();
 
         return _mapper.Map<IEnumerable<UserDto>>(blockedUsers);
