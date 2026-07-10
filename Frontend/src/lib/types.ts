@@ -64,3 +64,20 @@ export interface PostDTO {
   commentsCount: number;
   isLiked?: boolean;
 }
+
+export interface ChatRoomDTO {
+  id: number;
+  isGroup: boolean;
+  createdAt: string;
+  members: UserDTO[];
+}
+
+export interface MessageDTO {
+  id: number;
+  chatRoomId: number;
+  senderId: number;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+  sender: UserDTO;
+}

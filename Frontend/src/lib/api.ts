@@ -227,5 +227,50 @@ export const ApiService = {
     });
     if (!res.ok) throw new Error("Failed to delete comment");
     return res.json();
+  },
+
+  // CHAT endpoints
+  getChatRooms: async (token: string) => {
+    const res = await fetch(`http://localhost:5000/api/ChatRooms/my`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch chat rooms");
+    return res.json();
+  },
+
+  getChatMessages: async (roomId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/chat-rooms/${roomId}/messages`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch messages");
+    return res.json();
+  },
+
+  sendMessage: async (roomId: number, content: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/chat-rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) throw new Error("Failed to send message");
+    return res.json();
+  },
+
+  createChatRoom: async (targetUserId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/ChatRooms`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ isGroup: false, memberIds: [targetUserId] })
+    });
+    if (!res.ok) throw new Error("Failed to create chat room");
+    return res.json();
   }
 };

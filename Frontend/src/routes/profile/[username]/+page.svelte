@@ -114,6 +114,17 @@
     }
   }
 
+  async function startMessage() {
+    if (!user.id || !authStore.token) return;
+    try {
+      await ApiService.createChatRoom(parseInt(user.id), authStore.token);
+      goto('/messages');
+    } catch (err) {
+      console.error("Mesaj başlatılamadı", err);
+      goto('/messages');
+    }
+  }
+
 </script>
 
 <svelte:head>
@@ -173,23 +184,30 @@
         </div>
 
         <div class="flex flex-col gap-2 mt-8 lg:mt-0 w-full">
-          {#if isFollowing}
-            <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-50 text-slate-900 text-[14px] font-bold py-3.5 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all shadow-sm disabled:opacity-50 border border-slate-200 hover:border-red-200 flex justify-center items-center h-12">
-              {#if isActionLoading}
-                <span class="inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-              {:else}
-                Takipten Çık
-              {/if}
+          <div class="flex gap-2 w-full">
+            <button onclick={startMessage} title="Mesaj Gönder" class="w-12 h-12 shrink-0 rounded-xl bg-slate-100 border border-slate-200 text-slate-900 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-sm">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="w-6 h-6 fill-current"><g><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"></path></g></svg>
             </button>
-          {:else}
-            <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-900 text-white text-[14px] font-bold py-3.5 rounded-xl hover:bg-black transition-all shadow-sm shadow-slate-900/20 hover:shadow-md hover:shadow-slate-900/30 hover:-translate-y-0.5 disabled:opacity-50 flex justify-center items-center h-12">
-              {#if isActionLoading}
-                <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <div class="flex-1">
+              {#if isFollowing}
+                <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-50 text-slate-900 text-[14px] font-bold py-3.5 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all shadow-sm disabled:opacity-50 border border-slate-200 hover:border-red-200 flex justify-center items-center h-12">
+                  {#if isActionLoading}
+                    <span class="inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+                  {:else}
+                    Takipten Çık
+                  {/if}
+                </button>
               {:else}
-                Takip Et
+                <button onclick={toggleFollow} disabled={isActionLoading} class="w-full bg-slate-900 text-white text-[14px] font-bold py-3.5 rounded-xl hover:bg-black transition-all shadow-sm shadow-slate-900/20 hover:shadow-md hover:shadow-slate-900/30 hover:-translate-y-0.5 disabled:opacity-50 flex justify-center items-center h-12">
+                  {#if isActionLoading}
+                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  {:else}
+                    Takip Et
+                  {/if}
+                </button>
               {/if}
-            </button>
-          {/if}
+            </div>
+          </div>
         </div>
 
       </section>
