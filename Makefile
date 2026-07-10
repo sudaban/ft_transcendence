@@ -1,4 +1,4 @@
-.PHONY: help up down build rebuild logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs
+.PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs
 
 help:
 	@echo "🐳 Transendence Docker Commands"
@@ -9,6 +9,7 @@ help:
 	@echo "  make down              - Stop all services"
 	@echo "  make build             - Build all images"
 	@echo "  make rebuild           - Rebuild all and clean volumes"
+	@echo "  make nuke              - ☢️  Full reset (containers, volumes, images, cache, uploads)"
 	@echo "  make logs              - Show all logs"
 	@echo "  make clean             - Stop and remove volumes"
 	@echo ""
@@ -78,6 +79,19 @@ build:
 rebuild:
 	docker compose down -v
 	docker compose up --build -d
+
+nuke:
+	@echo "☢️  Full system reset starting..."
+	@echo "⛔ Stopping all containers..."
+	docker compose down -v --remove-orphans
+	@echo "🗑️  Removing project images..."
+	-docker rmi $$(docker images 'transendence-*' -q) 2>/dev/null || true
+	@echo "📁 Cleaning uploads folder..."
+	rm -rf uploads/*
+	@echo "🔨 Rebuilding everything from scratch..."
+	docker compose build --no-cache
+	docker compose up -d
+	@echo "✅ Full reset complete! All services are starting fresh."
 
 logs:
 	docker compose logs -f
