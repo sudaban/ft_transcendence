@@ -50,6 +50,15 @@ export const ApiService = {
     return res.json();
   },
 
+  deletePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to delete post");
+    return res.json();
+  },
+
   // AUTHENTICATION ve 2FA endpointleri
 
   register: async (data: any) => {
@@ -208,6 +217,15 @@ export const ApiService = {
       body: JSON.stringify({ content })
     });
     if (!res.ok) throw new Error("Failed to add comment");
+    return res.json();
+  },
+
+  deleteComment: async (commentId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to delete comment");
     return res.json();
   }
 };

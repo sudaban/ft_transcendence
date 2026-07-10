@@ -102,6 +102,19 @@
       isSubmitting = false;
     }
   }
+
+  async function handleDeletePost(postId: number) {
+    if (!authStore.token) return;
+    if (!confirm("Bu gönderiyi silmek istediğine emin misin?")) return;
+    
+    try {
+      await ApiService.deletePost(postId, authStore.token);
+      feedPosts = feedPosts.filter(p => p.id !== postId);
+    } catch (err) {
+      console.error("Post silinemedi", err);
+      alert("Gönderi silinirken bir hata oluştu.");
+    }
+  }
 </script>
 
 <div class="min-h-screen bg-social-bg text-social-primary flex justify-center">
@@ -176,13 +189,18 @@
           <!-- Right Content -->
           <div class="flex-1 flex flex-col">
             <!-- Header -->
-            <div class="flex items-center gap-1 mb-0.5">
+            <div class="flex items-center gap-1 mb-0.5 relative">
               <a href="/profile/{post.author.username}" class="font-bold text-[15px] hover:underline truncate">{post.author.username}</a>
               <span class="text-social-secondary text-[15px] truncate">{post.author.handle}</span>
               <span class="text-social-secondary text-[15px]">·</span>
               <span class="text-social-secondary text-[15px] hover:underline">
                 {new Date(post.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}
               </span>
+              {#if authStore.user?.id?.toString() === post.author.id?.toString()}
+                <button onclick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }} class="ml-auto text-gray-400 hover:text-red-500 transition-colors" title="Gönderiyi Sil">
+                  🗑️
+                </button>
+              {/if}
             </div>
             
             <!-- Body -->
@@ -218,6 +236,7 @@
               <CommentsSection 
                 postId={post.id} 
                 onCommentAdded={() => post.commentsCount++} 
+                onCommentDeleted={() => Math.max(0, post.commentsCount--)}
               />
             {/if}
           </div>

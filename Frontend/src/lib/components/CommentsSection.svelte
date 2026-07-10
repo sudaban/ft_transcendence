@@ -5,7 +5,7 @@
   import type { CommentDTO } from '$lib/types';
   import gsap from 'gsap';
 
-  let { postId, onCommentAdded } = $props<{ postId: number, onCommentAdded?: () => void }>();
+  let { postId, onCommentAdded, onCommentDeleted } = $props<{ postId: number, onCommentAdded?: () => void, onCommentDeleted?: () => void }>();
 
   let comments = $state<CommentDTO[]>([]);
   let isLoading = $state(true);
@@ -40,6 +40,20 @@
 
   function getAvatarInitial(username: string) {
     return username ? username.substring(0, 2).toUpperCase() : 'U';
+  }
+
+  async function handleDeleteComment(commentId: number) {
+    if (!authStore.token) return;
+    if (!confirm("Bu yorumu silmek istediğinize emin misiniz?")) return;
+    
+    try {
+      await ApiService.deleteComment(commentId, authStore.token);
+      comments = comments.filter(c => c.id !== commentId);
+      if (onCommentDeleted) onCommentDeleted();
+    } catch (err) {
+      console.error("Yorum silinemedi", err);
+      alert("Yorum silinirken hata oluştu.");
+    }
   }
 </script>
 
@@ -86,9 +100,14 @@
             {getAvatarInitial(comment.user?.username)}
           </a>
           <div class="flex flex-col flex-1 bg-gray-50 rounded-2xl rounded-tl-none p-3 border border-gray-100">
-            <div class="flex items-center gap-1 mb-1">
+            <div class="flex items-center gap-1 mb-1 relative">
               <a href="/profile/{comment.user?.username}" class="font-bold text-[13px] hover:underline text-slate-900">{comment.user?.username}</a>
               <!-- <span class="text-gray-400 text-[12px]">· {new Date(comment.createdAt).toLocaleDateString()}</span> -->
+              {#if authStore.user?.id?.toString() === comment.user?.id?.toString()}
+                <button onclick={() => handleDeleteComment(comment.id)} class="ml-auto text-gray-400 hover:text-red-500 transition-colors text-xs" title="Yorumu Sil">
+                  🗑️
+                </button>
+              {/if}
             </div>
             <p class="text-[14px] text-slate-800 leading-snug">{comment.content}</p>
           </div>
