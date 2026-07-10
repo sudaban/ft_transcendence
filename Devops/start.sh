@@ -22,6 +22,18 @@ if ! docker info > /dev/null 2>&1; then
 fi
 echo "   ✅ Docker çalışıyor"
 
+# 1.5. Elasticsearch için bellek ayarını kontrol et
+echo ""
+echo "⚙️ [1.5/3] Elasticsearch sistem ayarları kontrol ediliyor..."
+CURRENT_MAP_COUNT=$(sysctl -n vm.max_map_count)
+if [ "$CURRENT_MAP_COUNT" -lt 262144 ]; then
+    echo "⚠️ vm.max_map_count değeri çok düşük ($CURRENT_MAP_COUNT)."
+    echo "Elasticsearch'ün çalışabilmesi için bu değerin en az 262144 olması gerekiyor."
+    echo "Değeri şimdi güncelliyorum (Şifre sorulabilir)..."
+    sudo sysctl -w vm.max_map_count=262144
+fi
+echo "   ✅ Sistem ayarları uygun"
+
 # 2. Servisleri başlat
 echo ""
 echo "📦 [2/3] Servisler başlatılıyor..."
