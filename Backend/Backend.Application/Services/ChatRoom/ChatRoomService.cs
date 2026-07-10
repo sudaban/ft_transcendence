@@ -96,10 +96,24 @@ public class ChatRoomService : IChatRoomService
             JoinedAt = System.DateTime.UtcNow
         });
 
+        if (request.TargetUserId.HasValue)
+        {
+            chat_room.Members.Add(new ChatRoomMember
+            {
+                UserId = request.TargetUserId.Value,
+                JoinedAt = System.DateTime.UtcNow
+            });
+        }
+
         await _chatRoomRepository.AddAsync(chat_room);
         await _unitOfWork.CommitAsync();
 
-        return _mapper.Map<ChatRoomDto>(chat_room);
+        var created_chat_room = await _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User)
+            .FirstOrDefaultAsync(cr => cr.Id == chat_room.Id);
+
+        return _mapper.Map<ChatRoomDto>(created_chat_room);
     }
 
     public async Task DeleteChatRoomAsync(int id)

@@ -83,6 +83,11 @@ public class PostService : IPostService
 
         var post = await _postRepository.TableNoTracking
             .Include(p => p.User)
+                .ThenInclude(u => u.FollowedBy)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Following)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Posts)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -125,6 +130,11 @@ public class PostService : IPostService
 
         var posts = await _postRepository.TableNoTracking
             .Include(p => p.User)
+                .ThenInclude(u => u.FollowedBy)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Following)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Posts)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
             .Where(p => feedIds.Contains(p.UserId))
@@ -156,6 +166,11 @@ public class PostService : IPostService
 
         var posts = await _postRepository.TableNoTracking
             .Include(p => p.User)
+                .ThenInclude(u => u.FollowedBy)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Following)
+            .Include(p => p.User)
+                .ThenInclude(u => u.Posts)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
             .Where(p => p.UserId == userId)

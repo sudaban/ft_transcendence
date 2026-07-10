@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Application.Services
 {
@@ -39,8 +40,9 @@ namespace Backend.Application.Services
 
         public async Task<string> RegisterAsync(RegisterRequestDto request)
         {
-            var users = await _userRepository.GetAllAsync();
-            if (users.Any(u => u.Username == request.Username || u.Email == request.Email))
+            var is_taken = await _userRepository.TableNoTracking
+                .AnyAsync(u => u.Username == request.Username || u.Email == request.Email);
+            if (is_taken)
                 throw new OverlapException("This username or email is already taken.");
 
             CreatePasswordHash(request.Password, out string password_hash, out string password_salt);
@@ -61,8 +63,8 @@ namespace Backend.Application.Services
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _userRepository.TableNoTracking
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
                 throw new NotFoundException("Invalid email or password.");
@@ -91,8 +93,8 @@ namespace Backend.Application.Services
             if (email != request.Email)
                 throw new UnAuthorizedAccessException("Invalid 2FA session.");
 
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _userRepository.TableNoTracking
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
                 throw new NotFoundException("User not found.");
@@ -242,8 +244,8 @@ namespace Backend.Application.Services
                 throw new BadRequestException("Email not found in user info.");
             }
 
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == email);
+            var user = await _userRepository.Table
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
             {

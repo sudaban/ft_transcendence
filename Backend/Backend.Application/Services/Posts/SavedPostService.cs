@@ -38,8 +38,8 @@ public class SavedPostService : ISavedPostService
     {
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
 
-        var post = await _postRepository.GetByIdAsync(postId);
-        if (post == null)
+        var postExists = await _postRepository.TableNoTracking.AnyAsync(p => p.Id == postId);
+        if (!postExists)
             throw new NotFoundException($"Post with ID {postId} not found.");
 
         var existingSavedPost = await _savedPostRepository.Table
@@ -84,6 +84,13 @@ public class SavedPostService : ISavedPostService
         var savedPosts = await _savedPostRepository.TableNoTracking
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.User)
+                    .ThenInclude(u => u.FollowedBy)
+            .Include(sp => sp.Post)
+                .ThenInclude(p => p.User)
+                    .ThenInclude(u => u.Following)
+            .Include(sp => sp.Post)
+                .ThenInclude(p => p.User)
+                    .ThenInclude(u => u.Posts)
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.Likes)
             .Include(sp => sp.Post)
