@@ -38,9 +38,13 @@ namespace Backend.Application.Profiles
             CreateMap<Post, PostDto>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.LikesCount, opt => opt.MapFrom(src => src.Likes.Count))
-                .ForMember(dest => dest.CommentsCount, opt => opt.MapFrom(src => src.Comments.Count));
+                .ForMember(dest => dest.CommentsCount, opt => opt.MapFrom(src => src.Comments.Count))
+                .ForMember(dest => dest.IsLiked, opt => opt.Ignore());
 
-            CreateMap<ChatRoom, ChatRoomDto>();
+            CreateMap<ChatRoom, ChatRoomDto>()
+                .ForCtorParam("Members", opt => opt.MapFrom(src => src.Members.Select(m => m.User).ToList()));
+            CreateMap<Comment, CommentDto>();
+            CreateMap<Message, MessageDto>();
 
             // ==========================================
             //        Detaylı Veritabanı Verileri

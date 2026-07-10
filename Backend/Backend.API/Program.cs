@@ -4,6 +4,7 @@ using Backend.Application.Abstractions;
 using Backend.Application.Profiles;
 using Backend.Application.Services;
 using Backend.Application;
+using Backend.API.Hubs;
 using Backend.Infrastructure;
 using Backend.Persistence;
 using Backend.Persistence.Repositories;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,11 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IUserBlockService, Backend.Application.Services.Users.UserBlockService>();
 builder.Services.AddScoped<IFollowService, Backend.Application.Services.Users.FollowService>();
 builder.Services.AddScoped<IPostService, Backend.Application.Services.Posts.PostService>();
+builder.Services.AddScoped<ILikeService, Backend.Application.Services.Posts.PostLikeService>();
+builder.Services.AddScoped<ICommentService, Backend.Application.Services.Posts.CommentService>();
+builder.Services.AddScoped<ISavedPostService, Backend.Application.Services.Posts.SavedPostService>();
+builder.Services.AddScoped<IMessageService, Backend.Application.Services.ChatRoom.MessageService>();
+builder.Services.AddScoped<IChatHubService, Backend.API.Services.ChatHubService>();
 
 builder.Services.AddApplicationServices();
 
@@ -80,6 +87,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
 
@@ -105,6 +114,7 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.MapGet("/health", () => new { status = "Backend healthy" });
 

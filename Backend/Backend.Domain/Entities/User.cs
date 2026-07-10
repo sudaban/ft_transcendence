@@ -46,6 +46,7 @@ public class User
 
     public ICollection<ChatRoomMember> ChatRoomMemberships { get; set; } = new HashSet<ChatRoomMember>();
 
-    public ICollection<PostLike> LikedPosts { get; set; } = new HashSet<PostLike>();
-    public ICollection<SavedPost> SavedPosts { get; set; } = new HashSet<SavedPost>();
+    public ICollection<PostLike> LikedPosts { get; set; } = new List<PostLike>();
+    public ICollection<SavedPost> SavedPosts { get; set; } = new List<SavedPost>();
+    public ICollection<DeletedMessage> DeletedMessages { get; set; } = new List<DeletedMessage>();
 }
