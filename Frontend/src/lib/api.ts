@@ -168,5 +168,46 @@ export const ApiService = {
     });
     if (!res.ok) throw new Error("Failed to fetch following");
     return res.json();
+  },
+
+  // LIKES & COMMENTS endpoints
+  likePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/likes`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to like post");
+    return res.json();
+  },
+
+  unlikePost: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/likes`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to unlike post");
+    return res.json();
+  },
+
+  getComments: async (postId: number, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch comments");
+    return res.json();
+  },
+
+  addComment: async (postId: number, content: string, token: string) => {
+    const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) throw new Error("Failed to add comment");
+    return res.json();
   }
 };

@@ -43,6 +43,15 @@ export interface UserDTO {
   isTwoFactorEnabled: boolean;
 }
 
+export interface CommentDTO {
+  id: number;
+  postId: number;
+  userId: number;
+  content: string;
+  createdAt: string;
+  user: UserDTO;
+}
+
 export interface PostDTO {
   id: number;
   author: UserDTO;
@@ -53,4 +62,5 @@ export interface PostDTO {
   createdAt: string;
   likesCount: number;
   commentsCount: number;
+  isLiked?: boolean;
 }

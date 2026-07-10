@@ -7,6 +7,8 @@
   import MobileNav from '$lib/components/MobileNav.svelte';
   import { authStore } from '$lib/stores/auth.svelte';
   import { ApiService } from '$lib/api';
+  import type { PostDTO } from '$lib/types';
+  import PostModal from '$lib/components/PostModal.svelte';
   
   let targetUsername = $derived($page.params.username);
 
@@ -27,6 +29,7 @@
   });
 
   let posts: any[] = $state([]);
+  let selectedPost = $state<PostDTO | null>(null);
 
   $effect(() => {
     if (authStore.isAuthenticated && authStore.user && authStore.token) {
@@ -207,7 +210,7 @@
         {:else}
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 auto-rows-max max-w-4xl">
             {#each posts as post}
-              <div class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md border border-slate-100">
+              <button onclick={() => selectedPost = post} class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md border border-slate-100 p-0 text-left w-full block">
                 
                 {#if post.imageUrl}
                   <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
@@ -226,7 +229,7 @@
                   </div>
                 </div>
 
-              </div>
+              </button>
             {/each}
           </div>
         {/if}
@@ -236,6 +239,8 @@
   </main>
 
   <MobileNav />
+
+  <PostModal bind:post={selectedPost} onClose={() => selectedPost = null} />
 
 </div>
 
