@@ -10,6 +10,10 @@ public class ChatRoomMember
     
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
     
+    public bool IsHidden { get; set; } = false;
+
+    public DateTime? ClearedAt { get; set; }
+    
     public ChatRoom ChatRoom { get; set; } = null!;
     
     public User User { get; set; } = null!;

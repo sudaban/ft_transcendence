@@ -68,3 +68,22 @@ package-lock.json kopyalanması	Versiyon çözümleme isteklerini tamamen ortada
 
 Container → Docker Bridge → WSL2 VM NAT → Windows Host → İnternet
 Bu her HTTP isteğine ekstra ~50-100ms latency ekliyor. 200 paket × 50ms = +10 saniye sadece latency'den. Paket çözümleme istekleri ile bu katlanıyor.
+
+---------------------------------------------------------------------
+---------------------------------------------------------------------
+
+ Prometheus + Grafana (Sayılar ve Sağlık Durumu)
+Bu ikili sistemin nabzını ölçer. Sadece sayısal verilerle (metriklerle) ilgilenir.
+
+Ne toplar? "Şu an CPU yüzde kaç?", "RAM ne kadar doldu?", "Saniyede kaç kişi siteye giriyor?", "Veritabanında kaç aktif bağlantı var?" gibi istatistikleri toplar.
+Grafana ne yapar? Prometheus'un topladığı bu sıkıcı sayıları alır; çok şık, anlık değişen renkli grafiklere, hız göstergelerine (dashboard) dönüştürür.
+Hangi soruyu cevaplar? "Sistem şu an sağlıklı mı? Sunucu yavaşlıyor mu? Çökmek üzere mi?"
+2. ELK Stack (Metinler, Hata Kayıtları ve Dedektiflik)
+ELK (Elasticsearch, Logstash, Kibana) ise sistemin günlüğünü (kara kutusunu) tutar. Sadece metin tabanlı log kayıtlarıyla ilgilenir.
+
+Ne toplar? Senin Backend veya Frontend kodunda konsola yazdırdığın tüm çıktıları (Console.WriteLine, console.log), sunucunun verdiği spesifik hata mesajlarını (örneğin: "Kullanıcı X şifresini yanlış girdi", "Satır 42'de NullReferenceException hatası oluştu").
+ELK Nasıl Çalışır?
+(L)ogstash / Filebeat: Bütün konteynerleri dinler ve onların konsol çıktılarını (loglarını) anlık olarak toplar.
+(E)lasticsearch: Bu toplanan milyonlarca satır log metnini kendi devasa veritabanına kaydeder ve saniyeler içinde arama yapılabilecek şekilde (Google gibi) indeksler.
+(K)ibana: Senin bu Elasticsearch içindeki milyonlarca log metni arasında filtreleme, arama yapmanı ve hataları bulmanı sağlayan arayüzdür.
+Hangi soruyu cevaplar? "Sistem neden yavaşladı? Hangi kod satırında hata fırlatıldı? Saat 14:05'te sisteme kim giriş yapmaya çalıştı?"

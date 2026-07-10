@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserBlock> UserBlocks { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
     public DbSet<SavedPost> SavedPosts { get; set; }
+    public DbSet<DeletedMessage> DeletedMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -158,6 +159,22 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 10. DeletedMessage (Kullanıcı için silinen mesajlar)
+        modelBuilder.Entity<DeletedMessage>(entity =>
+        {
+            entity.HasKey(dm => new { dm.UserId, dm.MessageId });
+
+            entity.HasOne(dm => dm.User)
+                .WithMany(u => u.DeletedMessages)
+                .HasForeignKey(dm => dm.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(dm => dm.Message)
+                .WithMany(m => m.DeletedByUsers)
+                .HasForeignKey(dm => dm.MessageId)
+                .OnDelete(DeleteBehavior.Cascade); // Mesaj veritabanından tamamen silinirse DeletedMessage kaydı da silinsin
         });
 
     }

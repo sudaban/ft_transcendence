@@ -32,7 +32,10 @@ public class ChatRoomService : IChatRoomService
         var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        var query = _chatRoomRepository.TableNoTracking.Where(cr => cr.Id == id);
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User)
+            .Where(cr => cr.Id == id);
 
         if (!is_admin)
         {
@@ -51,12 +54,27 @@ public class ChatRoomService : IChatRoomService
         var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        var query = _chatRoomRepository.TableNoTracking;
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User);
 
         if (!is_admin)
         {
-            query = query.Where(cr => cr.Members.Any(m => m.UserId == user_id));
+            query = query.Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
         }
+
+        var chat_rooms = await query.ToListAsync();
+        return _mapper.Map<IEnumerable<ChatRoomDto>>(chat_rooms);
+    }
+
+    public async Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync()
+    {
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+
+        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+            .Include(cr => cr.Members)
+                .ThenInclude(crm => crm.User)
+            .Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
 
         var chat_rooms = await query.ToListAsync();
         return _mapper.Map<IEnumerable<ChatRoomDto>>(chat_rooms);
@@ -93,6 +111,26 @@ public class ChatRoomService : IChatRoomService
             throw new NotFoundException($"ChatRoom with ID {id} not found.");
 
         await _chatRoomRepository.DeleteAsync(chat_room);
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task HideChatRoomAsync(int id)
+    {
+        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+
+        var chat_room = await _chatRoomRepository.Table
+            .Include(cr => cr.Members)
+            .FirstOrDefaultAsync(cr => cr.Id == id);
+
+        if (chat_room == null)
+            throw new NotFoundException($"ChatRoom with ID {id} not found.");
+
+        var member = chat_room.Members.FirstOrDefault(m => m.UserId == user_id);
+        if (member == null)
+            throw new UnAuthorizedAccessException("You are not a member of this chat room.");
+
+        member.IsHidden = true;
+        member.ClearedAt = System.DateTime.UtcNow;
         await _unitOfWork.CommitAsync();
     }
 }

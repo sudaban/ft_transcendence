@@ -10,6 +10,7 @@
 | cAdvisor | transendence-cadvisor | 8080 | Container metrics (CPU, mem, net) |
 | Postgres Exporter | transendence-postgres-exporter | 9187 | PostgreSQL metrics |
 | Nginx Exporter | transendence-nginx-exporter | 9113 | Nginx request/connection metrics |
+| **Kibana (ELK)** | transendence-kibana | 5601 | Centralized Log Management |
 | **Autoheal** | transendence-autoheal | — | Auto-restarts unhealthy containers |
 
 ## Auto-Heal
@@ -33,8 +34,16 @@ docker inspect --format='{{.State.Health.Status}}' <container_name>
 | URL | Description |
 |---|---|
 | `https://localhost/grafana/` | Grafana (via HTTPS nginx proxy) |
+| `http://localhost:5601` | Kibana (ELK Log Management) |
 | `http://localhost:9090` | Prometheus UI |
 | `http://localhost:9090/targets` | Prometheus scrape targets status |
+
+### Kibana Initial Setup (Logstash)
+1. Open **`http://localhost:5601`**
+2. Go to **Management -> Stack Management -> Data Views** (or Index Patterns)
+3. Create a new Data View with index pattern: `logstash-*`
+4. Set timestamp field to `@timestamp`
+5. Go to **Discover** in the left menu to view all your container logs in real-time.
 
 ### Grafana Login
 - **User**: `admin`
