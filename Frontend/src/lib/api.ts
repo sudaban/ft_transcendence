@@ -11,7 +11,7 @@ const MOCK_USERS: UserDTO[] = [
   { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB' }
 ];
 
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'https://tr.celten.fun';
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const ApiService = {
@@ -126,7 +126,7 @@ export const ApiService = {
   getUserById: async (id: string, token: string) => {
     const res = await fetch(`${API_URL}/users/${id}`, {
       method: 'GET',
-      headers: {'Authorization': `Bearer ${token}`}
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Failed to fetch user");
     return res.json();
@@ -213,9 +213,9 @@ export const ApiService = {
   addComment: async (postId: number, content: string, token: string) => {
     const res = await fetch(`${API_URL}/posts/${postId}/comments`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ content })
     });
@@ -254,9 +254,9 @@ export const ApiService = {
   sendMessage: async (roomId: number, content: string, token: string) => {
     const res = await fetch(`${API_URL}/chat-rooms/${roomId}/messages`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ content })
     });
@@ -267,9 +267,9 @@ export const ApiService = {
   createChatRoom: async (targetUserId: number, token: string) => {
     const res = await fetch(`${API_URL}/ChatRooms`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ isGroup: false, targetUserId: targetUserId })
     });

@@ -4,7 +4,7 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
   import { authStore } from '$lib/stores/auth.svelte';
-  import { ApiService } from '$lib/api';
+  import { ApiService, API_BASE_URL } from '$lib/api';
   import type { PostDTO } from '$lib/types';
   import PostModal from '$lib/components/PostModal.svelte';
 
@@ -202,7 +202,7 @@
           <button onclick={() => selectedPost = post} class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 p-0 text-left w-full block">
             
             {#if post.imageUrl}
-              <img src={post.imageUrl.startsWith('http') ? post.imageUrl : '${API_BASE_URL}' + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
+              <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
             {:else}
               <div class="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-[1.02]"></div>
             {/if}

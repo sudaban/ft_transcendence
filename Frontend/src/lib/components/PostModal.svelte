@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ApiService } from '$lib/api';
+  import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO } from '$lib/types';
   import CommentsSection from './CommentsSection.svelte';
@@ -42,7 +42,7 @@
       <!-- Left: Image -->
       <div class="w-full md:w-[60%] bg-black flex items-center justify-center">
         {#if post.imageUrl}
-          <img src={post.imageUrl.startsWith('http') ? post.imageUrl : '${API_BASE_URL}' + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
+          <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
         {:else}
           <div class="text-white/50 text-sm">Resim yok</div>
         {/if}

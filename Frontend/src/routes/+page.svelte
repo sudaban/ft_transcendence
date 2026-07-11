@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
-  import { ApiService } from '$lib/api';
+  import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
   import CommentsSection from '$lib/components/CommentsSection.svelte';
@@ -210,7 +210,7 @@
             
             {#if post.imageUrl}
               <div class="mb-3 rounded-2xl overflow-hidden border border-social-border">
-                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : '${API_BASE_URL}' + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
+                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
               </div>
             {/if}
             
