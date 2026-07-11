@@ -19,13 +19,20 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IFileUploadService _file_upload_service;
 
-    public UserService(IGenericRepository<Backend.Domain.Entities.User> userRepository, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    public UserService(
+        IGenericRepository<Backend.Domain.Entities.User> userRepository,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor,
+        IFileUploadService file_upload_service)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
+        _file_upload_service = file_upload_service;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -103,6 +110,32 @@ public class UserService : IUserService
         if (request.FullName != null) user.FullName = request.FullName;
         if (request.Bio != null) user.Bio = request.Bio;
         if (request.ProfilePictureUrl != null) user.ProfilePictureUrl = request.ProfilePictureUrl;
+
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.CommitAsync();
+
+        return _mapper.Map<UserDto>(user);
+    }
+
+    public async Task<UserDto> UpdateAvatarAsync(IFormFile file)
+    {
+        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user = await _userRepository.Table
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
+            .FirstOrDefaultAsync(u => u.Id == user_id);
+        if (user == null)
+            throw new NotFoundException($"User with ID {user_id} not found.");
+
+        if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+        {
+            _file_upload_service.DeleteFile(user.ProfilePictureUrl);
+        }
+
+        using var stream = file.OpenReadStream();
+        var file_url = await _file_upload_service.UploadFileAsync(stream, file.FileName, file.ContentType);
+        user.ProfilePictureUrl = file_url;
 
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync();

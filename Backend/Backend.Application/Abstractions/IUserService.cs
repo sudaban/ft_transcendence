@@ -11,6 +11,7 @@ public interface IUserService
     Task<UserDto> GetUserByIdAsync(int id);
     Task<UserDto> GetUserByUsernameAsync(string username);
     Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request);
+    Task<UserDto> UpdateAvatarAsync(Microsoft.AspNetCore.Http.IFormFile file);
     Task DeleteUserAsync();
     
     // Admin yetkili metotlar

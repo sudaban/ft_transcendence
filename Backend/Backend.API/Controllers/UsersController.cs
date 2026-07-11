@@ -48,6 +48,14 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [HttpPost("profile/avatar")]
+    [Authorize]
+    public async Task<IActionResult> UploadAvatar(Microsoft.AspNetCore.Http.IFormFile file)
+    {
+        var user = await _userService.UpdateAvatarAsync(file);
+        return Ok(user);
+    }
+
     [HttpDelete("profile")]
     [Authorize]
     public async Task<IActionResult> DeleteProfile()
