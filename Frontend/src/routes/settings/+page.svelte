@@ -17,42 +17,62 @@
   let setupMode = $state(false);
   let is2faEnabled = $state(false);
   let isFetchingStatus = $state(true);
+  
+  // Theme State
+  // Removed dark mode logic
 
   onMount(async () => {
-    if (authStore.isAuthenticated && authStore.user && authStore.token) {
-      try {
+    if (authStore.isAuthenticated && authStore.user && authStore.token)
+    {
+      try
+      {
         const user = await ApiService.getUserById(authStore.user.id, authStore.token);
         is2faEnabled = user.isTwoFactorEnabled;
-      } catch (err) {
+      }
+      catch (err)
+      {
         console.error("Güvenlik durumu alınamadı", err);
-      } finally {
+      }
+      finally
+      {
         isFetchingStatus = false;
       }
-    } else {
+    }
+    else
+    {
       isFetchingStatus = false;
     }
   });
 
-  async function start2FaSetup() {
+  async function start2FaSetup()
+  {
     if (!authStore.token) return;
     is2FaLoading = true;
-    try {
+    try
+    {
       const data = await ApiService.setup2fa(authStore.token);
       secretKey = data.secretKey;
       qrCodeDataUrl = await QRCode.toDataURL(data.qrCodeUri, { margin: 1, width: 200, color: { dark: '#0f172a', light: '#ffffff' } });
       setupMode = true;
-    } catch (err) {
+    }
+    catch (err)
+    {
       console.error(err);
       alert("2FA Kurulumu başlatılamadı.");
-    } finally {
+    }
+    finally
+    {
       is2FaLoading = false;
     }
   }
 
-  async function enable2Fa() {
-    if (!authStore.token || !verifyCode) return;
+  async function enable2Fa()
+  {
+    if (!authStore.token || !verifyCode)
+      return;
     isVerifying = true;
-    try {
+    try
+    {
       await ApiService.enable2fa(verifyCode, authStore.token);
       alert("Harika! İki Aşamalı Doğrulama başarıyla aktifleştirildi!");
       setupMode = false;
@@ -60,27 +80,39 @@
       secretKey = '';
       qrCodeDataUrl = '';
       verifyCode = '';
-    } catch (err) {
+    }
+    catch (err)
+    {
       console.error(err);
       alert("Girdiğiniz kod hatalı veya süresi dolmuş olabilir. Tekrar deneyin.");
-    } finally {
+    }
+    finally
+    {
       isVerifying = false;
     }
   }
 
-  async function disable2Fa() {
-    if (!authStore.token) return;
-    if (!confirm("İki Aşamalı Doğrulamayı (2FA) devre dışı bırakmak istediğinize emin misiniz? Güvenliğiniz azalacaktır.")) return;
+  async function disable2Fa()
+  {
+    if (!authStore.token)
+      return;
+    if (!confirm("İki Aşamalı Doğrulamayı (2FA) devre dışı bırakmak istediğinize emin misiniz? Güvenliğiniz azalacaktır."))
+      return;
     is2FaLoading = true;
-    try {
+    try
+    {
       await ApiService.disable2fa(authStore.token);
       alert("2FA başarıyla devre dışı bırakıldı.");
       setupMode = false;
       is2faEnabled = false;
-    } catch (err) {
+    }
+    catch (err)
+    {
       console.error(err);
       alert("2FA devre dışı bırakılamadı.");
-    } finally {
+    }
+    finally
+    {
       is2FaLoading = false;
     }
   }
@@ -116,7 +148,7 @@
       </div>
     </section>
 
-    <!-- Settings Content (Right Panel) -->
+    <!-- Settings Content -->
     <section class="flex-1 p-6 md:p-10 lg:p-16 max-w-4xl mx-auto md:mx-0 w-full animate-fade-in-up">
       
       {#if activeTab === 'security'}
@@ -210,7 +242,7 @@
           {/if}
         </div>
       {:else if activeTab === 'general'}
-        <div class="bg-white border border-slate-100 rounded-3xl p-12 shadow-sm flex flex-col items-center justify-center min-h-[400px] text-center gap-4">
+        <div class="bg-white border border-slate-100 rounded-3xl p-12 shadow-sm flex flex-col items-center justify-center min-h-[400px] text-center gap-6">
           <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-2xl border border-slate-100">
             🪪
           </div>
@@ -218,9 +250,10 @@
             <h3 class="text-lg font-bold text-slate-900 mb-1">Genel Ayarlar</h3>
             <p class="text-slate-500 text-[14px] max-w-sm">Ad, soyad veya biyografi gibi profil bilgilerinizi düzenlemek için lütfen doğrudan Profil sayfanızı ziyaret edin.</p>
           </div>
-          <a href="/profile" class="mt-4 px-6 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-full hover:bg-black transition-colors shadow-sm">
+          <a href="/profile" class="mt-2 px-6 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-full hover:bg-black transition-colors shadow-sm">
             Profile Git
           </a>
+
         </div>
       {/if}
     </section>

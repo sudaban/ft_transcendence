@@ -26,7 +26,7 @@
       chatRooms = await ApiService.getChatRooms(authStore.token);
       
       hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/chathub", {
+        .withUrl(`${API_BASE_URL}/chathub`, {
           accessTokenFactory: () => authStore.token || ''
         })
         .withAutomaticReconnect()
@@ -134,10 +134,10 @@
 </script>
 
 <div class="min-h-screen bg-social-bg text-social-primary flex justify-center">
+  <div class="w-full max-w-[1280px] flex">
+    <Sidebar />
 
-  <Sidebar />
-
-  <main class="flex-1 max-w-[900px] w-full min-h-screen border-x border-social-border flex flex-col md:flex-row pb-[60px] md:pb-0">
+    <main class="flex-1 w-full min-h-screen border-x border-social-border flex flex-col md:flex-row pb-[60px] md:pb-0 mx-auto max-w-[1000px]">
     
     <!-- Chat List -->
     <div class="w-full md:w-[350px] border-r border-social-border flex flex-col h-full md:h-screen {selectedRoomId ? 'hidden md:flex' : 'flex'}">
@@ -260,6 +260,6 @@
 
   </main>
 
-  <MobileNav />
-
+    <MobileNav />
+  </div>
 </div>

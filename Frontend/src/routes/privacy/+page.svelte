@@ -21,7 +21,7 @@
   <article class="legal-content w-full max-w-[600px] bg-social-card border border-social-border rounded-lg p-8 md:p-12 shadow-sm">
     <div class="mb-8 border-b border-social-border pb-6">
       <h1 class="text-3xl font-bold tracking-tight mb-2" style="font-family: 'Instagram Sans', sans-serif;">Gizlilik Politikası (Privacy Policy)</h1>
-      <p class="text-social-secondary text-sm">Son Güncelleme: 9 Haziran 2026</p>
+      <p class="text-social-secondary text-sm">Son Güncelleme: 11 Temmuz 2026</p>
     </div>
 
     <div class="prose prose-sm md:prose-base text-social-primary leading-relaxed space-y-6">

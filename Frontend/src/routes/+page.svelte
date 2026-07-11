@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
-  import { ApiService } from '$lib/api';
+  import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
   import CommentsSection from '$lib/components/CommentsSection.svelte';
@@ -78,15 +78,17 @@
 
   async function handlePostSubmit() {
     if (!authStore.token) return;
-    if (!selectedFile) {
-      alert("Bir fotoğraf seçmelisiniz!");
+    if (!selectedFile && !newPostContent.trim()) {
+      alert("Gönderi paylaşmak için fotoğraf seçmeli veya metin yazmalısınız!");
       return;
     }
     
     isSubmitting = true;
     try {
       const formData = new FormData();
-      formData.append('File', selectedFile);
+      if (selectedFile) {
+        formData.append('File', selectedFile);
+      }
       if (newPostContent.trim()) {
         formData.append('Content', newPostContent.trim());
       }
@@ -118,12 +120,12 @@
 </script>
 
 <div class="min-h-screen bg-social-bg text-social-primary flex justify-center">
-
-  <!-- 1. LEFT SIDEBAR -->
+  <div class="w-full max-w-[1280px] flex justify-between">
+    <!-- 1. LEFT SIDEBAR -->
   <Sidebar />
 
-  <!-- 2. CENTER FEED -->
-  <main class="w-full max-w-[600px] border-r border-social-border min-h-screen pb-20 md:pb-0">
+    <!-- 2. CENTER FEED -->
+    <main class="flex-1 max-w-[700px] border-x border-social-border min-h-screen pb-20 md:pb-0 mx-auto">
     
     <!-- Header -->
     <div class="sticky top-0 bg-[rgba(255,255,255,0.85)] backdrop-blur-md z-10 border-b border-social-border">
@@ -158,7 +160,7 @@
           </div>
           <button 
             onclick={handlePostSubmit}
-            disabled={!newPostContent.trim() || isSubmitting}
+            disabled={(!newPostContent.trim() && !selectedFile) || isSubmitting}
             class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold px-4 py-1.5 rounded-full disabled:opacity-50 transition-colors flex items-center gap-2"
           >
             {#if isSubmitting}
@@ -210,7 +212,7 @@
             
             {#if post.imageUrl}
               <div class="mb-3 rounded-2xl overflow-hidden border border-social-border">
-                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : 'http://localhost:5000' + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
+                <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} alt="Post media" class="w-full h-auto object-cover max-h-[500px]" />
               </div>
             {/if}
             
@@ -290,5 +292,5 @@
   </aside>
 
   <MobileNav />
-
+  </div>
 </div>

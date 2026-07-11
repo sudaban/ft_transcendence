@@ -10,6 +10,7 @@
   let confirmPassword = $state('');
   let errorMsg = $state('');
   let isSubmitting = $state(false);
+  let agreedToTerms = $state(false);
 
   let mouseX = $state(0);
   let mouseY = $state(0);
@@ -198,14 +199,23 @@
         class="w-full bg-social-bg border border-social-border rounded px-3 py-2.5 text-sm outline-none focus:border-social-secondary transition-colors"
       >
       
-      <p class="text-[11px] text-social-secondary text-center mt-2 leading-tight">
-        Kaydolarak <a href="/terms" class="text-social-[#385185] font-semibold hover:underline">Koşullarımızı</a> ve <a href="/privacy" class="text-social-[#385185] font-semibold hover:underline">Gizlilik İlkemizi</a> kabul etmiş olursun.
-      </p>
+      <div class="flex items-start gap-2 mt-2 px-1">
+        <input 
+          type="checkbox" 
+          id="terms" 
+          bind:checked={agreedToTerms}
+          disabled={isSubmitting}
+          class="mt-0.5 w-3.5 h-3.5 text-social-accent bg-social-bg border-social-border rounded focus:ring-social-accent focus:ring-1 transition-colors cursor-pointer"
+        >
+        <label for="terms" class="text-[11px] text-social-secondary leading-tight cursor-pointer">
+          Kaydolarak <a href="/terms" class="text-social-[#385185] font-semibold hover:underline" onclick={(e) => e.stopPropagation()}>Koşullarımızı</a> ve <a href="/privacy" class="text-social-[#385185] font-semibold hover:underline" onclick={(e) => e.stopPropagation()}>Gizlilik İlkemizi</a> okuduğumu ve kabul ettiğimi onaylıyorum.
+        </label>
+      </div>
 
       <button 
         type="submit" 
-        disabled={isSubmitting}
-        class="w-full bg-social-accent hover:bg-social-accent-hover text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors flex items-center justify-center gap-2"
+        disabled={isSubmitting || !agreedToTerms}
+        class="w-full bg-social-accent hover:bg-social-accent-hover disabled:bg-social-accent/50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded py-2.5 mt-2 transition-colors flex items-center justify-center gap-2"
       >
         {#if isSubmitting}
           <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
