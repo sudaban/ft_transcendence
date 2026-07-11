@@ -46,10 +46,21 @@ public class PostService : IPostService
     {
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
 
-        using var stream = request.File.OpenReadStream();
-        var fileUrl = await _fileUploadService.UploadFileAsync(stream, request.File.FileName, request.File.ContentType);
+        // using var stream = request.File.OpenReadStream();
+        // var fileUrl = await _fileUploadService.UploadFileAsync(stream, request.File.FileName, request.File.ContentType);
+        // var post = BuildPostEntity(currentUserId, fileUrl, request.Content, request.File.ContentType);
 
-        var post = BuildPostEntity(currentUserId, fileUrl, request.Content, request.File.ContentType);
+        string? file_url = null;
+        string? content_type = null;
+
+        if (request.File != null)
+        {
+            using var stream = request.File.OpenReadStream();
+            file_url = await _fileUploadService.UploadFileAsync(stream, request.File.FileName, request.File.ContentType);
+            content_type = request.File.ContentType;
+        }
+
+        var post = BuildPostEntity(currentUserId, file_url, request.Content, content_type);
 
         await _postRepository.AddAsync(post);
         await _unitOfWork.CommitAsync();
@@ -186,14 +197,14 @@ public class PostService : IPostService
     }
 
     
-    private Post BuildPostEntity(int userId, string fileUrl, string? content, string contentType)
+    private Post BuildPostEntity(int userId, string? fileUrl, string? content, string? contentType)
     {
         return new Post
         {
             UserId = userId,
-            ImageUrl = fileUrl,
+            ImageUrl = fileUrl ?? string.Empty,
             Content = content,
-            IsVideo = contentType.StartsWith("video/"),
+            IsVideo = contentType != null && contentType.StartsWith("video/"),
             CreatedAt = DateTime.UtcNow
         };
     }
