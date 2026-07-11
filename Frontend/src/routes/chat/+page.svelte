@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
+  import { page } from '$app/stores';
   import gsap from 'gsap';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
@@ -91,6 +92,14 @@
         { opacity: 0, scale: 0.9 },
         { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
       );
+      
+      const queryRoomId = $page.url.searchParams.get('roomId');
+      if (queryRoomId) {
+        const roomId = parseInt(queryRoomId);
+        if (!isNaN(roomId)) {
+          selectRoom(roomId);
+        }
+      }
     }
     
     scrollToBottom();
@@ -107,9 +116,13 @@
     if (!authStore.token)
       return;
     
-    if (selectedRoomId)
+    if (selectedRoomId && hubConnection?.state === signalR.HubConnectionState.Connected)
     {
-      await hubConnection?.invoke("LeaveRoom", selectedRoomId.toString());
+      try {
+        await hubConnection.invoke("LeaveRoom", selectedRoomId.toString());
+      } catch (err) {
+        console.warn("LeaveRoom err:", err);
+      }
     }
 
     selectedRoomId = roomId;
@@ -163,7 +176,13 @@
       liveMessages = buffer;
       currentLoopLeader = tempLeader;
 
-      await hubConnection?.invoke("JoinRoom", roomId.toString());
+      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
+        try {
+          await hubConnection.invoke("JoinRoom", roomId.toString());
+        } catch (err) {
+          console.warn("JoinRoom err:", err);
+        }
+      }
       scrollToBottom();
     }
     catch (err)

@@ -117,8 +117,8 @@
   async function startMessage() {
     if (!user.id || !authStore.token) return;
     try {
-      await ApiService.createChatRoom(parseInt(user.id), authStore.token);
-      goto('/chat');
+      const room = await ApiService.createChatRoom(parseInt(user.id), authStore.token);
+      goto(`/chat?roomId=${room.id}`);
     } catch (err) {
       console.error("Mesaj başlatılamadı", err);
       goto('/chat');
