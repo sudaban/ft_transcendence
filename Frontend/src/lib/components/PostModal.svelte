@@ -52,8 +52,12 @@
       <div class="w-full md:w-[40%] flex flex-col bg-white h-full">
         <!-- Header -->
         <div class="p-4 border-b border-slate-100 flex items-center gap-3">
-          <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold">
-            {post.author.avatar || post.author.username.substring(0, 2).toUpperCase()}
+          <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
+            {#if post.author.avatar}
+              <img src={post.author.avatar.startsWith('http') ? post.author.avatar : `${API_BASE_URL}${post.author.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+            {:else}
+              {post.author.username.substring(0, 2).toUpperCase()}
+            {/if}
           </a>
           <div class="flex flex-col">
             <a href="/profile/{post.author.username}" class="font-bold text-sm hover:underline">{post.author.username}</a>

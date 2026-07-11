@@ -43,6 +43,21 @@ export const ApiService = {
     return res.json();
   },
 
+  uploadAvatar: async (file: File, token: string): Promise<UserDTO> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await fetch(`${API_URL}/Users/profile/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    if (!res.ok) throw new Error("Failed to upload avatar");
+    return res.json();
+  },
+
   createPost: async (formData: FormData, token: string): Promise<PostDTO> => {
     const res = await fetch(`${API_URL}/posts`, {
       method: 'POST',

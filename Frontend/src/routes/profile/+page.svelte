@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import gsap from 'gsap';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
@@ -35,18 +35,6 @@
   let fileInput: HTMLInputElement;
 
   onMount(async () => {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-    tl.fromTo('.editorial-sidebar', 
-      { opacity: 0, x: -30 }, 
-      { opacity: 1, x: 0, duration: 0.8 }
-    )
-    .fromTo('.portfolio-item', 
-      { opacity: 0, y: 20, scale: 0.98 }, 
-      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
-      "-=0.5"
-    );
-
     if (authStore.isAuthenticated && authStore.user && authStore.token) {
       try {
         const data = await ApiService.getUserById(authStore.user.id, authStore.token);
@@ -58,6 +46,11 @@
         user.following = data.followingCount || 0;
         user.posts = data.postsCount || 0;
         user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
+        
+        if (data.avatar) {
+          if (authStore.user) authStore.user.avatar = data.avatar;
+          localStorage.setItem('avatar', data.avatar);
+        }
 
         // Fetch User Posts
         const userPostsData = await ApiService.getUserPosts(authStore.user.id, authStore.token);
@@ -68,6 +61,21 @@
                 index === 4 ? 'col-span-2 row-span-1 h-[160px]' : 
                 'col-span-1 row-span-1 h-[160px]'
         }));
+        
+        await tick();
+        
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.fromTo('.editorial-sidebar', 
+          { opacity: 0, x: -30 }, 
+          { opacity: 1, x: 0, duration: 0.8 }
+        );
+        if (posts.length > 0) {
+          tl.fromTo('.portfolio-item', 
+            { opacity: 0, y: 20, scale: 0.98 }, 
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
+            "-=0.5"
+          );
+        }
       } catch (err) {
         console.error("Profil yüklenemedi", err);
       } finally {
@@ -112,22 +120,27 @@
     fileInput.click();
   }
 
-  function handleFileChange(event: Event) {
+  let isUploadingAvatar = $state(false);
+
+  async function handleFileChange(event: Event) {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       const file = target.files[0];
-      if (!file.type.startsWith('image/')) {
-        alert("Lütfen sadece resim dosyası yükleyin.");
-        return;
+      if (!authStore.token) return;
+      isUploadingAvatar = true;
+      try {
+        const updatedUser = await ApiService.uploadAvatar(file, authStore.token);
+        if (authStore.user) {
+          authStore.user.avatar = updatedUser.avatar;
+          localStorage.setItem('avatar', updatedUser.avatar);
+        }
+      } catch (err) {
+        console.error("Avatar yüklenemedi", err);
+        alert("Avatar yüklenirken bir hata oluştu.");
+      } finally {
+        isUploadingAvatar = false;
+        if (fileInput) fileInput.value = '';
       }
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Dosya boyutu 2MB'ı geçemez.");
-        return;
-      }
-      
-      alert(`"${file.name}" adlı fotoğraf seçildi. (MOCK Yükleme)`);
-      user.avatarColor = 'bg-slate-950 text-emerald-400 font-mono';
-      user.avatarLetter = '✓';
     }
   }
 </script>
@@ -141,11 +154,17 @@
     <section class="editorial-sidebar w-full lg:w-[380px] lg:h-screen lg:border-r border-slate-100 bg-white p-8 md:p-12 flex flex-col justify-between shrink-0">
       
       <div class="flex flex-col gap-8">
-        <div class="relative w-20 h-20 rounded-2xl cursor-pointer group overflow-hidden {user.avatarColor} flex items-center justify-center font-bold text-xl transition-all duration-300 hover:scale-105" 
+        <div class="relative w-20 h-20 rounded-2xl cursor-pointer group overflow-hidden flex items-center justify-center font-bold text-xl transition-all duration-300 hover:scale-105 {!authStore.user?.avatar ? user.avatarColor : 'bg-slate-100 text-slate-800 shadow-sm border-[3px] border-slate-50'}" 
              onclick={handleAvatarClick} onkeydown={e => e.key === 'Enter' && handleAvatarClick()} role="button" tabindex="0">
-          {user.avatarLetter}
+          {#if isUploadingAvatar}
+            <span class="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+          {:else if authStore.user?.avatar}
+            <img src={authStore.user.avatar.startsWith('http') ? authStore.user.avatar : `${API_BASE_URL}${authStore.user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+          {:else}
+            {user.avatarLetter}
+          {/if}
           <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white">
-            Change
+            Değiştir
           </div>
           <input bind:this={fileInput} type="file" accept="image/*" class="hidden" onchange={handleFileChange}>
         </div>

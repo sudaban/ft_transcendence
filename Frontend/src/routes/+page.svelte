@@ -183,8 +183,12 @@
         <article class="p-4 border-b border-social-border flex gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
           <!-- Left Avatar -->
           <div class="shrink-0">
-            <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity">
-              {post.author.avatar}
+            <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity overflow-hidden shrink-0">
+              {#if post.author.avatar && post.author.avatar.length > 3}
+                <img src={post.author.avatar.startsWith('http') ? post.author.avatar : `${API_BASE_URL}${post.author.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+              {:else}
+                {post.author.avatar || post.author.username.substring(0, 2).toUpperCase()}
+              {/if}
             </a>
           </div>
           
@@ -270,8 +274,12 @@
         {#each suggestions as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
-              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80">
-                {user.avatar}
+              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
+                {#if user.avatar && user.avatar.length > 3}
+                  <img src={user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}${user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+                {:else}
+                  {user.avatar || user.username.substring(0, 2).toUpperCase()}
+                {/if}
               </a>
               <div class="flex flex-col">
                 <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>

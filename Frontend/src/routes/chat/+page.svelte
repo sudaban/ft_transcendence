@@ -465,10 +465,14 @@
           <button onclick={() => selectRoom(room.id)} class="horizontal-inbox-item flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all shrink-0
             {isActive ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-100 text-slate-600'}"
           >
-            <div class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center
+            <div class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center overflow-hidden
               {isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}"
             >
-              {otherUser?.avatar || getAvatarInitial(otherUser?.username)}
+              {#if otherUser?.avatar}
+                <img src={otherUser.avatar.startsWith('http') ? otherUser.avatar : `${API_BASE_URL}${otherUser.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+              {:else}
+                {getAvatarInitial(otherUser?.username)}
+              {/if}
             </div>
             <span class="text-xs font-medium pr-1">{otherUser?.username || "Unknown"}</span>
           </button>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { authStore } from '$lib/stores/auth.svelte';
+  import { API_BASE_URL } from '$lib/api';
 
   let navItems = [
     { icon: '🌏', label: 'Home', href: '/' },
@@ -42,8 +43,12 @@
   <div class="mt-auto pt-4 flex flex-col gap-2 w-full items-center xl:items-stretch">
     {#if authStore.isAuthenticated && authStore.user}
       <a href="/profile" class="flex items-center justify-center xl:justify-start gap-3 p-3 rounded-full hover:bg-gray-100 transition-colors cursor-pointer w-max xl:w-full">
-        <div class="w-10 h-10 rounded-full bg-social-accent text-white flex items-center justify-center font-bold text-lg shrink-0">
-          {authStore.user.username.charAt(0).toUpperCase()}
+        <div class="w-10 h-10 rounded-full bg-social-accent text-white flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden">
+          {#if authStore.user.avatar}
+            <img src={authStore.user.avatar.startsWith('http') ? authStore.user.avatar : `${API_BASE_URL}${authStore.user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+          {:else}
+            {authStore.user.username.charAt(0).toUpperCase()}
+          {/if}
         </div>
         <div class="hidden xl:flex flex-col overflow-hidden">
           <span class="text-sm font-bold text-social-primary truncate">{authStore.user.username}</span>

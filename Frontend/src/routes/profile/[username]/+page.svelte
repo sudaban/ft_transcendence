@@ -25,8 +25,41 @@
     followers: 0,
     following: 0,
     avatarColor: 'bg-slate-900 border border-slate-800 text-white shadow-sm shadow-slate-200',
-    avatarLetter: ''
+    avatarLetter: '',
+    avatar: ''
   });
+
+  let fileInput: HTMLInputElement;
+  let isUploadingAvatar = $state(false);
+
+  function triggerAvatarUpload() {
+    if (authStore.user?.username === targetUsername) {
+      fileInput.click();
+    }
+  }
+
+  async function handleFileSelect(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const file = target.files[0];
+      if (!authStore.token) return;
+      isUploadingAvatar = true;
+      try {
+        const updatedUser = await ApiService.uploadAvatar(file, authStore.token);
+        user.avatar = updatedUser.avatar;
+        if (authStore.user) {
+          authStore.user.avatar = updatedUser.avatar;
+          localStorage.setItem('avatar', updatedUser.avatar);
+        }
+      } catch (err) {
+        console.error("Avatar yüklenemedi", err);
+        alert("Avatar yüklenirken bir hata oluştu.");
+      } finally {
+        isUploadingAvatar = false;
+        if (fileInput) fileInput.value = '';
+      }
+    }
+  }
 
   let posts: any[] = $state([]);
   let selectedPost = $state<PostDTO | null>(null);
@@ -55,6 +88,7 @@
       user.following = data.followingCount || 0;
       user.posts = data.postsCount || 0;
       user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
+      user.avatar = data.avatar || '';
 
       // 2. Fetch User Posts
       const userPostsData = await ApiService.getUserPosts(user.id, authStore.token);
@@ -164,9 +198,29 @@
       <section class="editorial-sidebar w-full lg:w-[380px] lg:h-screen lg:border-r border-slate-100 bg-white p-8 md:p-12 flex flex-col justify-between shrink-0">
         
         <div class="flex flex-col gap-8">
-          <div class="relative w-24 h-24 rounded-[2rem] overflow-hidden {user.avatarColor} flex items-center justify-center font-bold text-4xl shadow-sm border-[3px] border-slate-50">
-            {user.avatarLetter}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div 
+            class="relative w-24 h-24 rounded-[2rem] overflow-hidden flex items-center justify-center font-bold text-4xl shadow-sm border-[3px] border-slate-50 transition-all 
+            {authStore.user?.username === targetUsername ? 'cursor-pointer hover:opacity-80' : ''} 
+            {!user.avatar ? user.avatarColor : 'bg-slate-100 text-slate-800'}"
+            onclick={triggerAvatarUpload}
+          >
+            {#if isUploadingAvatar}
+              <span class="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+            {:else if user.avatar}
+              <img src={user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}${user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+            {:else}
+              {user.avatarLetter}
+            {/if}
+            
+            {#if authStore.user?.username === targetUsername && !isUploadingAvatar}
+              <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span class="text-white text-xs font-medium">Değiştir</span>
+              </div>
+            {/if}
           </div>
+          <input type="file" accept="image/*" class="hidden" bind:this={fileInput} onchange={handleFileSelect} />
 
           <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">{user.fullName || user.username}</h1>
