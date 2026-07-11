@@ -42,7 +42,7 @@
   });
 
   async function loadUserData() {
-    if (!authStore.token) return;
+    if (!authStore.token || !targetUsername) return;
     isLoading = true;
     try {
       // 1. Get user data by username
@@ -118,10 +118,10 @@
     if (!user.id || !authStore.token) return;
     try {
       await ApiService.createChatRoom(parseInt(user.id), authStore.token);
-      goto('/messages');
+      goto('/chat');
     } catch (err) {
       console.error("Mesaj başlatılamadı", err);
-      goto('/messages');
+      goto('/chat');
     }
   }
 

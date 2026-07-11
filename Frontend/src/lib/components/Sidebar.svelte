@@ -4,7 +4,7 @@
 
   let navItems = [
     { icon: '🌏', label: 'Home', href: '/' },
-    { icon: '🗨️', label: 'Messages', href: '/messages' },
+    { icon: '🗨️', label: 'Messages', href: '/chat' },
     { icon: '🧠', label: 'AI', href: '/ai' },
     { icon: '🪪', label: 'Profile', href: '/profile' },
     { icon: '⚙️', label: 'Settings', href: '/settings' }
