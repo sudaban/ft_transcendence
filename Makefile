@@ -1,4 +1,4 @@
-.PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs
+.PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs elk-up elk-down elk-logs full-up full-down
 
 help:
 	@echo "🐳 Transendence Docker Commands"
@@ -48,10 +48,19 @@ help:
 	@echo "  make nginx-logs        - View nginx logs (-f)"
 	@echo "  make nginx-down        - Stop nginx"
 	@echo ""
-	@echo "📈 Monitoring (Prometheus & Grafana):"
+	@echo "📈 Monitoring (Prometheus & Grafana) [Profile]:"
 	@echo "  make monitoring-up     - Start monitoring services"
 	@echo "  make monitoring-down   - Stop monitoring services"
 	@echo "  make monitoring-logs   - View monitoring logs"
+	@echo ""
+	@echo "📋 ELK Stack (Elasticsearch, Logstash, Kibana) [Profile]:"
+	@echo "  make elk-up            - Start ELK stack"
+	@echo "  make elk-down          - Stop ELK stack"
+	@echo "  make elk-logs          - View ELK logs"
+	@echo ""
+	@echo "🚀 Full Stack (Core + Monitoring + ELK):"
+	@echo "  make full-up           - Start ALL services (including monitoring & ELK)"
+	@echo "  make full-down         - Stop ALL services"
 	@echo ""
 	@echo "📊 Logs & Debug:"
 	@echo "  make logs-frontend     - Frontend logs"
@@ -235,14 +244,39 @@ shell-db:
 # ========================
 monitoring-up:
 	@echo "📈 Starting Monitoring services..."
-	docker compose up -d prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+	docker compose --profile monitoring up -d
 
 monitoring-down:
 	@echo "⛔ Stopping Monitoring services..."
-	docker compose stop prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+	docker compose --profile monitoring stop
 
 monitoring-logs:
-	docker compose logs -f prometheus grafana node-exporter cadvisor postgres-exporter nginx-exporter
+	docker compose --profile monitoring logs -f
+
+# ========================
+# ELK Stack Commands
+# ========================
+elk-up:
+	@echo "📋 Starting ELK Stack..."
+	docker compose --profile elk up -d
+
+elk-down:
+	@echo "⛔ Stopping ELK Stack..."
+	docker compose --profile elk stop
+
+elk-logs:
+	docker compose --profile elk logs -f
+
+# ========================
+# Full Stack (Core + Monitoring + ELK)
+# ========================
+full-up:
+	@echo "🚀 Starting ALL services (core + monitoring + ELK)..."
+	docker compose --profile monitoring --profile elk up -d
+
+full-down:
+	@echo "⛔ Stopping ALL services..."
+	docker compose --profile monitoring --profile elk down
 
 # ========================
 # Health Check

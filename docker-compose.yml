@@ -21,6 +21,13 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 128M
 
   backend:
     build:
@@ -54,6 +61,13 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 128M
 
   frontend:
     build:
@@ -75,6 +89,13 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          memory: 64M
 
   nginx:
     build:
@@ -86,7 +107,6 @@ services:
     depends_on:
       - frontend
       - backend
-      - grafana
     ports:
       - "80:80"
       - "443:443"
@@ -99,13 +119,22 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 128M
+        reservations:
+          memory: 32M
 
   # ========================
-  # Monitoring Services
+  # Monitoring Services (profile: monitoring)
+  # İhtiyaç olduğunda: docker compose --profile monitoring up -d
   # ========================
   prometheus:
     image: prom/prometheus:latest
     container_name: transendence-prometheus
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     volumes:
@@ -115,7 +144,8 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.time=7d"
+      - "--storage.tsdb.retention.size=500MB"
       - "--web.enable-lifecycle"
     ports:
       - "9090:9090"
@@ -128,10 +158,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
 
   grafana:
     image: grafana/grafana:latest
     container_name: transendence-grafana
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     depends_on:
@@ -158,10 +194,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
 
   node-exporter:
     image: prom/node-exporter:latest
     container_name: transendence-node-exporter
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     volumes:
@@ -182,10 +224,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 64M
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: transendence-cadvisor
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     privileged: true
@@ -206,10 +254,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 128M
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: transendence-postgres-exporter
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     depends_on:
@@ -226,10 +280,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 64M
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: transendence-nginx-exporter
+    profiles: ["monitoring"]
     labels:
       - "autoheal=true"
     depends_on:
@@ -239,6 +299,11 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 64M
 
   # ========================
   # Auto-Heal
@@ -256,17 +321,24 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 32M
 
   # ========================
-  # ELK Stack (Log Management)
+  # ELK Stack (profile: elk)
+  # İhtiyaç olduğunda: docker compose --profile elk up -d
   # ========================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
     container_name: transendence-elasticsearch
+    profiles: ["elk"]
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
     volumes:
       - elk_data:/usr/share/elasticsearch/data
     ports:
@@ -280,10 +352,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.17.1
     container_name: transendence-logstash
+    profiles: ["elk"]
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -294,10 +372,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.1
     container_name: transendence-kibana
+    profiles: ["elk"]
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -308,10 +392,16 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.17.1
     container_name: transendence-filebeat
+    profiles: ["elk"]
     user: root
     depends_on:
       - logstash
@@ -323,6 +413,11 @@ services:
     networks:
       - transendence-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 128M
 
 volumes:
   postgres_data:

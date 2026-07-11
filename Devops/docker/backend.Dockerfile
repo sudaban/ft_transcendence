@@ -12,17 +12,12 @@ RUN dotnet restore Backend.API/Backend.API.csproj
 COPY . .
 RUN dotnet publish Backend.API/Backend.API.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine
+# Runtime stage — aspnet image (~100MB vs SDK ~800MB)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 
 WORKDIR /app
 
 COPY --from=builder /app/publish .
-
-COPY --from=builder /src /src
-COPY --from=builder /root/.nuget /root/.nuget
-
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="/root/.dotnet/tools:${PATH}"
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh && apk add --no-cache postgresql-client
