@@ -1,27 +1,56 @@
+# ============================================================
+# Prometheus Yapılandırması — Metrik Toplama Sistemi
+# ============================================================
+# Prometheus, belirli aralıklarla hedef servislerin /metrics
+# endpoint'lerini "scrape" ederek (çekerek) metrik verilerini toplar.
+# Bu metrikler Grafana dashboard'larında görselleştirilir.
+#
+# Toplanan metrikler:
+#   - CPU, RAM, Disk kullanımı (node-exporter)
+#   - Container bazlı kaynak tüketimi (cAdvisor)
+#   - PostgreSQL bağlantı/sorgu istatistikleri (postgres-exporter)
+#   - Nginx istek sayısı ve hata oranları (nginx-exporter)
+# ============================================================
+
+# Genel ayarlar
 global:
+  # Her 15 saniyede bir hedeflerin metriklerini topla
   scrape_interval: 15s
+  # Her 15 saniyede bir alert kurallarını değerlendir
   evaluation_interval: 15s
 
+# Alert kurallarının tanımlı olduğu dosya
+# (CPU %80 üstü, DB bağlantı limiti, disk doluluk uyarıları vs.)
 rule_files:
   - "alert_rules.yml"
 
+# ---- Hangi servislerden metrik toplanacak ----
 scrape_configs:
+  # Prometheus kendisini de izler (iç metrikler)
   - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:9090"]
 
+  # Node Exporter: Sunucu/VM düzeyinde metrikler
+  # (CPU kullanımı, RAM, disk I/O, ağ trafiği)
   - job_name: "node-exporter"
     static_configs:
       - targets: ["node-exporter:9100"]
 
+  # cAdvisor: Docker container düzeyinde metrikler
+  # (Her container'ın CPU, RAM, ağ kullanımı)
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:8080"]
 
+  # Postgres Exporter: PostgreSQL veritabanı metrikleri
+  # (Aktif bağlantı sayısı, sorgu süreleri, tablo boyutları)
   - job_name: "postgres-exporter"
     static_configs:
       - targets: ["postgres-exporter:9187"]
 
+  # Nginx Exporter: Nginx reverse proxy metrikleri
+  # (Toplam istek sayısı, aktif bağlantılar, istek/saniye)
   - job_name: "nginx-exporter"
     static_configs:
       - targets: ["nginx-exporter:9113"]

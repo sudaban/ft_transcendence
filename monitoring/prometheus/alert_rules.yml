@@ -1,6 +1,23 @@
+# ============================================================
+# Prometheus Alert Kuralları — Otomatik Uyarı Sistemi
+# ============================================================
+# Bu dosya, Prometheus'un sürekli kontrol ettiği uyarı kurallarını tanımlar.
+# Bir kural tetiklendiğinde (ör: CPU %80 üstü 5 dakika boyunca),
+# Prometheus bir alert oluşturur. Bu alert Grafana'da görüntülenebilir
+# veya Alertmanager ile e-posta/Slack bildirimi gönderilebilir.
+#
+# severity seviyeleri:
+#   - critical: Acil müdahale gerekli (servis çökmesi)
+#   - warning: Dikkat edilmesi gereken durum (kaynak tüketimi yüksek)
+# ============================================================
+
 groups:
+  # ---- Servis Erişilebilirlik Uyarıları ----
   - name: instance_alerts
     rules:
+      # UYARI: Herhangi bir izlenen servis çöktüyse
+      # up == 0 → Prometheus servise ulaşamıyor
+      # for: 1m → 1 dakika boyunca ulaşılamazsa tetiklenir
       - alert: InstanceDown
         expr: up == 0
         for: 1m
@@ -10,8 +27,12 @@ groups:
           summary: "Instance {{ $labels.instance }} down"
           description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
 
+  # ---- Container Kaynak Kullanım Uyarıları ----
   - name: container_alerts
     rules:
+      # UYARI: Bir container'ın CPU kullanımı %80'in üstünde
+      # 5 dakika boyunca yüksek kalırsa tetiklenir
+      # rate(...[5m]): Son 5 dakikadaki ortalama CPU kullanım oranı
       - alert: HighCpuUsage
         expr: (sum(rate(container_cpu_usage_seconds_total{name!=""}[5m])) by (name) * 100) > 80
         for: 5m
@@ -21,6 +42,8 @@ groups:
           summary: "High CPU usage on {{ $labels.name }}"
           description: "Container {{ $labels.name }} CPU usage is above 80% for 5 minutes. Current: {{ $value }}%"
 
+      # UYARI: Bir container'ın RAM kullanımı limitinin %85'ini aştı
+      # memory_usage / memory_limit oranı hesaplanır
       - alert: HighMemoryUsage
         expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} * 100) > 85
         for: 5m
@@ -30,8 +53,11 @@ groups:
           summary: "High memory usage on {{ $labels.name }}"
           description: "Container {{ $labels.name }} memory usage is above 85%. Current: {{ $value }}%"
 
+  # ---- Veritabanı Uyarıları ----
   - name: database_alerts
     rules:
+      # UYARI: PostgreSQL veritabanı erişilemez durumda
+      # pg_up == 0 → postgres-exporter veritabanına bağlanamıyor
       - alert: DatabaseDown
         expr: pg_up == 0
         for: 1m
@@ -41,6 +67,9 @@ groups:
           summary: "PostgreSQL is down"
           description: "PostgreSQL exporter reports the database is unreachable."
 
+      # UYARI: Veritabanı bağlantı sayısı 80'i aştı
+      # PostgreSQL varsayılan max_connections: 100
+      # 80'i aşması, bağlantı havuzunun dolmak üzere olduğunu gösterir
       - alert: DatabaseHighConnections
         expr: pg_stat_activity_count > 80
         for: 5m
@@ -50,8 +79,12 @@ groups:
           summary: "High number of DB connections"
           description: "PostgreSQL active connections: {{ $value }}"
 
+  # ---- Nginx Uyarıları ----
   - name: nginx_alerts
     rules:
+      # UYARI: Nginx 5xx hata oranı %5'in üstünde
+      # 5xx hataları sunucu tarafı hatalarıdır (500, 502, 503 vs.)
+      # Yüksek oran backend'de ciddi bir sorun olduğunu gösterir
       - alert: NginxHighErrorRate
         expr: (rate(nginx_http_requests_total{status=~"5.."}[5m]) / rate(nginx_http_requests_total[5m])) * 100 > 5
         for: 5m
@@ -61,8 +94,12 @@ groups:
           summary: "High Nginx 5xx error rate"
           description: "Nginx 5xx error rate is above 5%. Current: {{ $value }}%"
 
+  # ---- Sistem Uyarıları ----
   - name: system_alerts
     rules:
+      # UYARI: Disk alanı %15'in altına düştü
+      # Kök dizinin (/) kullanılabilir alanını kontrol eder
+      # Disk dolunca container'lar çökebilir, loglar yazılamaz
       - alert: DiskSpaceRunningLow
         expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
         for: 5m
