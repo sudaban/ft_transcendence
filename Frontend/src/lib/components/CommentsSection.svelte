@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ApiService } from '$lib/api';
+  import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { CommentDTO } from '$lib/types';
   import gsap from 'gsap';
@@ -61,8 +61,12 @@
   
   <!-- Add Comment Input -->
   <div class="flex gap-3 mb-6">
-    <div class="w-8 h-8 rounded-full bg-slate-900 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-      {authStore.user ? getAvatarInitial(authStore.user.username) : 'ME'}
+    <div class="w-8 h-8 rounded-full bg-slate-900 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+      {#if authStore.user?.avatar}
+        <img src={authStore.user.avatar.startsWith('http') ? authStore.user.avatar : `${API_BASE_URL}${authStore.user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+      {:else}
+        {authStore.user ? getAvatarInitial(authStore.user.username) : 'ME'}
+      {/if}
     </div>
     <div class="flex-1 flex items-center bg-gray-50 rounded-full border border-gray-200 px-4 focus-within:ring-2 focus-within:ring-[#1d9bf0]/20 focus-within:border-[#1d9bf0] transition-all">
       <input 
@@ -96,8 +100,12 @@
     <div class="flex flex-col gap-4">
       {#each comments as comment (comment.id)}
         <div class="flex gap-3">
-          <a href="/profile/{comment.user?.username}" class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center text-slate-700 text-xs font-bold hover:opacity-80 transition-opacity">
-            {getAvatarInitial(comment.user?.username)}
+          <a href="/profile/{comment.user?.username}" class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center text-slate-700 text-xs font-bold hover:opacity-80 transition-opacity overflow-hidden">
+            {#if comment.user?.avatar}
+              <img src={comment.user.avatar.startsWith('http') ? comment.user.avatar : `${API_BASE_URL}${comment.user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+            {:else}
+              {getAvatarInitial(comment.user?.username)}
+            {/if}
           </a>
           <div class="flex flex-col flex-1 bg-gray-50 rounded-2xl rounded-tl-none p-3 border border-gray-100">
             <div class="flex items-center gap-1 mb-1 relative">
