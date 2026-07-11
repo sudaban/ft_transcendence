@@ -217,6 +217,14 @@
 
   function handleIncomingMessage(formattedMsg: any)
   {
+    // Fix: Prevent double rendering for the sender (locally added + SignalR received)
+    const existsInLive = liveMessages.some(m => m.id === formattedMsg.id);
+    const existsInArchive = archivedSlices.some(slice => slice.data.some(m => m.id === formattedMsg.id));
+    
+    if (existsInLive || existsInArchive) {
+      return; 
+    }
+
     if (liveMessages.length >= 8)
     {
       flushBufferToHistory();
@@ -303,6 +311,40 @@
     finally
     {
       isSending = false;
+    }
+  }
+
+  async function deleteCurrentRoom() {
+    if (!selectedRoomId || !authStore.token) return;
+    
+    const confirmDelete = confirm("Bu sohbeti silmek istediğine emin misin?");
+    if (!confirmDelete) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/api/ChatRooms/${selectedRoomId}/hide`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authStore.token}` }
+      });
+      
+      // Update local state
+      chatRooms = chatRooms.filter(r => r.id !== selectedRoomId);
+      
+      // Reset UI
+      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
+        try { await hubConnection.invoke("LeaveRoom", selectedRoomId.toString()); } catch(e){}
+      }
+      
+      selectedRoomId = null;
+      liveMessages = [];
+      archivedSlices = [];
+      asciiHistory = [];
+      
+      if (chatRooms.length > 0) {
+        selectRoom(chatRooms[0].id);
+      }
+    } catch (err) {
+      console.error("Sohbet silinirken hata:", err);
+      alert("Sohbet silinemedi.");
     }
   }
 
@@ -400,8 +442,11 @@
       </div>
     </div>
 
-    <div class="text-[11px] text-slate-400 font-mono pt-4 mt-4 border-t border-slate-50">
-      Enc: Active (Dümenden)
+    <div class="text-[11px] text-slate-400 font-mono pt-4 mt-4 border-t border-slate-50 flex items-center justify-between">
+      <span>Enc: Active (Dümenden)</span>
+      {#if selectedRoomId}
+        <button onclick={deleteCurrentRoom} class="text-red-400 hover:text-red-500 hover:underline transition-colors">Sohbeti Sil</button>
+      {/if}
     </div>
   </aside>
 
