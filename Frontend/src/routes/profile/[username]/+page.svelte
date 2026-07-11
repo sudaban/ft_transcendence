@@ -117,8 +117,20 @@
   async function startMessage() {
     if (!user.id || !authStore.token) return;
     try {
-      const room = await ApiService.createChatRoom(parseInt(user.id), authStore.token);
-      goto(`/chat?roomId=${room.id}`);
+      const existingRooms = await ApiService.getChatRooms(authStore.token);
+      const existingRoom = existingRooms.find(r => 
+        !r.isGroup && r.members && r.members.some(m => m.id.toString() === user.id.toString())
+      );
+      
+      let roomId;
+      if (existingRoom) {
+        roomId = existingRoom.id;
+      } else {
+        const newRoom = await ApiService.createChatRoom(parseInt(user.id), authStore.token);
+        roomId = newRoom.id;
+      }
+      
+      goto(`/chat?roomId=${roomId}`);
     } catch (err) {
       console.error("Mesaj başlatılamadı", err);
       goto('/chat');
