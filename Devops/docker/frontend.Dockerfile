@@ -1,20 +1,23 @@
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package.json package-lock.json ./
 RUN npm install --prefer-offline --no-audit --no-fund --maxsockets=5
 
-# Copy the rest of the application code
 COPY . .
+RUN npm run build && npm prune --production
 
-# Build the SvelteKit app
-RUN npm run build
+# Production stage — sadece build output ve production dependencies
+FROM node:20-alpine
 
-# Expose the default port (Node adapter uses 3000 by default)
+WORKDIR /app
+
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
 EXPOSE 3000
 
-# Start the built app
 CMD ["node", "build/index.js"]

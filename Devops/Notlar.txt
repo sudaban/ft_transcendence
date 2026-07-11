@@ -87,3 +87,7 @@ ELK Nasıl Çalışır?
 (E)lasticsearch: Bu toplanan milyonlarca satır log metnini kendi devasa veritabanına kaydeder ve saniyeler içinde arama yapılabilecek şekilde (Google gibi) indeksler.
 (K)ibana: Senin bu Elasticsearch içindeki milyonlarca log metni arasında filtreleme, arama yapmanı ve hataları bulmanı sağlayan arayüzdür.
 Hangi soruyu cevaplar? "Sistem neden yavaşladı? Hangi kod satırında hata fırlatıldı? Saat 14:05'te sisteme kim giriş yapmaya çalıştı?"
+
+
+make monitoring-up	+ Monitoring	11 (~2 GB RAM)
+make full-up	Hepsi	15 (~4-5 GB RAM)
