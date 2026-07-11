@@ -11,7 +11,7 @@ const MOCK_USERS: UserDTO[] = [
   { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB' }
 ];
 
-export const API_BASE_URL = 'https://tr.celten.fun';
+export const API_BASE_URL = 'http://localhost:5000';
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const ApiService = {
