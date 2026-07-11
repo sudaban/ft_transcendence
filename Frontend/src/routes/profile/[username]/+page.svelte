@@ -42,7 +42,7 @@
   });
 
   async function loadUserData() {
-    if (!authStore.token) return;
+    if (!authStore.token || !targetUsername) return;
     isLoading = true;
     try {
       // 1. Get user data by username
@@ -117,11 +117,23 @@
   async function startMessage() {
     if (!user.id || !authStore.token) return;
     try {
-      await ApiService.createChatRoom(parseInt(user.id), authStore.token);
-      goto('/messages');
+      const existingRooms = await ApiService.getChatRooms(authStore.token);
+      const existingRoom = existingRooms.find(r => 
+        !r.isGroup && r.members && r.members.some(m => m.id.toString() === user.id.toString())
+      );
+      
+      let roomId;
+      if (existingRoom) {
+        roomId = existingRoom.id;
+      } else {
+        const newRoom = await ApiService.createChatRoom(parseInt(user.id), authStore.token);
+        roomId = newRoom.id;
+      }
+      
+      goto(`/chat?roomId=${roomId}`);
     } catch (err) {
       console.error("Mesaj başlatılamadı", err);
-      goto('/messages');
+      goto('/chat');
     }
   }
 

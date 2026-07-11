@@ -4,11 +4,11 @@ import type { PostDTO, UserDTO } from './types';
 // Backend hazır olduğunda buradaki sahte verileri silip gerçek fetch atmalıyız beyler
 
 const MOCK_USERS: UserDTO[] = [
-  { id: 'u1', username: 'enes_celten', handle: '@idkahram', avatar: 'FE' },
-  { id: 'u2', username: 'adalomer51', handle: '@omadali', avatar: 'OP' },
-  { id: 'u3', username: 'sametncs', handle: '@saincesu', avatar: 'BE' },
-  { id: 'u4', username: 'umutdbn77', handle: '@sdaban', avatar: 'BE' },
-  { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB' }
+  { id: 'u1', username: 'enes_celten', handle: '@idkahram', avatar: 'FE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
+  { id: 'u2', username: 'adalomer51', handle: '@omadali', avatar: 'OP', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
+  { id: 'u3', username: 'sametncs', handle: '@saincesu', avatar: 'BE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
+  { id: 'u4', username: 'umutdbn77', handle: '@sdaban', avatar: 'BE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
+  { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false }
 ];
 
 export const API_BASE_URL = 'http://localhost:5000';

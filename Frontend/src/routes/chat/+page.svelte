@@ -1,23 +1,32 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
+  import { page } from '$app/stores';
   import gsap from 'gsap';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
+  
+  import { ApiService, API_BASE_URL } from '$lib/api';
+  import { authStore } from '$lib/stores/auth.svelte';
+  import type { ChatRoomDTO, MessageDTO, UserDTO } from '$lib/types';
+  import * as signalR from "@microsoft/signalr";
 
+  // API State
+  let chatRooms = $state<ChatRoomDTO[]>([]);
+  let selectedRoomId = $state<number | null>(null);
+  let isLoadingRooms = $state(true);
+  let isLoadingMessages = $state(false);
+  let isSending = $state(false);
+  let hubConnection: signalR.HubConnection | null = null;
+
+  // Custom UI State
   let newMessage = $state('');
   let asciiHistory = $state<string[]>([]);
-  
   let archivedSlices = $state<Array<{ id: number, label: string, char: string, leader: string | null, data: any[] }>>([]);
   let selectedSliceId = $state<number | null>(null);
   let isHistoryOpen = $state(false);
-
-  let currentLoopLeader = $state<string | null>('Main Character');
-  
-  let liveMessages = $state([
-    { id: 1, sender: 'Main Character', text: 'Hey, did you check out the new chat page?', time: '10:00 AM', color: 'border-slate-300' },
-    { id: 2, sender: 'Main Character', text: 'It looks super clean.', time: '10:02 AM', color: 'border-slate-300' },
-    { id: 3, sender: 'Player 1', text: 'Ehehe I know bc i make it.', time: '10:05 AM', color: 'border-slate-900' }
-  ]);
+  let currentLoopLeader = $state<string | null>(null);
+  let liveMessages = $state<any[]>([]);
+  let chatContainer: HTMLElement;
 
   let currentDisplayMessages = $derived.by(() => {
     if (selectedSliceId === null) return liveMessages;
@@ -37,25 +46,221 @@
     return found ? found.label : '';
   });
 
-  let inbox = [
-    { id: 1, username: 'Main Character', active: true, avatar: 'MC' },
-    { id: 2, username: 'Player 2', active: false, avatar: 'P2' },
-    { id: 3, username: 'Player 3', active: false, avatar: 'P3' }
-  ];
+  onMount(async () => {
+    
+    if (!authStore.token) return;
+    
+    try
+    {
+      chatRooms = await ApiService.getChatRooms(authStore.token);
+      
+      hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`${API_BASE_URL}/chathub`, { 
+          accessTokenFactory: () => authStore.token || '',
+          skipNegotiation: true,
+          transport: signalR.HttpTransportType.WebSockets
+        })
+        .withAutomaticReconnect()
+        .build();
 
-  let chatContainer: HTMLElement;
+      hubConnection.on("ReceiveMessage", (message: MessageDTO) => {
+        if (selectedRoomId === message.chatRoomId)
+        {
+          const room = chatRooms.find(r => r.id === selectedRoomId);
+          if (room)
+          {
+            handleIncomingMessage(formatMessage(message, room));
+          }
+        }
+      });
 
-  onMount(() => {
-    gsap.fromTo('.horizontal-inbox-item', 
-      { opacity: 0, scale: 0.9 },
-      { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
-    );
-    gsap.fromTo('.timeline-bubble', 
-      { opacity: 0, x: -10 },
-      { opacity: 1, x: 0, duration: 0.5, stagger: 0.06, ease: 'power3.out' }
-    );
+      await hubConnection.start();
+      
+    }
+    catch(err)
+    {
+      console.error(err);
+    }
+    finally
+    {
+      isLoadingRooms = false;
+    }
+    
+    if (chatRooms.length > 0) {
+      await tick();
+      gsap.fromTo('.horizontal-inbox-item', 
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
+      );
+      
+      const queryRoomId = $page.url.searchParams.get('roomId');
+      if (queryRoomId) {
+        const roomId = parseInt(queryRoomId);
+        if (!isNaN(roomId)) {
+          selectRoom(roomId);
+        }
+      }
+    }
+    
     scrollToBottom();
   });
+
+  onDestroy(() => {
+    if (hubConnection) {
+      hubConnection.stop();
+    }
+  });
+
+  async function selectRoom(roomId: number)
+  {
+    if (!authStore.token)
+      return;
+    
+    if (selectedRoomId && hubConnection?.state === signalR.HubConnectionState.Connected)
+    {
+      try {
+        await hubConnection.invoke("LeaveRoom", selectedRoomId.toString());
+      } catch (err) {
+        console.warn("LeaveRoom err:", err);
+      }
+    }
+
+    selectedRoomId = roomId;
+    isLoadingMessages = true;
+    selectedSliceId = null; 
+
+    try
+    {
+      const rawMessages = await ApiService.getChatMessages(roomId, authStore.token);
+      const room = chatRooms.find(r => r.id === roomId);
+      if (!room)
+        return;
+      
+      archivedSlices = [];
+      asciiHistory = [];
+      liveMessages = [];
+      currentLoopLeader = null;
+
+      let buffer: any[] = [];
+      let tempLeader: string | null = null;
+      
+      for (const rawMsg of rawMessages)
+      {
+        const formatted = formatMessage(rawMsg, room);
+        if (buffer.length === 0 && !tempLeader)
+        {
+          tempLeader = formatted.sender;
+        }
+        buffer.push(formatted);
+
+        if (buffer.length === 8)
+        {
+          const bitString = buffer.map(m => m.sender === tempLeader ? '0' : '1').join('');
+          const decimalValue = parseInt(bitString, 2);
+          const asciiChar = (decimalValue >= 32 && decimalValue <= 126) ? String.fromCharCode(decimalValue) : '?';
+          
+          asciiHistory.push(asciiChar);
+          archivedSlices.unshift({
+            id: Date.now() + Math.random(),
+            label: `#0${archivedSlices.length + 1}`,
+            char: asciiChar,
+            leader: tempLeader,
+            data: [...buffer]
+          });
+          
+          buffer = [];
+          tempLeader = null;
+        }
+      }
+
+      liveMessages = buffer;
+      currentLoopLeader = tempLeader;
+
+      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
+        try {
+          await hubConnection.invoke("JoinRoom", roomId.toString());
+        } catch (err) {
+          console.warn("JoinRoom err:", err);
+        }
+      }
+      scrollToBottom();
+    }
+    catch (err)
+    {
+      console.error(err);
+    }
+    finally
+    {
+      isLoadingMessages = false;
+    }
+  }
+
+  function formatMessage(msg: MessageDTO, room: ChatRoomDTO): any
+  {
+    const isMe = msg.senderId.toString() === authStore.user?.id?.toString();
+    let senderName = "Bilinmeyen";
+    if (isMe) senderName = authStore.user?.username || "Ben";
+    else
+    {
+      const otherUser = room.members?.find(m => m.id.toString() === msg.senderId.toString());
+      if (otherUser) senderName = otherUser.username;
+    }
+
+    return {
+      id: msg.id,
+      sender: senderName,
+      text: msg.content,
+      time: new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      color: isMe ? 'border-slate-900' : 'border-slate-300'
+    };
+  }
+
+  function handleIncomingMessage(formattedMsg: any)
+  {
+    // Fix: Prevent double rendering for the sender (locally added + SignalR received)
+    const existsInLive = liveMessages.some(m => m.id === formattedMsg.id);
+    const existsInArchive = archivedSlices.some(slice => slice.data.some(m => m.id === formattedMsg.id));
+    
+    if (existsInLive || existsInArchive) {
+      return; 
+    }
+
+    if (liveMessages.length >= 8)
+    {
+      flushBufferToHistory();
+    }
+    
+    if (liveMessages.length === 0 && !currentLoopLeader)
+    {
+      currentLoopLeader = formattedMsg.sender;
+    }
+    
+    liveMessages.push(formattedMsg);
+    scrollToBottom();
+  }
+  
+  function flushBufferToHistory()
+  {
+    const bitString = liveMessages.map(msg => msg.sender === currentLoopLeader ? '0' : '1').join('');
+    const decimalValue = parseInt(bitString, 2);
+    
+    const asciiChar = (decimalValue >= 32 && decimalValue <= 126) 
+      ? String.fromCharCode(decimalValue) 
+      : `?`; 
+
+    asciiHistory.push(asciiChar);
+    
+    archivedSlices.unshift({
+      id: Date.now(),
+      label: `#0${archivedSlices.length + 1}`,
+      char: asciiChar,
+      leader: currentLoopLeader,
+      data: [...liveMessages]
+    });
+
+    liveMessages = [];
+    currentLoopLeader = null;
+  }
 
   async function scrollToBottom()
   {
@@ -75,10 +280,11 @@
     scrollToBottom();
   }
 
-  function sendMessage(e?: Event)
+  async function sendMessage(e?: Event)
   {
     if (e) e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !selectedRoomId || !authStore.token)
+      return;
 
     if (selectedSliceId !== null)
     {
@@ -86,45 +292,72 @@
       return;
     }
 
-    if (liveMessages.length >= 8)
+    isSending = true;
+    try
     {
-      const bitString = liveMessages.map(msg => msg.sender === currentLoopLeader ? '1' : '0').join('');
-      const decimalValue = parseInt(bitString, 2);
-      
-      const asciiChar = (decimalValue >= 32 && decimalValue <= 126) 
-        ? String.fromCharCode(decimalValue) 
-        : `?`; 
-
-      asciiHistory.push(asciiChar);
-      
-      archivedSlices.unshift
-      ({
-        id: Date.now(),
-        label: `#0${archivedSlices.length + 1}`,
-        char: asciiChar,
-        leader: currentLoopLeader,
-        data: [...liveMessages]
-      });
-
-      liveMessages = [];
-      currentLoopLeader = null;
+      const sentMsg = await ApiService.sendMessage(selectedRoomId, newMessage.trim(), authStore.token);
+      const room = chatRooms.find(r => r.id === selectedRoomId);
+      if (room)
+      {
+        handleIncomingMessage(formatMessage(sentMsg, room));
+      }
+      newMessage = '';
+      scrollToBottom();
     }
-
-    if (liveMessages.length === 0 && !currentLoopLeader)
+    catch (err)
     {
-      currentLoopLeader = 'Player 1';
+      console.error(err);
     }
+    finally
+    {
+      isSending = false;
+    }
+  }
 
-    liveMessages.push({
-      id: Date.now(),
-      sender: 'Player 1',
-      text: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      color: 'border-slate-900'
-    });
+  async function deleteCurrentRoom() {
+    if (!selectedRoomId || !authStore.token) return;
     
-    newMessage = '';
-    scrollToBottom();
+    const confirmDelete = confirm("Bu sohbeti silmek istediğine emin misin?");
+    if (!confirmDelete) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/api/ChatRooms/${selectedRoomId}/hide`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authStore.token}` }
+      });
+      
+      // Update local state
+      chatRooms = chatRooms.filter(r => r.id !== selectedRoomId);
+      
+      // Reset UI
+      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
+        try { await hubConnection.invoke("LeaveRoom", selectedRoomId.toString()); } catch(e){}
+      }
+      
+      selectedRoomId = null;
+      liveMessages = [];
+      archivedSlices = [];
+      asciiHistory = [];
+      
+      if (chatRooms.length > 0) {
+        selectRoom(chatRooms[0].id);
+      }
+    } catch (err) {
+      console.error("Sohbet silinirken hata:", err);
+      alert("Sohbet silinemedi.");
+    }
+  }
+
+  function getOtherUser(room: ChatRoomDTO): UserDTO | null
+  {
+    if (!room.members || room.members.length === 0)
+      return null;
+    return room.members.find(m => m.id.toString() !== authStore.user?.id?.toString()) || room.members[0];
+  }
+
+  function getAvatarInitial(username?: string)
+  {
+    return username ? username.substring(0, 2).toUpperCase() : 'U';
   }
 </script>
 
@@ -209,8 +442,11 @@
       </div>
     </div>
 
-    <div class="text-[11px] text-slate-400 font-mono pt-4 mt-4 border-t border-slate-50">
-      Enc: Active (Dümenden)
+    <div class="text-[11px] text-slate-400 font-mono pt-4 mt-4 border-t border-slate-50 flex items-center justify-between">
+      <span>Enc: Active (Dümenden)</span>
+      {#if selectedRoomId}
+        <button onclick={deleteCurrentRoom} class="text-red-400 hover:text-red-500 hover:underline transition-colors">Sohbeti Sil</button>
+      {/if}
     </div>
   </aside>
 
@@ -218,18 +454,26 @@
     
     <section class="h-[80px] border-b border-slate-100 bg-white/60 backdrop-blur-md flex items-center px-8 gap-3 shrink-0 overflow-x-auto no-scrollbar">
       <div class="text-xs font-bold text-slate-400 tracking-wider uppercase border-r border-slate-200 pr-4 mr-2 shrink-0">Chats</div>
-      {#each inbox as chat}
-        <button class="horizontal-inbox-item flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all shrink-0
-          {chat.active ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-100 text-slate-600'}"
-        >
-          <div class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center
-            {chat.active ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}"
+      {#if isLoadingRooms}
+        <div class="text-xs font-mono text-slate-400">Loading...</div>
+      {:else if chatRooms.length === 0}
+        <div class="text-xs font-mono text-slate-400">No active sessions.</div>
+      {:else}
+        {#each chatRooms as room}
+          {@const otherUser = getOtherUser(room)}
+          {@const isActive = room.id === selectedRoomId}
+          <button onclick={() => selectRoom(room.id)} class="horizontal-inbox-item flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all shrink-0
+            {isActive ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-100 text-slate-600'}"
           >
-            {chat.avatar}
-          </div>
-          <span class="text-xs font-medium pr-1">{chat.username}</span>
-        </button>
-      {/each}
+            <div class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center
+              {isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}"
+            >
+              {otherUser?.avatar || getAvatarInitial(otherUser?.username)}
+            </div>
+            <span class="text-xs font-medium pr-1">{otherUser?.username || "Unknown"}</span>
+          </button>
+        {/each}
+      {/if}
     </section>
 
     <div bind:this={chatContainer} class="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-16 py-8 flex flex-col bg-[#fcfcfc]">
@@ -255,7 +499,7 @@
             <div class="absolute -left-[33px] top-0.5 w-5 h-5 rounded-full bg-[#fcfcfc] flex items-center justify-center font-mono text-xs font-bold transition-all duration-200 group-hover:scale-125
               {msg.sender === currentDisplayLeader ? 'text-slate-900 scale-110' : 'text-slate-300'}"
             >
-              {msg.sender === currentDisplayLeader ? '1' : '0'}
+              {msg.sender === currentDisplayLeader ? '0' : '1'}
             </div>
 
             <div class="flex items-center gap-2 mb-1.5">
