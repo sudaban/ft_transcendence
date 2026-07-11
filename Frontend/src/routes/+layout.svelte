@@ -20,11 +20,10 @@
 		
 		const currentPath = $page.url.pathname;
 		const isAuthRoute = currentPath === '/login' || currentPath === '/register';
-		const isProtectedRoute = currentPath.startsWith('/profile'); // Add more here later
 
 		if (authStore.isAuthenticated && isAuthRoute) {
 			goto('/');
-		} else if (!authStore.isAuthenticated && isProtectedRoute) {
+		} else if (!authStore.isAuthenticated && !isAuthRoute) {
 			goto('/login');
 		}
 	});

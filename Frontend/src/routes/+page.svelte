@@ -78,15 +78,17 @@
 
   async function handlePostSubmit() {
     if (!authStore.token) return;
-    if (!selectedFile) {
-      alert("Bir fotoğraf seçmelisiniz!");
+    if (!selectedFile && !newPostContent.trim()) {
+      alert("Gönderi paylaşmak için fotoğraf seçmeli veya metin yazmalısınız!");
       return;
     }
     
     isSubmitting = true;
     try {
       const formData = new FormData();
-      formData.append('File', selectedFile);
+      if (selectedFile) {
+        formData.append('File', selectedFile);
+      }
       if (newPostContent.trim()) {
         formData.append('Content', newPostContent.trim());
       }
@@ -158,7 +160,7 @@
           </div>
           <button 
             onclick={handlePostSubmit}
-            disabled={!newPostContent.trim() || isSubmitting}
+            disabled={(!newPostContent.trim() && !selectedFile) || isSubmitting}
             class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold px-4 py-1.5 rounded-full disabled:opacity-50 transition-colors flex items-center gap-2"
           >
             {#if isSubmitting}
