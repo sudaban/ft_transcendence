@@ -120,12 +120,12 @@
 </script>
 
 <div class="min-h-screen bg-social-bg text-social-primary flex justify-center">
-
-  <!-- 1. LEFT SIDEBAR -->
+  <div class="w-full max-w-[1280px] flex justify-between">
+    <!-- 1. LEFT SIDEBAR -->
   <Sidebar />
 
-  <!-- 2. CENTER FEED -->
-  <main class="w-full max-w-[600px] border-r border-social-border min-h-screen pb-20 md:pb-0">
+    <!-- 2. CENTER FEED -->
+    <main class="flex-1 max-w-[700px] border-x border-social-border min-h-screen pb-20 md:pb-0 mx-auto">
     
     <!-- Header -->
     <div class="sticky top-0 bg-[rgba(255,255,255,0.85)] backdrop-blur-md z-10 border-b border-social-border">
@@ -292,5 +292,5 @@
   </aside>
 
   <MobileNav />
-
+  </div>
 </div>

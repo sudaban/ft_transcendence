@@ -1,20 +1,32 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-social-bg: #fafafa;
-  --color-social-card: #ffffff;
+  --color-social-bg: var(--theme-bg, #fafafa);
+  --color-social-card: var(--theme-card, #ffffff);
 
-  --color-social-border: #dbdbdb;
-  --color-social-border-hover: #c7c7c7;
+  --color-social-border: var(--theme-border, #dbdbdb);
+  --color-social-border-hover: var(--theme-border-hover, #c7c7c7);
 
-  --color-social-primary: #000000;
-  --color-social-secondary: #737373;
-  --color-social-accent: #0095f6;
-  --color-social-accent-hover: #1877f2;
+  --color-social-primary: var(--theme-primary, #000000);
+  --color-social-secondary: var(--theme-secondary, #737373);
+  --color-social-accent: var(--theme-accent, #0095f6);
+  --color-social-accent-hover: var(--theme-accent-hover, #1877f2);
 
   --color-social-danger: #ed4956;
   --color-social-success: #10b981;
 }
+
+:root {
+  --theme-bg: #fafafa;
+  --theme-card: #ffffff;
+  --theme-border: #dbdbdb;
+  --theme-border-hover: #c7c7c7;
+  --theme-primary: #000000;
+  --theme-secondary: #737373;
+  --theme-accent: #0095f6;
+  --theme-accent-hover: #1877f2;
+}
+
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
