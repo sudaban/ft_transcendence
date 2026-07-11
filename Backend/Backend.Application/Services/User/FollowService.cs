@@ -44,8 +44,8 @@ public class FollowService : IFollowService
         if (currentUserId == targetUserId)
             throw new BadRequestException("You cannot follow yourself.");
 
-        var targetUserExists = await _userRepository.TableNoTracking.AnyAsync(u => u.Id == targetUserId);
-        if (!targetUserExists)
+        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
+        if (targetUser == null)
             throw new NotFoundException($"User with ID {targetUserId} not found.");
 
         bool hasBlock = await _userBlockRepository.TableNoTracking
@@ -90,18 +90,20 @@ public class FollowService : IFollowService
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        IQueryable<Backend.Domain.Entities.User> query = _followRepository.TableNoTracking
+        var query = _followRepository.TableNoTracking
             .Where(f => f.FollowingId == userId)
+            .Include(f => f.Follower)
             .Select(f => f.Follower)
-            .Include(u => u.FollowedBy)
-            .Include(u => u.Following)
-            .Include(u => u.Posts);
+            .AsQueryable();
 
         if (!isAdmin)
         {
-            query = query.Where(u => !_userBlockRepository.TableNoTracking
-                .Any(ub => (ub.BlockerId == currentUserId && ub.BlockedId == u.Id) ||
-                           (ub.BlockerId == u.Id && ub.BlockedId == currentUserId)));
+            var blockedIds = await _userBlockRepository.TableNoTracking
+                .Where(ub => ub.BlockerId == currentUserId || ub.BlockedId == currentUserId)
+                .Select(ub => ub.BlockerId == currentUserId ? ub.BlockedId : ub.BlockerId)
+                .ToListAsync();
+
+            query = query.Where(u => !blockedIds.Contains(u.Id));
         }
 
         var followers = await query.ToListAsync();
@@ -113,18 +115,20 @@ public class FollowService : IFollowService
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
 
-        IQueryable<Backend.Domain.Entities.User> query = _followRepository.TableNoTracking
+        var query = _followRepository.TableNoTracking
             .Where(f => f.FollowerId == userId)
+            .Include(f => f.Following)
             .Select(f => f.Following)
-            .Include(u => u.FollowedBy)
-            .Include(u => u.Following)
-            .Include(u => u.Posts);
+            .AsQueryable();
 
         if (!isAdmin)
         {
-            query = query.Where(u => !_userBlockRepository.TableNoTracking
-                .Any(ub => (ub.BlockerId == currentUserId && ub.BlockedId == u.Id) ||
-                           (ub.BlockerId == u.Id && ub.BlockedId == currentUserId)));
+            var blockedIds = await _userBlockRepository.TableNoTracking
+                .Where(ub => ub.BlockerId == currentUserId || ub.BlockedId == currentUserId)
+                .Select(ub => ub.BlockerId == currentUserId ? ub.BlockedId : ub.BlockerId)
+                .ToListAsync();
+
+            query = query.Where(u => !blockedIds.Contains(u.Id));
         }
 
         var following = await query.ToListAsync();

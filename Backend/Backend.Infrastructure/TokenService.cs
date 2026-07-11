@@ -11,7 +11,6 @@ namespace Backend.Infrastructure
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
-        private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
         public TokenService(IConfiguration configuration)
         {
@@ -43,7 +42,7 @@ namespace Backend.Infrastructure
                 signingCredentials: creds
             );
 
-            return _tokenHandler.WriteToken(token_options);
+            return new JwtSecurityTokenHandler().WriteToken(token_options);
         }
 
         public string CreateTempToken(User user)
@@ -70,7 +69,7 @@ namespace Backend.Infrastructure
                 signingCredentials: creds
             );
 
-            return _tokenHandler.WriteToken(token_options);
+            return new JwtSecurityTokenHandler().WriteToken(token_options);
         }
 
         public bool ValidateTempToken(string token, out string email)
@@ -79,6 +78,7 @@ namespace Backend.Infrastructure
             if (string.IsNullOrEmpty(token))
                 return false;
 
+            var token_handler = new JwtSecurityTokenHandler();
             var secret_key = _configuration["JwtOptions:SecretKey"];
             if (string.IsNullOrEmpty(secret_key))
                 throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
@@ -98,7 +98,7 @@ namespace Backend.Infrastructure
 
             try
             {
-                var principal = _tokenHandler.ValidateToken(token, validation_parameters, out SecurityToken validated_token);
+                var principal = token_handler.ValidateToken(token, validation_parameters, out SecurityToken validated_token);
                 var pre_auth_claim = principal.FindFirst("pre_auth")?.Value;
                 if (pre_auth_claim != "true")
                     return false;

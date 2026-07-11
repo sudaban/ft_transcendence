@@ -73,11 +73,6 @@ public class MessageService : IMessageService
 
         var createdMessage = await _messageRepository.TableNoTracking
             .Include(m => m.Sender)
-                .ThenInclude(u => u.FollowedBy)
-            .Include(m => m.Sender)
-                .ThenInclude(u => u.Following)
-            .Include(m => m.Sender)
-                .ThenInclude(u => u.Posts)
             .FirstOrDefaultAsync(m => m.Id == message.Id);
 
         var messageDto = _mapper.Map<MessageDto>(createdMessage);
@@ -103,11 +98,6 @@ public class MessageService : IMessageService
 
         var query = _messageRepository.TableNoTracking
             .Include(m => m.Sender)
-                .ThenInclude(u => u.FollowedBy)
-            .Include(m => m.Sender)
-                .ThenInclude(u => u.Following)
-            .Include(m => m.Sender)
-                .ThenInclude(u => u.Posts)
             .Where(m => m.ChatRoomId == roomId)
             .Where(m => !m.DeletedByUsers.Any(dm => dm.UserId == currentUserId));
 
