@@ -1,12 +1,33 @@
+# ============================================================
+# Grafana Dashboard Provisioning — Otomatik Dashboard Yükleme
+# ============================================================
+# Bu dosya, Grafana başlatıldığında dashboard JSON dosyalarının
+# otomatik olarak yüklenmesini sağlar. Manuel olarak Grafana
+# arayüzünden dashboard oluşturmaya gerek kalmaz.
+#
+# Dashboard dosyaları: monitoring/grafana/dashboards/ dizininde
+# (transendence-dashboard.json)
+# ============================================================
+
 apiVersion: 1
 
 providers:
+  # Dashboard sağlayıcı tanımı
   - name: "Transendence"
+    # Organizasyon ID'si (varsayılan: 1)
     orgId: 1
+    # Dashboard'ların Grafana'daki klasörü (boş = kök dizin)
     folder: ""
+    # Kaynak türü: dosya sisteminden oku
     type: file
+    # Dashboard'ların Grafana arayüzünden silinmesine izin ver
     disableDeletion: false
+    # Dashboard'ların Grafana arayüzünden düzenlenmesine izin ver
     editable: true
     options:
+      # Dashboard JSON dosyalarının container içindeki yolu
+      # docker-compose.yml'de bu dizine mount ediliyor:
+      # ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       path: /var/lib/grafana/dashboards
+      # Alt klasör yapısından otomatik klasör oluşturma (kapalı)
       foldersFromFilesStructure: false
