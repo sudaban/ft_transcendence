@@ -9,7 +9,8 @@ help:
 	@echo "  make down              - Stop all services"
 	@echo "  make build             - Build all images"
 	@echo "  make rebuild           - Rebuild all and clean volumes"
-	@echo "  make nuke              - ☢️  Full reset (containers, volumes, images, cache, uploads)"
+	@echo "  make nuke              - ☢️  Core reset (core containers, volumes, cache, uploads - NO images deleted)"
+	@echo "  make full-nuke         - ☢️  Full reset including ELK & Monitoring (NO images deleted)"
 	@echo "  make logs              - Show all logs"
 	@echo "  make clean             - Stop and remove volumes"
 	@echo ""
@@ -90,16 +91,25 @@ rebuild:
 	docker compose up --build -d
 
 nuke:
-	@echo "☢️  Full system reset starting..."
-	@echo "⛔ Stopping all containers..."
+	@echo "☢️  Core system reset starting..."
+	@echo "⛔ Stopping core containers..."
 	docker compose down -v --remove-orphans
-	@echo "🗑️  Removing project images..."
-	-docker rmi $$(docker images 'transendence-*' -q) 2>/dev/null || true
 	@echo "📁 Cleaning uploads folder..."
 	rm -rf uploads/*
-	@echo "🔨 Rebuilding everything from scratch..."
+	@echo "🔨 Rebuilding core services from scratch..."
 	docker compose build --no-cache
 	docker compose up -d
+	@echo "✅ Core reset complete! Core services are starting fresh."
+
+full-nuke:
+	@echo "☢️  Full system reset starting (including Monitoring & ELK)..."
+	@echo "⛔ Stopping ALL containers..."
+	docker compose --profile monitoring --profile elk down -v --remove-orphans
+	@echo "📁 Cleaning uploads folder..."
+	rm -rf uploads/*
+	@echo "🔨 Rebuilding ALL services from scratch..."
+	docker compose --profile monitoring --profile elk build --no-cache
+	docker compose --profile monitoring --profile elk up -d
 	@echo "✅ Full reset complete! All services are starting fresh."
 
 logs:
