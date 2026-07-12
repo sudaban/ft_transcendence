@@ -76,8 +76,12 @@ services:
     container_name: transendence-frontend
     labels:
       - "autoheal=true"
+    env_file:
+      - .env
     environment:
       PUBLIC_API_URL: "https://localhost/api"
+      PUBLIC_42_CLIENT_ID: "${OAUTH_INTRA_CLIENT_ID:-}"
+      PUBLIC_GOOGLE_CLIENT_ID: "${OAUTH_GOOGLE_CLIENT_ID:-}"
     ports:
       - "3000:3000"
     healthcheck:
