@@ -1,0 +1,17 @@
+System_Optimization.txtContainer	Önceki RAM	Şimdiki RAM	Önceki Limit	Yeni Limit	Doluluk
+elasticsearch	823 MB	579 MB	1024M	768M	75% ✅
+logstash	727 MB	283 MB	768M	512M	55% ✅
+kibana	300 MB	186 MB	512M	384M	48% ✅
+grafana	174 MB	174 MB	256M	256M	68% ✅
+filebeat	85 MB	48 MB	128M	128M	37% ✅
+backend	54 MB	50 MB	512M	512M	10% ✅
+prometheus	82 MB	45 MB	256M	256M	17% ✅
+cadvisor	35 MB	32 MB	128M	128M	25% ✅
+database	36 MB	28 MB	512M	512M	5% ✅
+frontend	14 MB	15 MB	256M	256M	6% ✅
+autoheal	17 MB	1 MB	32M	64M	2% ✅
+nginx	11 MB	11 MB	128M	128M	9% ✅
+node-exporter	17 MB	10 MB	64M	64M	16% ✅
+postgres-exp	13 MB	9 MB	64M	64M	13% ✅
+nginx-exp	11 MB	7 MB	64M	64M	11% ✅
+TOPLAM	~2.4 GB	~1.5 GB	4.4 GB	3.6 GB	
