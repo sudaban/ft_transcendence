@@ -325,7 +325,7 @@ services:
       resources:
         limits:
           cpus: '0.05'
-          memory: 32M
+          memory: 64M
 
   # ========================
   # ELK Stack (profile: elk)
@@ -338,7 +338,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
     volumes:
       - elk_data:/usr/share/elasticsearch/data
     ports:
@@ -355,7 +355,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: '0.50'
           memory: 768M
 
   logstash:
@@ -365,6 +365,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    environment:
+      - "LS_JAVA_OPTS=-Xms128m -Xmx128m"
     volumes:
       - ./monitoring/elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
@@ -375,7 +377,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
+          cpus: '0.30'
           memory: 512M
 
   kibana:
@@ -387,6 +389,7 @@ services:
         condition: service_healthy
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - "NODE_OPTIONS=--max-old-space-size=256"
     ports:
       - "5601:5601"
     networks:
@@ -395,8 +398,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 512M
+          cpus: '0.30'
+          memory: 384M
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.17.1
