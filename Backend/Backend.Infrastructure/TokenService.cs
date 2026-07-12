@@ -27,7 +27,7 @@ namespace Backend.Infrastructure
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            var secret_key = _configuration["JwtOptions:SecretKey"];
+            var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
             if (string.IsNullOrEmpty(secret_key))
                 throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
 
@@ -54,7 +54,7 @@ namespace Backend.Infrastructure
                 new Claim("pre_auth", "true")
             };
 
-            var secret_key = _configuration["JwtOptions:SecretKey"];
+            var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
             if (string.IsNullOrEmpty(secret_key))
                 throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
 
@@ -79,7 +79,7 @@ namespace Backend.Infrastructure
                 return false;
 
             var token_handler = new JwtSecurityTokenHandler();
-            var secret_key = _configuration["JwtOptions:SecretKey"];
+            var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
             if (string.IsNullOrEmpty(secret_key))
                 throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
 
