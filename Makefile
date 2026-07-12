@@ -11,6 +11,7 @@ help:
 	@echo "  make rebuild           - Rebuild all and clean volumes"
 	@echo "  make nuke              - ☢️  Core reset (core containers, volumes, cache, uploads - NO images deleted)"
 	@echo "  make full-nuke         - ☢️  Full reset including ELK & Monitoring (NO images deleted)"
+	@echo "  make nuke-extra        - ☢️  Ultimate reset: Full stack + DELETES ALL IMAGES"
 	@echo "  make logs              - Show all logs"
 	@echo "  make clean             - Stop and remove volumes"
 	@echo ""
@@ -111,6 +112,19 @@ full-nuke:
 	docker compose --profile monitoring --profile elk build --no-cache
 	docker compose --profile monitoring --profile elk up -d
 	@echo "✅ Full reset complete! All services are starting fresh."
+
+nuke-extra:
+	@echo "☢️  Ultimate system reset starting (including images)..."
+	@echo "⛔ Stopping ALL containers..."
+	docker compose --profile monitoring --profile elk down -v --remove-orphans
+	@echo "🗑️  Removing ALL project images..."
+	-docker rmi $$(docker images 'transendence-*' -q) 2>/dev/null || true
+	@echo "📁 Cleaning uploads folder..."
+	rm -rf uploads/*
+	@echo "🔨 Rebuilding ALL services from scratch..."
+	docker compose --profile monitoring --profile elk build --no-cache
+	docker compose --profile monitoring --profile elk up -d
+	@echo "✅ Ultimate reset complete! All services and images are starting fresh."
 
 logs:
 	docker compose logs -f
