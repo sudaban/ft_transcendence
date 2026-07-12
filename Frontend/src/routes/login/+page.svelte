@@ -4,6 +4,7 @@
   import { spring } from 'svelte/motion';
   import { ApiService } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
+  import { env } from '$env/dynamic/public';
 
   // State
   let email = $state('');
@@ -27,6 +28,30 @@
   let eyeElement: HTMLElement;
 
   onMount(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tToken = urlParams.get('tempToken');
+    const eml = urlParams.get('email');
+    
+    if (tToken && eml)
+    {
+      tempToken = tToken;
+      email = eml;
+      is2faPending = true;
+      timeRemaining = 300;
+      
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          is2faPending = false;
+          tempToken = '';
+          otpValues = ['', '', '', '', '', ''];
+          triggerError("Güvenlik oturumu süresi doldu. Lütfen tekrar giriş yapın.");
+        }
+      }, 1000);
+    }
+
     gsap.fromTo('.auth-container', 
       { opacity: 0, y: 30 }, 
       { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
@@ -149,6 +174,30 @@
     {
       isSubmitting = false;
     }
+  }
+
+  function initiate42Login()
+  {
+    const clientId = env.PUBLIC_42_CLIENT_ID;
+    if (!clientId)
+    {
+      triggerError("42 Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
+      return;
+    }
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback/42`);
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+  }
+
+  function initiateGoogleLogin()
+  {
+    const clientId = env.PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId)
+    {
+      triggerError("Google Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
+      return;
+    }
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback/google`);
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile`;
   }
 
   // OTP Logic
@@ -314,9 +363,13 @@
         <div class="flex-1 h-px bg-social-border"></div>
       </div>
 
-      <a href="#" class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center gap-2 mb-4">
+      <button type="button" onclick={initiate42Login} class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center justify-center gap-2 mb-3">
         42 Intra ile Giriş Yap
-      </a>
+      </button>
+
+      <button type="button" onclick={initiateGoogleLogin} class="text-sm font-semibold text-[#ea4335] hover:text-[#c5221f] transition-colors flex items-center justify-center gap-2 mb-4">
+        Google ile Giriş Yap
+      </button>
 
       <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>
     

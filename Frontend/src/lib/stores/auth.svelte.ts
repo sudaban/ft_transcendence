@@ -5,6 +5,7 @@ export interface AuthUser
   id: string;
   username: string;
   email: string;
+  avatar?: string;
 }
 
 function parseJwt(token: string): any
@@ -52,10 +53,13 @@ class AuthStore
 
         const extractedUsername = decoded[nameKey] || decoded.unique_name || decoded.name || 'User';
 
+        const storedAvatar = localStorage.getItem('avatar');
+
         this.user = {
           id: decoded[nameIdKey] || decoded.sub || '',
           username: extractedUsername,
-          email: decoded[emailKey] || decoded.email || ''
+          email: decoded[emailKey] || decoded.email || '',
+          avatar: storedAvatar || ''
         };
       }
       else
@@ -78,6 +82,7 @@ class AuthStore
     if (!browser)
       return;
     localStorage.removeItem('token');
+    localStorage.removeItem('avatar');
     this.token = null;
     this.isAuthenticated = false;
     this.user = null;
