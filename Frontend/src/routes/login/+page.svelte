@@ -187,6 +187,18 @@
     window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
   }
 
+  function initiateGoogleLogin()
+  {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId)
+    {
+      triggerError("Google Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
+      return;
+    }
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback/google`);
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile`;
+  }
+
   // OTP Logic
   async function handleOtpKeydown(e: KeyboardEvent, index: number)
   {
@@ -350,8 +362,12 @@
         <div class="flex-1 h-px bg-social-border"></div>
       </div>
 
-      <button type="button" onclick={initiate42Login} class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center justify-center gap-2 mb-4">
+      <button type="button" onclick={initiate42Login} class="text-sm font-semibold text-[#385185] hover:text-social-primary transition-colors flex items-center justify-center gap-2 mb-3">
         42 Intra ile Giriş Yap
+      </button>
+
+      <button type="button" onclick={initiateGoogleLogin} class="text-sm font-semibold text-[#ea4335] hover:text-[#c5221f] transition-colors flex items-center justify-center gap-2 mb-4">
+        Google ile Giriş Yap
       </button>
 
       <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>

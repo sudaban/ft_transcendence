@@ -8,8 +8,9 @@
   let errorMsg = $state('');
 
   onMount(async () => {
+    const provider = $page.params.provider;
     const code = $page.url.searchParams.get('code');
-    const redirectUri = `${window.location.origin}/auth/callback/42`;
+    const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
 
     if (!code)
     {
@@ -20,7 +21,7 @@
 
     try
     {
-      const res = await ApiService.oauthLogin('42', code, redirectUri);
+      const res = await ApiService.oauthLogin(provider, code, redirectUri);
       
       if (res.requiresTwoFactor)
       {
@@ -35,7 +36,7 @@
     catch (err)
     {
       console.error('OAuth Login Error:', err);
-      errorMsg = '42 Intra ile giriş başarısız oldu.';
+      errorMsg = 'Giriş başarısız oldu.';
       isProcessing = false;
     }
   });
@@ -45,7 +46,7 @@
   <div class="auth-container w-full max-w-[350px] bg-social-card border border-social-border rounded-lg p-8 flex flex-col items-center shadow-sm relative z-10 text-center">
     {#if isProcessing}
       <span class="w-8 h-8 border-4 border-social-accent border-t-transparent rounded-full animate-spin mb-4"></span>
-      <h2 class="font-bold text-xl text-social-primary mb-2">42 Intra Onaylanıyor...</h2>
+      <h2 class="font-bold text-xl text-social-primary mb-2">Onaylanıyor...</h2>
       <p class="text-sm text-social-secondary">Lütfen bekleyin, giriş işleminiz tamamlanıyor.</p>
     {:else if errorMsg}
       <div class="text-6xl mb-4">❌</div>
