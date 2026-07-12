@@ -33,7 +33,9 @@ namespace Backend.Application.Profiles
                 .ForCtorParam("FollowersCount", opt => opt.MapFrom(src => src.FollowedBy.Count))
                 .ForCtorParam("FollowingCount", opt => opt.MapFrom(src => src.Following.Count))
                 .ForCtorParam("PostsCount", opt => opt.MapFrom(src => src.Posts.Count))
-                .ForCtorParam("IsTwoFactorEnabled", opt => opt.MapFrom(src => src.IsTwoFactorEnabled));
+                .ForCtorParam("IsTwoFactorEnabled", opt => opt.MapFrom(src => src.IsTwoFactorEnabled))
+                .ForCtorParam("IsOnline", opt => opt.MapFrom(src => src.IsOnline))
+                .ForCtorParam("LastSeenAt", opt => opt.MapFrom(src => src.LastSeenAt));
             
             CreateMap<Post, PostDto>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
