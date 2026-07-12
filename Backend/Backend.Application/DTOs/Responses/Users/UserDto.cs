@@ -11,5 +11,7 @@ public record UserDto
     int FollowersCount,
     int FollowingCount,
     int PostsCount,
-    bool IsTwoFactorEnabled
+    bool IsTwoFactorEnabled,
+    bool IsOnline,
+    DateTime? LastSeenAt
 );

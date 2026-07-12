@@ -10,4 +10,5 @@ public interface IFollowService
     Task UnfollowUserAsync(int targetUserId);
     Task<IEnumerable<UserDto>> GetFollowersAsync(int userId);
     Task<IEnumerable<UserDto>> GetFollowingAsync(int userId);
+    Task<IEnumerable<UserDto>> GetFriendsAsync(int userId);
 }

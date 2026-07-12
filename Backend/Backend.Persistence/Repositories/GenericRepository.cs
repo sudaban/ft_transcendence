@@ -35,10 +35,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public async Task UpdateAsync(T entity)
     {
         _dbSet.Update(entity);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
+        await Task.CompletedTask;
     }
 }

@@ -51,7 +51,8 @@ builder.Services.AddScoped<IChatHubService, Backend.API.Services.ChatHubService>
 
 builder.Services.AddApplicationServices();
 
-var secret_key = builder.Configuration["JwtOptions:SecretKey"] 
+var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+    ?? builder.Configuration["JwtOptions:SecretKey"] 
     ?? throw new InvalidOperationException("JWT SecretKey is missing");
 
 builder.Services.AddAuthentication(options =>
@@ -80,9 +81,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+                  "https://localhost",
+                  "http://localhost:3000",
+                  "https://tr.celten.fun",
+                  "https://tr.celten.fun"
+              )
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 

@@ -34,6 +34,10 @@ public class User
 
     public UserRole Role { get; set; } = UserRole.User;
 
+    public bool IsOnline { get; set; } = false;
+
+    public DateTime? LastSeenAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Follow> FollowedBy { get; set; } = new HashSet<Follow>();

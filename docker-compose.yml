@@ -48,6 +48,7 @@ services:
       OAUTH_INTRA_CLIENT_SECRET: "${OAUTH_INTRA_CLIENT_SECRET:-default-42-client-secret}"
       OAUTH_GOOGLE_CLIENT_ID: "${OAUTH_GOOGLE_CLIENT_ID:-default-google-client-id}"
       OAUTH_GOOGLE_CLIENT_SECRET: "${OAUTH_GOOGLE_CLIENT_SECRET:-default-google-client-secret}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
     ports:
       - "5000:5000"
     volumes:
