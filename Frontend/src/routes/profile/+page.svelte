@@ -7,6 +7,8 @@
   import { ApiService, API_BASE_URL } from '$lib/api';
   import type { PostDTO } from '$lib/types';
   import PostModal from '$lib/components/PostModal.svelte';
+  import UserListModal from '$lib/components/UserListModal.svelte';
+  import type { UserDTO } from '$lib/types';
 
   let isLoading = $state(true);
   let isEditing = $state(false);
@@ -31,6 +33,12 @@
 
   let posts: any[] = $state([]);
   let selectedPost = $state<PostDTO | null>(null);
+  let isPostModalOpen = $state(false);
+
+  // User List Modal State
+  let isUserListOpen = $state(false);
+  let userListTitle = $state('');
+  let userListUsers = $state<UserDTO[]>([]);
 
   let fileInput: HTMLInputElement;
 
@@ -143,6 +151,28 @@
       }
     }
   }
+
+  async function openFollowersModal() {
+    if (!authStore.token || !user.id) return;
+    try {
+      userListUsers = await ApiService.getFollowers(user.id, authStore.token);
+      userListTitle = 'Takipçiler';
+      isUserListOpen = true;
+    } catch (err) {
+      console.error("Followers fetch error", err);
+    }
+  }
+
+  async function openFollowingModal() {
+    if (!authStore.token || !user.id) return;
+    try {
+      userListUsers = await ApiService.getFollowing(user.id, authStore.token);
+      userListTitle = 'Takip Edilenler';
+      isUserListOpen = true;
+    } catch (err) {
+      console.error("Following fetch error", err);
+    }
+  }
 </script>
 
 <div class="min-h-screen bg-[#fcfcfc] text-slate-800 font-sans flex overflow-hidden selection:bg-slate-900 selection:text-white">
@@ -176,15 +206,19 @@
 
         <div class="flex flex-col gap-3 py-4 border-y border-slate-100 w-full font-mono text-xs">
           <div class="flex justify-between text-slate-500">
-            <span>Index Slices:</span>
+            <span>Gönderiler</span>
             <span class="font-bold text-slate-900">{user.posts}</span>
           </div>
-          <div class="flex justify-between text-slate-500">
-            <span>Network Observers:</span>
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="flex justify-between text-slate-500 cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowersModal}>
+            <span>Takipçi</span>
             <span class="font-bold text-slate-900">{user.followers}</span>
           </div>
-          <div class="flex justify-between text-slate-500">
-            <span>Following Core:</span>
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="flex justify-between text-slate-500 cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowingModal}>
+            <span>Takip Edilen</span>
             <span class="font-bold text-slate-900">{user.following}</span>
           </div>
         </div>
@@ -251,6 +285,13 @@
   <MobileNav />
 
   <PostModal bind:post={selectedPost} onClose={() => selectedPost = null} />
+
+  <UserListModal 
+    bind:isOpen={isUserListOpen} 
+    title={userListTitle} 
+    users={userListUsers} 
+    onclose={() => isUserListOpen = false} 
+  />
 
 </div>
 
