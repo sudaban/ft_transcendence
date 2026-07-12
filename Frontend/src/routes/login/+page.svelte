@@ -4,6 +4,7 @@
   import { spring } from 'svelte/motion';
   import { ApiService } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
+  import { PUBLIC_42_CLIENT_ID, PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 
   // State
   let email = $state('');
@@ -177,7 +178,7 @@
 
   function initiate42Login()
   {
-    const clientId = import.meta.env.VITE_42_CLIENT_ID;
+    const clientId = PUBLIC_42_CLIENT_ID;
     if (!clientId)
     {
       triggerError("42 Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
@@ -189,7 +190,7 @@
 
   function initiateGoogleLogin()
   {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId)
     {
       triggerError("Google Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
