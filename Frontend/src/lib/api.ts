@@ -24,6 +24,22 @@ export const ApiService = {
     });
   },
 
+  getFollowers: async (userId: string, token: string): Promise<UserDTO[]> => {
+    const res = await fetch(`${API_URL}/Follows/${userId}/followers`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch followers");
+    return res.json();
+  },
+
+  getFollowing: async (userId: string, token: string): Promise<UserDTO[]> => {
+    const res = await fetch(`${API_URL}/Follows/${userId}/following`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch following");
+    return res.json();
+  },
+
   // Gönderi (Post) endpointleri
   getFeedPosts: async (token: string): Promise<PostDTO[]> => {
     const res = await fetch(`${API_URL}/posts/feed`, {
@@ -46,7 +62,7 @@ export const ApiService = {
   uploadAvatar: async (file: File, token: string): Promise<UserDTO> => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const res = await fetch(`${API_URL}/Users/profile/avatar`, {
       method: 'POST',
       headers: {

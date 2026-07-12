@@ -7,8 +7,9 @@
   import MobileNav from '$lib/components/MobileNav.svelte';
   import { authStore } from '$lib/stores/auth.svelte';
   import { ApiService, API_BASE_URL } from '$lib/api';
-  import type { PostDTO } from '$lib/types';
+  import type { PostDTO, UserDTO } from '$lib/types';
   import PostModal from '$lib/components/PostModal.svelte';
+  import UserListModal from '$lib/components/UserListModal.svelte';
   
   let targetUsername = $derived($page.params.username);
 
@@ -31,6 +32,11 @@
 
   let fileInput: HTMLInputElement;
   let isUploadingAvatar = $state(false);
+
+  // User List Modal State
+  let isUserListOpen = $state(false);
+  let userListTitle = $state('');
+  let userListUsers = $state<UserDTO[]>([]);
 
   function triggerAvatarUpload() {
     if (authStore.user?.username === targetUsername) {
@@ -171,6 +177,28 @@
     }
   }
 
+  async function openFollowersModal() {
+    if (!authStore.token || !user.id) return;
+    try {
+      userListUsers = await ApiService.getFollowers(user.id, authStore.token);
+      userListTitle = 'Takipçiler';
+      isUserListOpen = true;
+    } catch (err) {
+      console.error("Followers fetch error", err);
+    }
+  }
+
+  async function openFollowingModal() {
+    if (!authStore.token || !user.id) return;
+    try {
+      userListUsers = await ApiService.getFollowing(user.id, authStore.token);
+      userListTitle = 'Takip Edilenler';
+      isUserListOpen = true;
+    } catch (err) {
+      console.error("Following fetch error", err);
+    }
+  }
+
 </script>
 
 <svelte:head>
@@ -189,7 +217,7 @@
       </div>
     {:else if !user.id}
       <div class="flex-1 flex flex-col items-center justify-center p-12 text-center animate-fade-in-up">
-        <span class="text-6xl mb-4">👻</span>
+        <span class="text-6xl mb-4">👨‍🦯</span>
         <h2 class="text-2xl font-bold text-slate-900">Kullanıcı Bulunamadı</h2>
         <p class="text-slate-500 mt-2 max-w-sm">Böyle birisi sistemde yok veya adını yanlış yazdın. Belki de bu diyarlardan çoktan göçüp gitmiştir...</p>
         <a href="/" class="mt-6 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-sm hover:bg-black transition-colors">Ana Sayfaya Dön</a>
@@ -232,11 +260,15 @@
               <span>Gönderiler</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.posts}</span>
             </div>
-            <div class="flex justify-between text-slate-500 items-center">
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div class="flex justify-between text-slate-500 items-center cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowersModal}>
               <span>Takipçi</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.followers}</span>
             </div>
-            <div class="flex justify-between text-slate-500 items-center">
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div class="flex justify-between text-slate-500 items-center cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowingModal}>
               <span>Takip Edilen</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.following}</span>
             </div>
@@ -326,6 +358,12 @@
 
   <PostModal bind:post={selectedPost} onClose={() => selectedPost = null} />
 
+  <UserListModal 
+    bind:isOpen={isUserListOpen} 
+    title={userListTitle} 
+    users={userListUsers} 
+    onclose={() => isUserListOpen = false} 
+  />
 </div>
 
 <style>
