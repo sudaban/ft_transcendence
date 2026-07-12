@@ -46,4 +46,12 @@ public class FollowsController : ControllerBase
         var following = await _followService.GetFollowingAsync(userId);
         return Ok(following);
     }
+
+    [HttpGet("{userId}/friends")]
+    [Authorize]
+    public async Task<IActionResult> GetFriends(int userId)
+    {
+        var friends = await _followService.GetFriendsAsync(userId);
+        return Ok(friends);
+    }
 }

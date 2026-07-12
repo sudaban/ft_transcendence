@@ -134,4 +134,30 @@ public class FollowService : IFollowService
         var following = await query.ToListAsync();
         return _mapper.Map<IEnumerable<UserDto>>(following);
     }
+
+    public async Task<IEnumerable<UserDto>> GetFriendsAsync(int userId)
+    {
+        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+
+        var query = _followRepository.TableNoTracking
+            .Where(f => f.FollowerId == userId)
+            .Where(f => _followRepository.TableNoTracking.Any(f2 => f2.FollowerId == f.FollowingId && f2.FollowingId == userId))
+            .Include(f => f.Following)
+            .Select(f => f.Following)
+            .AsQueryable();
+
+        if (!isAdmin)
+        {
+            var blockedIds = await _userBlockRepository.TableNoTracking
+                .Where(ub => ub.BlockerId == currentUserId || ub.BlockedId == currentUserId)
+                .Select(ub => ub.BlockerId == currentUserId ? ub.BlockedId : ub.BlockerId)
+                .ToListAsync();
+
+            query = query.Where(u => !blockedIds.Contains(u.Id));
+        }
+
+        var friends = await query.ToListAsync();
+        return _mapper.Map<IEnumerable<UserDto>>(friends);
+    }
 }
