@@ -99,6 +99,16 @@ export const ApiService = {
     return res.json();
   },
 
+  oauthLogin: async (provider: string, code: string, redirectUri: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
+    const res = await fetch(`${API_URL}/auth/oauth/login`, {
+      method: 'POST',
+      body: JSON.stringify({ provider, code, redirectUri }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error("OAuth login failed");
+    return res.json();
+  },
+
   login2fa: async (email: string, code: string, tempToken: string) => {
     const res = await fetch(`${API_URL}/auth/2fa/login`, {
       method: 'POST',
