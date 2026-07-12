@@ -77,16 +77,21 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
-// builder.Services.AddCors(options => //should open after production
-// {
-//     options.AddPolicy("AllowAll", policy =>
-//     {
-//         policy.WithOrigins("https://localhost", "http://localhost:3000")
-//               .AllowAnyMethod()
-//               .AllowAnyHeader()
-//               .AllowCredentials();
-//     });
-// });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins(
+                  "https://localhost",
+                  "http://localhost:3000",
+                  "https://tr.celten.fun",
+                  "https://tr.celten.fun"
+              )
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
