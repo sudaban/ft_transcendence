@@ -30,6 +30,17 @@
       
       feedPosts = postsRes;
       suggestions = usersRes;
+      
+      // eğer localstorage da avatar yoksa backend den çekiyoz
+      if (authStore.user && (!authStore.user.avatar || authStore.user.avatar.length <= 3)) {
+        try {
+          const profile = await ApiService.getUserById(authStore.user.id, authStore.token);
+          if (profile && profile.avatar) {
+            authStore.user.avatar = profile.avatar;
+            localStorage.setItem('avatar', profile.avatar);
+          }
+        } catch(e) {}
+      }
     } catch (error) {
       console.error("Veriler çekilirken hata oluştu:", error);
     } finally {
@@ -94,6 +105,23 @@
       }
       
       const newPost = await ApiService.createPost(formData, authStore.token);
+      
+      // backend den dönen modelde Author null ise kendimiz dolduruyoruz
+      // bunu yapmamın sebebi backend yeni gönderinin bilgilerini gönderirken kullanıcının bilgilerini göndermiyo
+      if (!newPost.author && authStore.user)
+      {
+        newPost.author = {
+          id: authStore.user.id,
+          username: authStore.user.username,
+          handle: '@' + authStore.user.username,
+          avatar: authStore.user.avatar || '',
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          isTwoFactorEnabled: false
+        };
+      }
+      
       feedPosts = [newPost, ...feedPosts];
       newPostContent = '';
       selectedFile = null;
@@ -134,8 +162,12 @@
     
     <!-- Create Post Area -->
     <div class="p-4 border-b border-social-border flex gap-3">
-      <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center font-bold text-gray-600">
-        42
+      <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center font-bold text-gray-600 overflow-hidden">
+        {#if authStore.user?.avatar && authStore.user.avatar.length > 3}
+          <img src={authStore.user.avatar.startsWith('http') ? authStore.user.avatar : `${API_BASE_URL}${authStore.user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
+        {:else}
+          {authStore.user?.username?.substring(0, 2).toUpperCase() || '42'}
+        {/if}
       </div>
       <div class="flex-1 flex flex-col pt-1">
         <textarea 
