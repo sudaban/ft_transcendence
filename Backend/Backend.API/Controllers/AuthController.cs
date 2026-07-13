@@ -81,6 +81,13 @@ namespace Backend.API.Controllers
             return Ok(response);
         }
 
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] TokenRequestDto request)
+        {
+            var response = await _authService.RefreshTokenAsync(request);
+            return Ok(response);
+        }
+
         [HttpGet("test")]
         [Authorize]
         public IActionResult TestToken()
