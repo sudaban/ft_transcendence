@@ -49,25 +49,23 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onclick={onClose}>
     <!-- Modal Container -->
     <div 
-      class="bg-white rounded-3xl overflow-hidden shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col md:flex-row relative"
+      class="bg-white rounded-3xl overflow-hidden shadow-2xl w-full {post.imageUrl ? 'max-w-5xl' : 'max-w-2xl'} h-[85vh] flex flex-col md:flex-row relative"
       onclick={(e) => e.stopPropagation()}
     >
       <!-- Close Button -->
-      <button onclick={onClose} class="absolute top-4 right-4 z-10 w-8 h-8 bg-black/50 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors">
+      <button onclick={onClose} class="absolute top-4 right-4 z-20 w-8 h-8 bg-black/50 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors">
         ✕
       </button>
 
-      <!-- Left: Image -->
-      <div class="w-full md:w-[60%] bg-black flex items-center justify-center">
-        {#if post.imageUrl}
+      {#if post.imageUrl}
+        <!-- Left: Image -->
+        <div class="w-full md:w-[60%] bg-black flex items-center justify-center relative">
           <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
-        {:else}
-          <div class="text-white/50 text-sm">Resim yok</div>
-        {/if}
-      </div>
+        </div>
+      {/if}
 
       <!-- Right: Content & Comments -->
-      <div class="w-full md:w-[40%] flex flex-col bg-white h-full">
+      <div class="w-full {post.imageUrl ? 'md:w-[40%]' : 'md:w-[100%]'} flex flex-col bg-white h-full relative">
         <!-- Header -->
         <div class="p-4 border-b border-slate-100 flex items-center gap-3">
           <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
@@ -105,7 +103,7 @@
               💬
             </button>
             <button onclick={toggleSave} class="flex items-center gap-1.5 text-2xl ml-auto {post.isSaved ? 'text-[#1d9bf0]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
-              {post.isSaved ? '📥' : '💾'}
+              {post.isSaved ? '🔖' : '🏷️'}
             </button>
           </div>
           <div class="font-bold text-sm text-slate-900">{post.likesCount} beğenme</div>
