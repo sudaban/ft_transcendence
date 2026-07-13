@@ -146,7 +146,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade); // Oda silinirse üyeler tablodan temizlensin
 
             entity.HasOne(crm => crm.User)
-                .WithMany()
+                .WithMany(u => u.ChatRoomMemberships)
                 .HasForeignKey(crm => crm.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
