@@ -38,6 +38,10 @@ public class User
 
     public DateTime? LastSeenAt { get; set; }
 
+    public string? RefreshToken { get; set; }
+
+    public DateTime? RefreshTokenExpiryTime { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Follow> FollowedBy { get; set; } = new HashSet<Follow>();

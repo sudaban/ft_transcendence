@@ -12,5 +12,6 @@ namespace Backend.Application.Abstractions
         Task<bool> EnableTwoFactorAsync(int user_id, string code);
         Task<bool> DisableTwoFactorAsync(int user_id);
         Task<LoginResponseDto> OAuthLoginAsync(OAuthLoginRequestDto request);
+        Task<LoginResponseDto> RefreshTokenAsync(TokenRequestDto request);
     }
 }

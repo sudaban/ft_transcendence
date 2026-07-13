@@ -4,6 +4,7 @@ namespace Backend.Application.DTOs.Responses.Auth
     (
         bool RequiresTwoFactor,
         string? Token,
+        string? RefreshToken,
         string? TempToken
     );
 }
