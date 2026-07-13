@@ -8,13 +8,14 @@
   let errorMsg = $state('');
 
   onMount(async () => {
-    const provider = $page.params.provider;
+    // Read the provider from the state parameter instead of the URL path
+    const provider = $page.url.searchParams.get('state');
     const code = $page.url.searchParams.get('code');
-    const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
+    const redirectUri = `https://localhost/auth/callback`;
 
-    if (!code)
+    if (!code || !provider)
     {
-      errorMsg = 'OAuth kodu bulunamadı.';
+      errorMsg = 'OAuth bilgileri eksik veya hatalı.';
       isProcessing = false;
       return;
     }

@@ -59,6 +59,33 @@ export const ApiService = {
     return res.json();
   },
 
+  getSavedPosts: async (token: string): Promise<PostDTO[]> => {
+    const res = await fetch(`${API_URL}/saved-posts`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch saved posts");
+    return res.json();
+  },
+
+  savePost: async (postId: number, token: string) => {
+    const res = await fetch(`${API_URL}/posts/${postId}/save`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to save post");
+    return res.json();
+  },
+
+  unsavePost: async (postId: number, token: string) => {
+    const res = await fetch(`${API_URL}/posts/${postId}/save`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to unsave post");
+    return res.json();
+  },
+
   uploadAvatar: async (file: File, token: string): Promise<UserDTO> => {
     const formData = new FormData();
     formData.append('file', file);

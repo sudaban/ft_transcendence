@@ -32,6 +32,8 @@
   });
 
   let posts: any[] = $state([]);
+  let savedPosts: any[] = $state([]);
+  let activeTab = $state<'Collection' | 'Saved'>('Collection');
   let selectedPost = $state<PostDTO | null>(null);
   let isPostModalOpen = $state(false);
 
@@ -60,15 +62,37 @@
           localStorage.setItem('avatar', data.avatar);
         }
 
-        // Fetch User Posts
-        const userPostsData = await ApiService.getUserPosts(authStore.user.id, authStore.token);
-        posts = userPostsData.map((p, index) => ({
-          ...p,
-          size: index === 0 ? 'col-span-2 row-span-2 h-[340px]' : 
-                index === 2 ? 'col-span-1 row-span-2 h-[340px]' : 
-                index === 4 ? 'col-span-2 row-span-1 h-[160px]' : 
-                'col-span-1 row-span-1 h-[160px]'
-        }));
+        try
+        {
+          const [userPostsData, savedData] = await Promise.all([
+            ApiService.getUserPosts(authStore.user.id, authStore.token),
+            ApiService.getSavedPosts(authStore.token).catch(() => [])
+          ]);
+          
+          const savedIds = new Set(savedData.map((s: any) => s.id));
+
+          posts = userPostsData.map((p, index) => ({
+            ...p,
+            isSaved: savedIds.has(p.id),
+            size: index === 0 ? 'col-span-2 row-span-2 h-[340px]' : 
+                  index === 2 ? 'col-span-1 row-span-2 h-[340px]' : 
+                  index === 4 ? 'col-span-2 row-span-1 h-[160px]' : 
+                  'col-span-1 row-span-1 h-[160px]'
+          }));
+
+          savedPosts = savedData.map((p: any, index: number) => ({
+            ...p,
+            isSaved: true,
+            size: index === 0 ? 'col-span-2 row-span-2 h-[340px]' : 
+                  index === 2 ? 'col-span-1 row-span-2 h-[340px]' : 
+                  index === 4 ? 'col-span-2 row-span-1 h-[160px]' : 
+                  'col-span-1 row-span-1 h-[160px]'
+          }));
+        }
+        catch (err)
+        {
+          console.error("Failed to fetch posts", err);
+        }
         
         await tick();
         
@@ -232,9 +256,6 @@
         <button onclick={openEditModal} class="w-full bg-slate-900 text-white text-xs font-semibold tracking-wide uppercase py-3 rounded-xl hover:bg-black transition-colors shadow-sm">
           Edit Settings
         </button>
-        <button class="w-full bg-slate-50 text-slate-500 text-xs font-medium py-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-colors border border-slate-200/40">
-          View Archive
-        </button>
       </div>
 
     </section>
@@ -242,22 +263,31 @@
     <section class="flex-1 p-8 md:p-12 lg:p-16 overflow-y-auto custom-scrollbar bg-[#fcfcfc]">
       
       <div class="flex gap-8 text-[11px] font-bold tracking-wider uppercase text-slate-400 mb-10 border-b border-slate-100 pb-4">
-        <button class="text-slate-950 flex items-center gap-1.5 relative">
-          <span class="w-1 h-1 rounded-full bg-slate-950 absolute -bottom-4 left-1/2 -translate-x-1/2"></span>
-          Collection
+        <button onclick={() => activeTab = 'Collection'} class="{activeTab === 'Collection' ? 'text-slate-950' : 'hover:text-slate-900 transition-colors'} flex items-center gap-1.5 relative">
+          {#if activeTab === 'Collection'}
+            <span class="w-1 h-1 rounded-full bg-slate-950 absolute -bottom-4 left-1/2 -translate-x-1/2"></span>
+          {/if}
+          Gönderiler
         </button>
-        <button class="hover:text-slate-900 transition-colors">Saved</button>
-        <button class="hover:text-slate-900 transition-colors">Tagged</button>
+        <button onclick={() => activeTab = 'Saved'} class="{activeTab === 'Saved' ? 'text-slate-950' : 'hover:text-slate-900 transition-colors'} flex items-center gap-1.5 relative">
+          {#if activeTab === 'Saved'}
+            <span class="w-1 h-1 rounded-full bg-slate-950 absolute -bottom-4 left-1/2 -translate-x-1/2"></span>
+          {/if}
+          Kaydedilenler
+        </button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 auto-rows-max max-w-4xl">
-        {#each posts as post}
+        {#each (activeTab === 'Collection' ? posts : savedPosts) as post}
           <button onclick={() => selectedPost = post} class="portfolio-item {post.size || 'col-span-1 row-span-1 h-[160px]'} rounded-2xl cursor-pointer relative group overflow-hidden transition-all duration-300 hover:-translate-y-1 p-0 text-left w-full block">
             
             {#if post.imageUrl}
               <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
             {:else}
-              <div class="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-[1.02]"></div>
+              <div class="w-full h-full bg-gradient-to-br from-indigo-50 via-white to-cyan-50 border-2 border-transparent group-hover:border-indigo-100 p-6 flex flex-col items-center justify-center text-center transition-all duration-500 group-hover:scale-[1.02]">
+                <div class="text-3xl mb-3 opacity-20">❝</div>
+                <p class="text-slate-600 font-medium text-base md:text-lg line-clamp-4 leading-relaxed px-4">{post.content}</p>
+              </div>
             {/if}
 
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 text-white">

@@ -23,12 +23,18 @@
       return;
     }
     try {
-      const [postsRes, usersRes] = await Promise.all([
+      const [postsRes, usersRes, savedData] = await Promise.all([
         ApiService.getFeedPosts(authStore.token),
-        ApiService.getSuggestedUsers()
+        ApiService.getSuggestedUsers(),
+        ApiService.getSavedPosts(authStore.token).catch(() => [])
       ]);
       
-      feedPosts = postsRes;
+      const savedIds = new Set(savedData.map((s: PostDTO) => s.id));
+      
+      feedPosts = postsRes.map(post => ({
+        ...post,
+        isSaved: savedIds.has(post.id)
+      }));
       suggestions = usersRes;
       
       // eğer localstorage da avatar yoksa backend den çekiyoz
@@ -72,6 +78,7 @@
     const currentlyLiked = post.isLiked ?? false;
     post.isLiked = !currentlyLiked;
     post.likesCount += currentlyLiked ? -1 : 1;
+    feedPosts = [...feedPosts];
 
     try {
       if (!currentlyLiked) {
@@ -84,6 +91,27 @@
       // Revert optimistic update
       post.isLiked = currentlyLiked;
       post.likesCount += currentlyLiked ? 1 : -1;
+      feedPosts = [...feedPosts];
+    }
+  }
+
+  async function toggleSave(post: PostDTO) {
+    if (!authStore.token) return;
+
+    const currentlySaved = post.isSaved ?? false;
+    post.isSaved = !currentlySaved;
+    feedPosts = [...feedPosts];
+
+    try {
+      if (!currentlySaved) {
+        await ApiService.savePost(post.id, authStore.token);
+      } else {
+        await ApiService.unsavePost(post.id, authStore.token);
+      }
+    } catch (err) {
+      console.error("Kaydetme işlemi başarısız", err);
+      post.isSaved = currentlySaved;
+      feedPosts = [...feedPosts];
     }
   }
 
@@ -157,7 +185,7 @@
     
     <!-- Header -->
     <div class="sticky top-0 bg-[rgba(255,255,255,0.85)] backdrop-blur-md z-10 border-b border-social-border">
-      <h2 class="font-bold text-xl p-4 cursor-pointer">Home</h2>
+      <h2 class="font-bold text-xl p-4 cursor-pointer">Keşfet</h2>
     </div>
     
     <!-- Create Post Area -->
@@ -254,19 +282,20 @@
             
             <!-- Actions -->
             <div class="flex items-center justify-between text-social-secondary max-w-[425px]">
-              <button onclick={() => toggleComments(post.id)} class="flex items-center gap-2 hover:text-[#1d9bf0] transition-colors group">
-                <span class="w-8 h-8 rounded-full group-hover:bg-[#1d9bf0]/10 flex items-center justify-center">💬</span>
-                <span class="text-xs -ml-1">{post.commentsCount || 0}</span>
-              </button>
-              <button class="flex items-center gap-2 hover:text-[#00ba7c] transition-colors group">
-                <span class="w-8 h-8 rounded-full group-hover:bg-[#00ba7c]/10 flex items-center justify-center">🔁</span>
-                <span class="text-xs -ml-1">0</span>
-              </button>
               <button onclick={() => toggleLike(post)} class="flex items-center gap-2 {post.isLiked ? 'text-[#f91880]' : 'hover:text-[#f91880]'} transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#f91880]/10 flex items-center justify-center text-lg">
                   {post.isLiked ? '❤️' : '🤍'}
                 </span>
                 <span class="text-xs -ml-1">{post.likesCount || 0}</span>
+              </button>
+              <button onclick={() => toggleComments(post.id)} class="flex items-center gap-2 hover:text-[#1d9bf0] transition-colors group">
+                <span class="w-8 h-8 rounded-full group-hover:bg-[#1d9bf0]/10 flex items-center justify-center">💬</span>
+                <span class="text-xs -ml-1">{post.commentsCount || 0}</span>
+              </button>
+              <button onclick={() => toggleSave(post)} class="flex items-center gap-2 {post.isSaved ? 'text-[#1d9bf0]' : 'hover:text-[#1d9bf0]'} transition-colors group">
+                <span class="w-8 h-8 rounded-full group-hover:bg-[#1d9bf0]/10 flex items-center justify-center text-lg">
+                  {post.isSaved ? '📥' : '💾'}
+                </span>
               </button>
             </div>
             
@@ -291,7 +320,7 @@
     <!-- Search -->
     <div class="bg-gray-100 rounded-full flex items-center mt-1 mb-4 group focus-within:bg-white focus-within:ring-1 focus-within:ring-[#1d9bf0] focus-within:border-[#1d9bf0] border border-transparent transition-all">
       <span class="pl-4 pr-3 text-gray-500 group-focus-within:text-[#1d9bf0]">🔍</span>
-      <input type="text" placeholder="Search" class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
+      <input type="text" placeholder="Ara..." class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
     </div>
 
     <!-- Suggested -->
@@ -326,7 +355,7 @@
       {/if}
       
       <button class="p-4 text-[#1d9bf0] hover:bg-gray-100 rounded-b-2xl text-left text-[15px] transition-colors">
-        Show more
+        Daha fazlası...
       </button>
     </div>
   </aside>

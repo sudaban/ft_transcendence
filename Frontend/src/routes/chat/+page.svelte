@@ -375,14 +375,13 @@
       >
         <div class="flex items-center gap-3">
           <div class="w-2 h-2 rounded-full {selectedSliceId === null ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}"></div>
-          <span class="text-xs font-semibold tracking-tight">Live Session</span>
+          <span class="text-xs font-semibold tracking-tight">Canlı Sohbet</span>
         </div>
         <span class="text-[10px] font-mono">{liveMessages.length}/8 B</span>
       </button>
 
       <div>
-        <h2 class="font-semibold text-base text-slate-900 tracking-tight">Main Character</h2>
-        <p class="text-xs text-slate-400">Creative Director</p>
+        <h2 class="font-semibold text-base text-slate-900 tracking-tight">{authStore.user?.username || 'Kullanıcı'}</h2>
       </div>
 
       <div class="w-full mt-2 pt-4 border-t border-slate-100 flex flex-col gap-5">
