@@ -13,6 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,6 +101,21 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -109,6 +126,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseExceptionHandler();
 app.UseCors("AllowAll");
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
