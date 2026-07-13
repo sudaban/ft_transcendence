@@ -31,12 +31,17 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(u => u.Id);
             entity.HasQueryFilter(u => !u.IsDeleted);
+            entity.HasIndex(u => u.Username).IsUnique();
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.HasIndex(u => u.IsOnline);
         });
 
         // 2. Post Yapılandırması
         modelBuilder.Entity<Post>(entity =>
         {
             entity.HasKey(p => p.Id);
+            entity.HasIndex(p => p.UserId);
+            entity.HasIndex(p => p.CreatedAt);
 
             entity.HasOne(p => p.User)
                 .WithMany(u => u.Posts)
@@ -48,6 +53,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Comment>(entity =>
         {
             entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.PostId);
 
             entity.HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
@@ -140,7 +146,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade); // Oda silinirse üyeler tablodan temizlensin
 
             entity.HasOne(crm => crm.User)
-                .WithMany()
+                .WithMany(u => u.ChatRoomMemberships)
                 .HasForeignKey(crm => crm.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -149,6 +155,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Message>(entity =>
         {
             entity.HasKey(m => m.Id);
+            entity.HasIndex(m => m.ChatRoomId);
+            entity.HasIndex(m => m.SentAt);
 
             entity.HasOne(m => m.ChatRoom)
                 .WithMany(cr => cr.Messages)

@@ -76,11 +76,17 @@ namespace Backend.Application.Services
             if (user.IsTwoFactorEnabled)
             {
                 var temp_token = _tokenService.CreateTempToken(user);
-                return new LoginResponseDto(true, null, temp_token);
+                return new LoginResponseDto(true, null, null, temp_token);
             }
 
             var token = _tokenService.CreateToken(user);
-            return new LoginResponseDto(false, token, null);
+            var refresh_token = _tokenService.GenerateRefreshToken();
+            user.RefreshToken = refresh_token;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return new LoginResponseDto(false, token, refresh_token, null);
         }
 
         public async Task<LoginResponseDto> Verify2FaLoginAsync(TwoFactorLoginRequestDto request)
@@ -104,7 +110,13 @@ namespace Backend.Application.Services
                 throw new UnAuthorizedAccessException("Invalid verification code.");
 
             var token = _tokenService.CreateToken(user);
-            return new LoginResponseDto(false, token, null);
+            var refresh_token = _tokenService.GenerateRefreshToken();
+            user.RefreshToken = refresh_token;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return new LoginResponseDto(false, token, refresh_token, null);
         }
 
         public async Task<TwoFactorSetupDto> SetupTwoFactorAsync(int user_id)
@@ -269,11 +281,49 @@ namespace Backend.Application.Services
             if (user.IsTwoFactorEnabled)
             {
                 var temp_token = _tokenService.CreateTempToken(user);
-                return new LoginResponseDto(true, null, temp_token);
+                return new LoginResponseDto(true, null, null, temp_token);
             }
 
             var token = _tokenService.CreateToken(user);
-            return new LoginResponseDto(false, token, null);
+            var refresh_token = _tokenService.GenerateRefreshToken();
+            user.RefreshToken = refresh_token;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return new LoginResponseDto(false, token, refresh_token, null);
+        }
+
+        public async Task<LoginResponseDto> RefreshTokenAsync(TokenRequestDto request)
+        {
+            var principal = _tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal == null)
+            {
+                throw new UnAuthorizedAccessException("Invalid token.");
+            }
+
+            var user_id_string = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user_id_string) || !int.TryParse(user_id_string, out var user_id))
+            {
+                throw new UnAuthorizedAccessException("Invalid token.");
+            }
+
+            var user = await _userRepository.GetByIdAsync(user_id);
+            if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                throw new UnAuthorizedAccessException("Invalid refresh token.");
+            }
+
+            var new_token = _tokenService.CreateToken(user);
+            var new_refresh_token = _tokenService.GenerateRefreshToken();
+
+            user.RefreshToken = new_refresh_token;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return new LoginResponseDto(false, new_token, new_refresh_token, null);
         }
 
         private void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)

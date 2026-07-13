@@ -115,5 +115,45 @@ namespace Backend.Infrastructure
                 return false;
             }
         }
+
+        public string GenerateRefreshToken()
+        {
+            var random_bytes = new byte[64];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(random_bytes);
+            return Convert.ToBase64String(random_bytes);
+        }
+
+        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        {
+            var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
+            if (string.IsNullOrEmpty(secret_key))
+                throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
+
+            var token_validation_parameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key)),
+                ValidateLifetime = false
+            };
+
+            var token_handler = new JwtSecurityTokenHandler();
+            try
+            {
+                var principal = token_handler.ValidateToken(token, token_validation_parameters, out SecurityToken security_token);
+                if (security_token is not JwtSecurityToken jwt_security_token || 
+                    !jwt_security_token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return null;
+                }
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

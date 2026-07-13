@@ -33,6 +33,7 @@ public class ChatHub : Hub
                 user.LastSeenAt = DateTime.UtcNow;
                 await _userRepository.UpdateAsync(user);
                 await _unitOfWork.CommitAsync();
+                await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), true, user.LastSeenAt);
             }
         }
         catch { }
@@ -50,6 +51,7 @@ public class ChatHub : Hub
                 user.LastSeenAt = DateTime.UtcNow;
                 await _userRepository.UpdateAsync(user);
                 await _unitOfWork.CommitAsync();
+                await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), false, user.LastSeenAt);
             }
         }
         catch { }
