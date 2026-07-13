@@ -2,10 +2,10 @@
   import { page } from '$app/stores';
 
   let navItems = [
-    { icon: '🌏', label: 'Home', href: '/' },
-    { icon: '🗨️', label: 'Messages', href: '/chat' },
-    { icon: '🪪', label: 'Profile', href: '/profile' },
-    { icon: '⚙️', label: 'Settings', href: '/settings' }
+    { icon: '🌏', label: 'Ana Sayfa', href: '/' },
+    { icon: '🗨️', label: 'Sohbet', href: '/chat' },
+    { icon: '🪪', label: 'Profil', href: '/profile' },
+    { icon: '⚙️', label: 'Ayarlar', href: '/settings' }
   ];
 
   let pathname = $derived($page.url.pathname);

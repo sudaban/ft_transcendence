@@ -25,6 +25,24 @@
       post.likesCount += currentlyLiked ? 1 : -1;
     }
   }
+
+  async function toggleSave() {
+    if (!authStore.token || !post) return;
+
+    const currentlySaved = post.isSaved ?? false;
+    post.isSaved = !currentlySaved;
+
+    try {
+      if (!currentlySaved) {
+        await ApiService.savePost(post.id, authStore.token);
+      } else {
+        await ApiService.unsavePost(post.id, authStore.token);
+      }
+    } catch (err) {
+      console.error("Kaydetme işlemi başarısız", err);
+      post.isSaved = currentlySaved;
+    }
+  }
 </script>
 
 {#if post}
@@ -85,6 +103,9 @@
             </button>
             <button class="flex items-center gap-1.5 text-2xl text-slate-800 hover:text-slate-500 transition-colors">
               💬
+            </button>
+            <button onclick={toggleSave} class="flex items-center gap-1.5 text-2xl ml-auto {post.isSaved ? 'text-[#1d9bf0]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
+              {post.isSaved ? '🔖' : '🏷️'}
             </button>
           </div>
           <div class="font-bold text-sm text-slate-900">{post.likesCount} beğenme</div>

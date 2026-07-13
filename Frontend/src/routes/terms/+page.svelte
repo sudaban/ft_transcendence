@@ -20,7 +20,7 @@
 
   <article class="legal-content w-full max-w-[600px] bg-social-card border border-social-border rounded-lg p-8 md:p-12 shadow-sm">
     <div class="mb-8 border-b border-social-border pb-6">
-      <h1 class="text-3xl font-bold tracking-tight mb-2" style="font-family: 'Instagram Sans', sans-serif;">Kullanım Koşulları (Terms of Service)</h1>
+      <h1 class="text-3xl font-bold tracking-tight mb-2" style="font-family: 'Instagram Sans', sans-serif;">Hizmet Koşulları (Terms of Service)</h1>
       <p class="text-social-secondary text-sm">Son Güncelleme: 11 Temmuz 2026</p>
     </div>
 

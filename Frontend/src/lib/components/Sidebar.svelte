@@ -4,10 +4,10 @@
   import { API_BASE_URL } from '$lib/api';
 
   let navItems = [
-    { icon: '🌏', label: 'Home', href: '/' },
-    { icon: '🗨️', label: 'Messages', href: '/chat' },
-    { icon: '🪪', label: 'Profile', href: '/profile' },
-    { icon: '⚙️', label: 'Settings', href: '/settings' }
+    { icon: '🌏', label: 'Ana Sayfa', href: '/' },
+    { icon: '🗨️', label: 'Sohbet', href: '/chat' },
+    { icon: '🪪', label: 'Profil', href: '/profile' },
+    { icon: '⚙️', label: 'Ayarlar', href: '/settings' }
   ];
 
   let pathname = $derived($page.url.pathname);
@@ -68,8 +68,8 @@
 
   <!-- Footer links for PP/ToS -->
   <div class="hidden xl:flex flex-wrap gap-x-3 gap-y-2 mt-4 pb-2 px-4 text-[13px] text-social-secondary/70">
-    <a href="/terms" class="hover:underline">Terms of Service</a>
-    <a href="/privacy" class="hover:underline">Privacy Policy</a>
+    <a href="/terms" class="hover:underline">Hizmet Koşulları</a>
+    <a href="/privacy" class="hover:underline">Gizlilik Politikası</a>
     <span>© 2026 Transcendence</span>
   </div>
 
