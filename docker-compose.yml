@@ -1,13 +1,13 @@
 services:
   database:
     image: postgres:16-alpine
-    container_name: transendence-db
+    container_name: transcendence-db
     labels:
       - "autoheal=true"
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-transendence}
+      POSTGRES_DB: ${DB_NAME:-transcendence}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -19,7 +19,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -33,14 +33,14 @@ services:
     build:
       context: ./Backend
       dockerfile: ../Devops/docker/backend.Dockerfile
-    container_name: transendence-backend
+    container_name: transcendence-backend
     labels:
       - "autoheal=true"
     depends_on:
       database:
         condition: service_healthy
     environment:
-      ConnectionStrings__DefaultConnection: "Host=database;Port=5432;Database=${DB_NAME:-transendence};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}"
+      ConnectionStrings__DefaultConnection: "Host=database;Port=5432;Database=${DB_NAME:-transcendence};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}"
       ASPNETCORE_URLS: "http://+:5000"
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENV:-Development}
       DOTNET_EnableWriteXorExecute: "0"
@@ -60,7 +60,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -74,7 +74,7 @@ services:
     build:
       context: ./Frontend
       dockerfile: ../Devops/docker/frontend.Dockerfile
-    container_name: transendence-frontend
+    container_name: transcendence-frontend
     labels:
       - "autoheal=true"
     env_file:
@@ -92,7 +92,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -106,7 +106,7 @@ services:
     build:
       context: ./nginx
       dockerfile: ../Devops/docker/nginx.Dockerfile
-    container_name: transendence-nginx
+    container_name: transcendence-nginx
     labels:
       - "autoheal=true"
     depends_on:
@@ -122,7 +122,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -138,7 +138,7 @@ services:
   # ========================
   prometheus:
     image: prom/prometheus:latest
-    container_name: transendence-prometheus
+    container_name: transcendence-prometheus
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -161,7 +161,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -171,7 +171,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: transendence-grafana
+    container_name: transcendence-grafana
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -179,7 +179,7 @@ services:
       - prometheus
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-transendence42}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-transcendence42}
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_SERVER_ROOT_URL: "https://localhost/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
@@ -197,7 +197,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -207,7 +207,7 @@ services:
 
   node-exporter:
     image: prom/node-exporter:latest
-    container_name: transendence-node-exporter
+    container_name: transcendence-node-exporter
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -227,7 +227,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -237,7 +237,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: transendence-cadvisor
+    container_name: transcendence-cadvisor
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -258,7 +258,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -268,7 +268,7 @@ services:
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
-    container_name: transendence-postgres-exporter
+    container_name: transcendence-postgres-exporter
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -276,7 +276,7 @@ services:
       database:
         condition: service_healthy
     environment:
-      DATA_SOURCE_NAME: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@database:5432/${DB_NAME:-transendence}?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@database:5432/${DB_NAME:-transcendence}?sslmode=disable"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9187/metrics || exit 1"]
       interval: 30s
@@ -284,7 +284,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -294,7 +294,7 @@ services:
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
-    container_name: transendence-nginx-exporter
+    container_name: transcendence-nginx-exporter
     profiles: ["monitoring"]
     labels:
       - "autoheal=true"
@@ -303,7 +303,7 @@ services:
     command:
       - "--nginx.scrape-uri=http://nginx:8888/nginx_status"
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -318,14 +318,14 @@ services:
     build:
       context: ./monitoring/autoheal
       dockerfile: ../../Devops/docker/autoheal.Dockerfile
-    container_name: transendence-autoheal
+    container_name: transcendence-autoheal
     environment:
       AUTOHEAL_INTERVAL: 30
       AUTOHEAL_START_PERIOD: 60
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -339,7 +339,7 @@ services:
   # ========================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
-    container_name: transendence-elasticsearch
+    container_name: transcendence-elasticsearch
     profiles: ["elk"]
     environment:
       - discovery.type=single-node
@@ -356,7 +356,7 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -366,7 +366,7 @@ services:
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.17.1
-    container_name: transendence-logstash
+    container_name: transcendence-logstash
     profiles: ["elk"]
     depends_on:
       elasticsearch:
@@ -378,7 +378,7 @@ services:
     ports:
       - "5044:5044"
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -388,7 +388,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.1
-    container_name: transendence-kibana
+    container_name: transcendence-kibana
     profiles: ["elk"]
     depends_on:
       elasticsearch:
@@ -399,7 +399,7 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -409,7 +409,7 @@ services:
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.17.1
-    container_name: transendence-filebeat
+    container_name: transcendence-filebeat
     profiles: ["elk"]
     user: root
     depends_on:
@@ -420,7 +420,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: filebeat -e --strict.perms=false
     networks:
-      - transendence-network
+      - transcendence-network
     restart: unless-stopped
     deploy:
       resources:
@@ -435,5 +435,5 @@ volumes:
   elk_data:
 
 networks:
-  transendence-network:
+  transcendence-network:
     driver: bridge

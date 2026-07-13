@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# Transendence - WSL2 Startup Script
+# transcendence - WSL2 Startup Script
 # Her WSL açılışında bu scripti çalıştır:
 #   ./start.sh
 # ============================================
@@ -8,7 +8,7 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "🚀 Transendence Başlatılıyor..."
+echo "🚀 transcendence Başlatılıyor..."
 echo "================================"
 
 # 1. Docker çalışıyor mu kontrol et
@@ -48,7 +48,7 @@ WAITED=0
 
 while [ $WAITED -lt $MAX_WAIT ]; do
     # Tüm container'ların health durumunu kontrol et
-    UNHEALTHY=$(docker ps --filter "name=transendence" --format "{{.Names}} {{.Status}}" | grep -c "starting\|unhealthy" || true)
+    UNHEALTHY=$(docker ps --filter "name=transcendence" --format "{{.Names}} {{.Status}}" | grep -c "starting\|unhealthy" || true)
     
     if [ "$UNHEALTHY" -eq 0 ]; then
         break

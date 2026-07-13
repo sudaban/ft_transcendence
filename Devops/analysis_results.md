@@ -66,7 +66,7 @@
 > [!NOTE]
 > Silinen kaynaklar:
 > - `momez_mysql_data`, `momez_uploads` — eski proje volume'ları
-> - `transendence_*` (v1) — eski proje volume'ları
+> - `transcendence_*` (v1) — eski proje volume'ları
 > - 2 adet anonim volume
 > - 3 adet hayalet container (6 ay+ önce çıkmış)
 > - 8 adet kullanılmayan eski Docker imajı

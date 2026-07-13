@@ -4,14 +4,14 @@
 
 | Service | Container | Port | Description |
 |---|---|---|---|
-| Prometheus | transendence-prometheus | 9090 | Metrics collection & alerting |
-| Grafana | transendence-grafana | 3001 (direct) / 443 (via nginx) | Dashboards & visualization |
-| Node Exporter | transendence-node-exporter | 9100 | Host/system metrics |
-| cAdvisor | transendence-cadvisor | 8080 | Container metrics (CPU, mem, net) |
-| Postgres Exporter | transendence-postgres-exporter | 9187 | PostgreSQL metrics |
-| Nginx Exporter | transendence-nginx-exporter | 9113 | Nginx request/connection metrics |
-| **Kibana (ELK)** | transendence-kibana | 5601 | Centralized Log Management |
-| **Autoheal** | transendence-autoheal | — | Auto-restarts unhealthy containers |
+| Prometheus | transcendence-prometheus | 9090 | Metrics collection & alerting |
+| Grafana | transcendence-grafana | 3001 (direct) / 443 (via nginx) | Dashboards & visualization |
+| Node Exporter | transcendence-node-exporter | 9100 | Host/system metrics |
+| cAdvisor | transcendence-cadvisor | 8080 | Container metrics (CPU, mem, net) |
+| Postgres Exporter | transcendence-postgres-exporter | 9187 | PostgreSQL metrics |
+| Nginx Exporter | transcendence-nginx-exporter | 9113 | Nginx request/connection metrics |
+| **Kibana (ELK)** | transcendence-kibana | 5601 | Centralized Log Management |
+| **Autoheal** | transcendence-autoheal | — | Auto-restarts unhealthy containers |
 
 ## Auto-Heal
 
@@ -47,7 +47,7 @@ docker inspect --format='{{.State.Health.Status}}' <container_name>
 
 ### Grafana Login
 - **User**: `admin`
-- **Password**: `transendence42`
+- **Password**: `transcendence42`
 - Can be changed via `.env`: `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`
 
 ## Make Commands
@@ -90,7 +90,7 @@ Defined in `monitoring/prometheus/alert_rules.yml`:
 
 ## Dashboard Panels
 
-Pre-provisioned dashboard: **Transendence Monitoring**
+Pre-provisioned dashboard: **transcendence Monitoring**
 
 - Container CPU & Memory usage
 - Nginx HTTP request rate & active connections
@@ -109,7 +109,7 @@ monitoring/
 │   └── alert_rules.yml        # Alerting rules
 └── grafana/
     ├── dashboards/
-    │   └── transendence-dashboard.json  # Custom dashboard
+    │   └── transcendence-dashboard.json  # Custom dashboard
     └── provisioning/
         ├── datasources/
         │   └── datasource.yml          # Prometheus datasource

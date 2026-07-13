@@ -22,7 +22,7 @@ filebeat.inputs:
 processors:
   # Docker metadata ekleyici: Container adı, image, label bilgilerini
   # her log satırına otomatik olarak ekler
-  # Böylece Kibana'da "transendence-backend" gibi filtreleme yapılabilir
+  # Böylece Kibana'da "transcendence-backend" gibi filtreleme yapılabilir
 - add_docker_metadata:
     # Docker socket üzerinden container bilgilerine erişir
     host: "unix:///var/run/docker.sock"

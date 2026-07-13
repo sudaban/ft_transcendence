@@ -22,7 +22,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"transendence.*\"}[5m])) by (name) * 100",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"transcendence.*\"}[5m])) by (name) * 100",
           "legendFormat": "{{ name }}",
           "refId": "A"
         }
@@ -42,7 +42,7 @@
       },
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{name=~\"transendence.*\"}",
+          "expr": "container_memory_usage_bytes{name=~\"transcendence.*\"}",
           "legendFormat": "{{ name }}",
           "refId": "A"
         }
@@ -153,8 +153,8 @@
       },
       "targets": [
         {
-          "expr": "pg_database_size_bytes{datname=\"transendence\"}",
-          "legendFormat": "transendence",
+          "expr": "pg_database_size_bytes{datname=\"transcendence\"}",
+          "legendFormat": "transcendence",
           "refId": "A"
         }
       ]
@@ -200,7 +200,7 @@
       },
       "targets": [
         {
-          "expr": "rate(container_network_receive_bytes_total{name=~\"transendence.*\"}[5m])",
+          "expr": "rate(container_network_receive_bytes_total{name=~\"transcendence.*\"}[5m])",
           "legendFormat": "{{ name }}",
           "refId": "A"
         }
@@ -220,7 +220,7 @@
       },
       "targets": [
         {
-          "expr": "rate(container_network_transmit_bytes_total{name=~\"transendence.*\"}[5m])",
+          "expr": "rate(container_network_transmit_bytes_total{name=~\"transcendence.*\"}[5m])",
           "legendFormat": "{{ name }}",
           "refId": "A"
         }
@@ -243,12 +243,12 @@
     }
   ],
   "schemaVersion": 39,
-  "tags": ["transendence", "monitoring"],
+  "tags": ["transcendence", "monitoring"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Transendence Monitoring",
-  "uid": "transendence-main",
+  "title": "Transcendence Monitoring",
+  "uid": "transcendence-main",
   "version": 1
 }

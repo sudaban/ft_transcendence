@@ -1,4 +1,4 @@
-# Transendence - Docker Setup
+# transcendence - Docker Setup
 
 Local development environment using Docker Compose with SvelteKit Frontend, .NET Backend, PostgreSQL Database, and Nginx Reverse Proxy.
 
@@ -91,7 +91,7 @@ docker-compose up --build
 
 ### Database Erişimi / Access Database
 ```bash
-docker-compose exec database psql -U postgres -d transendence
+docker-compose exec database psql -U postgres -d transcendence
 ```
 
 ### Backend Console'a Erişim / Access Backend Container
@@ -139,7 +139,7 @@ docker-compose logs -f backend
 ## Proje Yapısı / Project Structure
 
 ```
-transendence/
+transcendence/
 ├── Frontend/                    # SvelteKit + Tailwind CSS
 │   ├── Dockerfile              # Node 20 Alpine multi-stage
 │   ├── package.json
@@ -173,7 +173,7 @@ transendence/
 
 ## Network
 
-Tüm servisler `transendence-network` ağında bağlıdır:
+Tüm servisler `transcendence-network` ağında bağlıdır:
 - Frontend (SvelteKit) → `http://frontend:3000`
 - Backend (ASP.NET) → `http://backend:5000`
 - Database (PostgreSQL) → `database:5432`
@@ -190,7 +190,7 @@ PUBLIC_API_URL=http://localhost:8080/api
 
 ### Backend (.NET)
 ```
-ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=transendence;Username=postgres;Password=postgres
+ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=transcendence;Username=postgres;Password=postgres
 ASPNETCORE_URLS=http://+:5000
 ASPNETCORE_ENVIRONMENT=Development
 ```
@@ -199,7 +199,7 @@ ASPNETCORE_ENVIRONMENT=Development
 ```
 DB_USER=postgres
 DB_PASSWORD=postgres
-DB_NAME=transendence
+DB_NAME=transcendence
 ```
 
 ## WebSocket Konfigürasyonu

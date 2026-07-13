@@ -1,7 +1,7 @@
 .PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs elk-up elk-down elk-logs full-up full-down
 
 help:
-	@echo "🐳 Transendence Docker Commands"
+	@echo "🐳 Transcendence Docker Commands"
 	@echo "================================"
 	@echo ""
 	@echo "📦 All Services:"
@@ -118,7 +118,7 @@ nuke-extra:
 	@echo "⛔ Stopping ALL containers..."
 	docker compose --profile monitoring --profile elk down -v --remove-orphans
 	@echo "🗑️  Removing ALL project images..."
-	-docker rmi $$(docker images 'transendence-*' -q) 2>/dev/null || true
+	-docker rmi $$(docker images 'transcendence-*' -q) 2>/dev/null || true
 	@echo "📁 Cleaning uploads folder..."
 	rm -rf uploads/*
 	@echo "🔨 Rebuilding ALL services from scratch..."
@@ -213,7 +213,7 @@ database-logs:
 	docker compose logs -f database
 
 database-shell:
-	docker compose exec database psql -U postgres -d transendence
+	docker compose exec database psql -U postgres -d transcendence
 
 database-down:
 	@echo "⛔ Stopping Database..."
@@ -261,7 +261,7 @@ shell-nginx:
 	docker compose exec nginx sh
 
 shell-db:
-	docker compose exec database psql -U postgres -d transendence
+	docker compose exec database psql -U postgres -d transcendence
 
 # ========================
 # Monitoring Commands

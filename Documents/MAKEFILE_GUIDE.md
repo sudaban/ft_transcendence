@@ -1,4 +1,4 @@
-# 🚀 Transendence - Makefile Komutları
+# 🚀 transcendence - Makefile Komutları
 
 ## Hızlı Referans
 

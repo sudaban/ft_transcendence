@@ -1,4 +1,4 @@
-# ✅ Transendence DevOps Setup - Tamamlandı
+# ✅ transcendence DevOps Setup - Tamamlandı
 
 ## 🎯 Yapılandırılan Yapı
 
@@ -71,7 +71,7 @@ docker-compose logs -f
 ## 📁 Dosya Yapısı
 
 ```
-transendence/
+transcendence/
 ├── Frontend/                    # SvelteKit + Tailwind
 │   ├── Dockerfile
 │   ├── package.json
