@@ -1,4 +1,4 @@
-.PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs elk-up elk-down elk-logs full-up full-down
+.PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs elk-up elk-down elk-logs full-up full-down db-migration-add db-migration-remove
 
 help:
 	@echo "🐳 Transcendence Docker Commands"
@@ -321,4 +321,16 @@ test-health:
 	@curl -sk https://localhost/grafana/api/health || echo "❌ Grafana: FAILED"
 	@echo ""
 	@echo "✅ Health check complete"
+
+# ========================
+# Database Migrations
+# ========================
+db-migration-add:
+ifndef name
+	$(error Error: 'name' parameter is required. Example: make db-migration-add name=AddSomeField)
+endif
+	docker run --rm -v "$(shell pwd)/Backend:/src" -w /src mcr.microsoft.com/dotnet/sdk:10.0-alpine sh -c "dotnet restore && dotnet tool install --global dotnet-ef && /root/.dotnet/tools/dotnet-ef migrations add $(name) --project Backend.Persistence --startup-project Backend.API"
+
+db-migration-remove:
+	docker run --rm -v "$(shell pwd)/Backend:/src" -w /src mcr.microsoft.com/dotnet/sdk:10.0-alpine sh -c "dotnet restore && dotnet tool install --global dotnet-ef && /root/.dotnet/tools/dotnet-ef migrations remove --project Backend.Persistence --startup-project Backend.API"
 
