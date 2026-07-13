@@ -156,7 +156,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(m => m.Id);
             entity.HasIndex(m => m.ChatRoomId);
-            entity.HasIndex(m => m.CreatedAt);
+            entity.HasIndex(m => m.SentAt);
 
             entity.HasOne(m => m.ChatRoom)
                 .WithMany(cr => cr.Messages)
