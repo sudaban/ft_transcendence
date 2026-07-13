@@ -6,7 +6,6 @@
   let navItems = [
     { icon: '🌏', label: 'Home', href: '/' },
     { icon: '🗨️', label: 'Messages', href: '/chat' },
-    { icon: '🧠', label: 'AI', href: '/ai' },
     { icon: '🪪', label: 'Profile', href: '/profile' },
     { icon: '⚙️', label: 'Settings', href: '/settings' }
   ];
@@ -38,6 +37,13 @@
       </a>
     {/each}
   </nav>
+
+  <!-- Footer links for PP/ToS -->
+  <div class="hidden xl:flex flex-wrap gap-x-3 gap-y-2 mt-auto pb-4 px-4 text-[13px] text-social-secondary/70">
+    <a href="/terms" class="hover:underline">Terms of Service</a>
+    <a href="/privacy" class="hover:underline">Privacy Policy</a>
+    <span>© 2026 Transcendence</span>
+  </div>
 
   <!-- User Profile & Auth -->
   <div class="mt-auto pt-4 flex flex-col gap-2 w-full items-center xl:items-stretch">
