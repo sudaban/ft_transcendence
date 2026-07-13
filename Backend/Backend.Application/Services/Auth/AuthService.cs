@@ -302,7 +302,7 @@ namespace Backend.Application.Services
                 throw new UnAuthorizedAccessException("Invalid token.");
             }
 
-            var user_id_string = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user_id_string = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(user_id_string) || !int.TryParse(user_id_string, out var user_id))
             {
                 throw new UnAuthorizedAccessException("Invalid token.");
