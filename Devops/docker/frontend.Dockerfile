@@ -15,7 +15,7 @@ WORKDIR /app
 
 # Önce package dosyalarını kopyalayıp bağımlılıkları yükle
 # Bu sayede kaynak kod değişse bile node_modules cache'den gelir
-COPY package.json package-lock.json ./
+COPY package.json ./
 # --prefer-offline: Mümkünse cache'den yükle (hız)
 # --no-audit: Güvenlik denetimini atla (hız)
 # --no-fund: Bağış mesajlarını gösterme (temiz çıktı)
