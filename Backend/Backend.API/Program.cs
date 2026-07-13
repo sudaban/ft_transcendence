@@ -75,6 +75,19 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var access_token = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(access_token) && path.StartsWithSegments("/chathub"))
+            {
+                context.Token = access_token;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
