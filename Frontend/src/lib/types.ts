@@ -41,6 +41,8 @@ export interface UserDTO {
   followingCount: number;
   postsCount: number;
   isTwoFactorEnabled: boolean;
+  isBanned: boolean;
+  isDeleted: boolean;
 }
 
 export interface CommentDTO {

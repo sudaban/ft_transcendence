@@ -1,12 +1,15 @@
 <script lang="ts">
   import { page } from '$app/stores';
 
-  let navItems = [
+  import { authStore } from '$lib/stores/auth.svelte';
+
+  let navItems = $derived([
     { icon: '🌏', label: 'Ana Sayfa', href: '/' },
     { icon: '🗨️', label: 'Sohbet', href: '/chat' },
     { icon: '🪪', label: 'Profil', href: '/profile' },
-    { icon: '⚙️', label: 'Ayarlar', href: '/settings' }
-  ];
+    { icon: '⚙️', label: 'Ayarlar', href: '/settings' },
+    ...(authStore.user?.role === 'Admin' ? [{ icon: '🛡️', label: 'Admin', href: '/admin' }] : [])
+  ]);
 
   let pathname = $derived($page.url.pathname);
 </script>

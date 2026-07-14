@@ -5,6 +5,8 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
   
+  let isMobileSidebarOpen = $state(false);
+
   import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { ChatRoomDTO, MessageDTO, UserDTO } from '$lib/types';
@@ -365,8 +367,31 @@
 
   <Sidebar />
 
-  <aside class="hidden lg:flex w-[280px] border-r border-slate-100 bg-white h-screen flex-col shrink-0 p-8 justify-between overflow-y-auto custom-scrollbar">
-    <div class="flex flex-col items-start gap-6 w-full">
+  <!-- Mobile Overlay -->
+  {#if isMobileSidebarOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div 
+      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden" 
+      onclick={() => isMobileSidebarOpen = false}
+    ></div>
+  {/if}
+
+  <aside class="
+    fixed lg:relative inset-y-0 left-0 z-50 w-[280px] border-r border-slate-100 bg-white h-[100dvh] lg:h-screen flex flex-col shrink-0 px-8 pt-8 pb-24 lg:pb-8 justify-between overflow-y-auto custom-scrollbar transform transition-transform duration-300 ease-in-out lg:translate-x-0
+    {isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+  ">
+    <!-- Mobile Close Button -->
+    <button 
+      onclick={() => isMobileSidebarOpen = false}
+      class="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-900 p-2"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <div class="flex flex-col items-start gap-6 w-full mt-4 lg:mt-0">
       
       <button 
         onclick={() => selectedSliceId = null}
@@ -449,10 +474,17 @@
     </div>
   </aside>
 
-  <main class="flex-1 flex flex-col h-screen">
+  <main class="flex-1 flex flex-col h-[100dvh] pb-14 md:pb-0">
     
-    <section class="h-[80px] border-b border-slate-100 bg-white/60 backdrop-blur-md flex items-center px-8 gap-3 shrink-0 overflow-x-auto no-scrollbar">
-      <div class="text-xs font-bold text-slate-400 tracking-wider uppercase border-r border-slate-200 pr-4 mr-2 shrink-0">Chats</div>
+    <section class="h-[70px] md:h-[80px] border-b border-slate-100 bg-white/60 backdrop-blur-md flex items-center px-4 md:px-8 gap-3 shrink-0 overflow-x-auto no-scrollbar">
+      <div class="flex items-center gap-2 pr-4 mr-2 border-r border-slate-200 shrink-0">
+        <button onclick={() => isMobileSidebarOpen = true} class="lg:hidden text-slate-500 hover:text-slate-900 transition-colors p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div class="text-xs font-bold text-slate-400 tracking-wider uppercase">Chats</div>
+      </div>
       {#if isLoadingRooms}
         <div class="text-xs font-mono text-slate-400">Loading...</div>
       {:else if chatRooms.length === 0}
@@ -524,7 +556,7 @@
       </div>
     </div>
 
-    <div class="p-6 md:px-16 bg-white border-t border-slate-100 shrink-0">
+    <div class="p-4 md:p-6 md:px-16 bg-white border-t border-slate-100 shrink-0">
       <div class="max-w-2xl mx-auto flex flex-col gap-3">
         <form class="flex items-center gap-4" onsubmit={sendMessage}>
           <input 

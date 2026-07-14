@@ -203,7 +203,7 @@
 
   <Sidebar />
 
-  <main class="flex-1 overflow-y-auto custom-scrollbar flex flex-col lg:flex-row">
+  <main class="flex-1 overflow-y-auto custom-scrollbar flex flex-col lg:flex-row pb-20 lg:pb-0">
     
     <section class="editorial-sidebar w-full lg:w-[380px] lg:h-screen lg:border-r border-slate-100 bg-white p-8 md:p-12 flex flex-col justify-between shrink-0">
       

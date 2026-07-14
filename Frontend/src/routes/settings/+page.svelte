@@ -256,8 +256,23 @@
 
         </div>
       {/if}
-    </section>
 
+      <!-- Mobile Logout Button -->
+      <div class="md:hidden mt-8 w-full flex justify-center">
+        <button onclick={() => authStore.logout()} class="w-full max-w-sm flex items-center justify-center gap-2 px-6 py-3.5 bg-red-50 text-red-600 font-bold text-[14px] rounded-2xl hover:bg-red-100 transition-colors">
+          <span class="text-xl">🚪</span> Çıkış Yap
+        </button>
+      </div>
+
+      <!-- Mobile Legal Footer -->
+      <div class="md:hidden mt-12 mb-8 flex flex-col items-center gap-3 text-[13px] text-slate-500 font-medium">
+        <div class="flex gap-6">
+          <a href="/terms" class="hover:text-slate-900 transition-colors">Hizmet Koşulları</a>
+          <a href="/privacy" class="hover:text-slate-900 transition-colors">Gizlilik Politikası</a>
+        </div>
+        <span class="text-[11px] text-slate-400">© 2026 Transcendence</span>
+      </div>
+    </section>
   </main>
   
   <MobileNav />
