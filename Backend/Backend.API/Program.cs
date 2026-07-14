@@ -66,6 +66,13 @@ if (string.IsNullOrEmpty(admin_email_env) || string.IsNullOrEmpty(admin_password
     throw new InvalidOperationException("ADMIN_EMAIL or ADMIN_PASSWORD environment variable is missing! Please configure them in your .env file.");
 }
 
+var http_port_env = Environment.GetEnvironmentVariable("HTTP_PORT");
+var https_port_env = Environment.GetEnvironmentVariable("HTTPS_PORT");
+if (string.IsNullOrEmpty(http_port_env) || string.IsNullOrEmpty(https_port_env))
+{
+    throw new InvalidOperationException("HTTP_PORT or HTTPS_PORT environment variable is missing! Please configure them in your .env file.");
+}
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -107,9 +114,9 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                   "https://localhost",
-                  "https://localhost:8443",
+                  $"https://localhost:{https_port_env}",
+                  $"http://localhost:{http_port_env}",
                   "http://localhost:3000",
-                  "http://localhost:8080",
                   "https://tr.celten.fun"
               )
               .AllowAnyMethod()
