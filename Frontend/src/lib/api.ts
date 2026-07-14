@@ -191,6 +191,33 @@ export const ApiService = {
   },
 
   // USER endpoints
+  getAllUsers: async (token: string): Promise<UserDTO[]> => {
+    const res = await fetch(`${API_URL}/users`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch all users");
+    return res.json();
+  },
+
+  adminBanUser: async (targetUserId: string, isBanned: boolean, token: string) => {
+    const res = await fetch(`${API_URL}/users/admin/ban/${targetUserId}?isBanned=${isBanned}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to ban/unban user");
+    return res.json();
+  },
+
+  adminDeleteUser: async (targetUserId: string, token: string) => {
+    const res = await fetch(`${API_URL}/users/admin/${targetUserId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to delete user");
+    return res.json();
+  },
+
   getUserById: async (id: string, token: string) => {
     const res = await fetch(`${API_URL}/users/${id}`, {
       method: 'GET',

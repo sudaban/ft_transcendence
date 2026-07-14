@@ -6,6 +6,7 @@ export interface AuthUser
   username: string;
   email: string;
   avatar?: string;
+  role?: string;
 }
 
 function parseJwt(token: string): any
@@ -50,6 +51,7 @@ class AuthStore
         const nameIdKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
         const nameKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
         const emailKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
+        const roleKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
         const extractedUsername = decoded[nameKey] || decoded.unique_name || decoded.name || 'User';
 
@@ -59,7 +61,8 @@ class AuthStore
           id: decoded[nameIdKey] || decoded.sub || '',
           username: extractedUsername,
           email: decoded[emailKey] || decoded.email || '',
-          avatar: storedAvatar || ''
+          avatar: storedAvatar || '',
+          role: decoded[roleKey] || decoded.role || 'User'
         };
       }
       else
