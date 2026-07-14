@@ -4,6 +4,7 @@ using Backend.Application.DTOs.Responses.ChatRooms;
 using Backend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,10 +22,12 @@ public class AiChatResponder : IAiChatResponder
     private static readonly ConcurrentDictionary<int, List<DateTime>> _usage = new();
 
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<AiChatResponder> _logger;
 
-    public AiChatResponder(IServiceScopeFactory scopeFactory)
+    public AiChatResponder(IServiceScopeFactory scopeFactory, ILogger<AiChatResponder> logger)
     {
         _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     public void QueueReply(int roomId, int aiUserId, int requestingUserId)
@@ -125,8 +128,9 @@ public class AiChatResponder : IAiChatResponder
             var messageDto = mapper.Map<MessageDto>(createdMessage);
             await chatHubService.SendMessageToRoomAsync(roomId, messageDto);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "AI reply failed for room {RoomId}", roomId);
             try
             {
                 var messageRepository = scope.ServiceProvider.GetRequiredService<IGenericRepository<Message>>();
