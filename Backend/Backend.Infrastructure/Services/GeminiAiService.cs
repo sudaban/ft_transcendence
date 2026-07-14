@@ -23,7 +23,7 @@ public class GeminiAiService : IAiService
     {
         _httpClientFactory = httpClientFactory;
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
-        _model = Environment.GetEnvironmentVariable("GEMINI_MODEL") ?? "gemini-2.5-flash";
+        _model = Environment.GetEnvironmentVariable("GEMINI_MODEL") ?? "gemini-3-flash-preview";
     }
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !_apiKey!.StartsWith("change-me");
@@ -43,18 +43,35 @@ public class GeminiAiService : IAiService
             generationConfig = new { maxOutputTokens = 1024, temperature = 0.8 }
         };
 
+        var body = JsonSerializer.Serialize(payload);
         var client = _httpClientFactory.CreateClient();
-        client.Timeout = TimeSpan.FromSeconds(60);
+        client.Timeout = TimeSpan.FromSeconds(30);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post,
-            $"{BaseUrl}/{_model}:streamGenerateContent?alt=sse&key={_apiKey}")
+        const int maxAttempts = 3;
+        HttpResponseMessage? response = null;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
-        };
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post,
+                    $"{BaseUrl}/{_model}:streamGenerateContent?alt=sse&key={_apiKey}")
+                {
+                    Content = new StringContent(body, Encoding.UTF8, "application/json")
+                };
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                response.EnsureSuccessStatusCode();
+                break;
+            }
+            catch (Exception) when (attempt < maxAttempts)
+            {
+                response?.Dispose();
+                response = null;
+                await Task.Delay(TimeSpan.FromSeconds(attempt), cancellationToken);
+            }
+        }
 
+        using var _ = response!;
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
 
