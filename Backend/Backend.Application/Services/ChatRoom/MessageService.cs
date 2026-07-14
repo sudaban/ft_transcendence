@@ -17,6 +17,7 @@ public class MessageService : IMessageService
 {
     private readonly IGenericRepository<Message> _messageRepository;
     private readonly IGenericRepository<ChatRoomMember> _memberRepository;
+    private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IChatHubService _chatHubService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -25,6 +26,7 @@ public class MessageService : IMessageService
     public MessageService(
         IGenericRepository<Message> messageRepository,
         IGenericRepository<ChatRoomMember> memberRepository,
+        IGenericRepository<UserBlock> userBlockRepository,
         IChatHubService chatHubService,
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
@@ -32,6 +34,7 @@ public class MessageService : IMessageService
     {
         _messageRepository = messageRepository;
         _memberRepository = memberRepository;
+        _userBlockRepository = userBlockRepository;
         _chatHubService = chatHubService;
         _unitOfWork = unitOfWork;
         _httpContextAccessor = httpContextAccessor;
@@ -47,6 +50,25 @@ public class MessageService : IMessageService
 
         if (!isMember)
             throw new UnAuthorizedAccessException("You are not a member of this chat room.");
+
+        var room = await _memberRepository.TableNoTracking
+            .Include(m => m.ChatRoom)
+            .Where(m => m.ChatRoomId == roomId)
+            .ToListAsync();
+
+        var chatRoom = room.FirstOrDefault()?.ChatRoom;
+        if (chatRoom != null && !chatRoom.IsGroup)
+        {
+            var otherMember = room.FirstOrDefault(m => m.UserId != currentUserId);
+            if (otherMember != null)
+            {
+                bool hasBlock = await _userBlockRepository.TableNoTracking
+                    .AnyAsync(ub => (ub.BlockerId == currentUserId && ub.BlockedId == otherMember.UserId) ||
+                                    (ub.BlockerId == otherMember.UserId && ub.BlockedId == currentUserId));
+                if (hasBlock)
+                    throw new UnAuthorizedAccessException("You cannot send messages in this room due to a block.");
+            }
+        }
 
         var message = new Message
         {
