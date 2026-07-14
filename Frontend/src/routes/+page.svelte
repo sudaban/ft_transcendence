@@ -262,7 +262,7 @@
               <span class="text-social-secondary text-[15px] hover:underline">
                 {new Date(post.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}
               </span>
-              {#if authStore.user?.id?.toString() === post.author.id?.toString()}
+              {#if authStore.user?.id?.toString() === post.author.id?.toString() || authStore.user?.role === 'Admin'}
                 <button onclick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }} class="ml-auto text-gray-400 hover:text-red-500 transition-colors" title="Gönderiyi Sil">
                   🗑️
                 </button>

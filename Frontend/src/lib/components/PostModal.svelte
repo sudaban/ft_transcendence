@@ -103,7 +103,7 @@
               💬
             </button>
             <button onclick={toggleSave} class="flex items-center gap-1.5 text-2xl ml-auto {post.isSaved ? 'text-[#1d9bf0]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
-              {post.isSaved ? '🔖' : '🏷️'}
+              {post.isSaved ? '📥' : '💾'}
             </button>
           </div>
           <div class="font-bold text-sm text-slate-900">{post.likesCount} beğenme</div>
