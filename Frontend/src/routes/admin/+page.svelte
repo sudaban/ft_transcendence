@@ -5,6 +5,7 @@
   import { ApiService, API_BASE_URL } from '$lib/api';
   import type { UserDTO } from '$lib/types';
   import Sidebar from '$lib/components/Sidebar.svelte';
+  import MobileNav from '$lib/components/MobileNav.svelte';
 
   let users: (UserDTO & { isBanned?: boolean })[] = $state([]);
   let isLoading = $state(true);
@@ -81,6 +82,7 @@
 
 <div class="min-h-screen bg-[#fcfcfc] text-slate-800 font-sans flex overflow-hidden">
   <Sidebar />
+  <MobileNav />
 
   <main class="flex-1 overflow-y-auto custom-scrollbar flex flex-col pb-20 md:pb-0">
     <div class="p-6 md:p-12 lg:p-16 max-w-6xl w-full mx-auto">
