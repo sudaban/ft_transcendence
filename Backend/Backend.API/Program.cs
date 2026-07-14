@@ -109,8 +109,9 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                   "https://localhost",
+                  "https://localhost:8443",
                   "http://localhost:3000",
-                  "https://tr.celten.fun",
+                  "http://localhost:8080",
                   "https://tr.celten.fun"
               )
               .AllowAnyMethod()

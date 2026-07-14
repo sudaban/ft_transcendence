@@ -11,7 +11,7 @@
     // Read the provider from the state parameter instead of the URL path
     const provider = $page.url.searchParams.get('state');
     const code = $page.url.searchParams.get('code');
-    const redirectUri = `https://localhost/auth/callback`;
+    const redirectUri = `${window.location.origin}/auth/callback`;
 
     if (!code || !provider)
     {

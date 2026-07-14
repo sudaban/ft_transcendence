@@ -1,3 +1,7 @@
+-include .env
+HTTP_PORT ?= 8080
+HTTPS_PORT ?= 8443
+
 .PHONY: help up down build rebuild nuke logs clean frontend-only frontend-up backend-only backend-up database-up frontend-build backend-build frontend-rebuild backend-rebuild frontend-logs backend-logs database-logs frontend-shell backend-shell database-shell frontend-down backend-down database-down nginx-up nginx-logs nginx-down logs-backend logs-frontend logs-nginx logs-db shell-backend shell-frontend shell-nginx shell-db test-health monitoring-up monitoring-down monitoring-logs elk-up elk-down elk-logs full-up full-down db-migration-add db-migration-remove
 
 help:
@@ -307,18 +311,18 @@ full-down:
 # ========================
 test-health:
 	@echo "🏥 Testing services health..."
-	@echo "Frontend (via Nginx): https://localhost"
-	@echo "Backend API (via Nginx): https://localhost/api"
-	@echo "Grafana: https://localhost/grafana/"
+	@echo "Frontend (via Nginx): https://localhost:$(HTTPS_PORT)"
+	@echo "Backend API (via Nginx): https://localhost:$(HTTPS_PORT)/api"
+	@echo "Grafana: https://localhost:$(HTTPS_PORT)/grafana/"
 	@echo "Prometheus: http://localhost:9090"
 	@echo ""
-	@curl -sk https://localhost/ | head -20 || echo "❌ Frontend: FAILED"
+	@curl -sk https://localhost:$(HTTPS_PORT)/ | head -20 || echo "❌ Frontend: FAILED"
 	@echo ""
-	@curl -sk https://localhost/api || echo "❌ Backend: FAILED"
+	@curl -sk https://localhost:$(HTTPS_PORT)/api || echo "❌ Backend: FAILED"
 	@echo ""
 	@curl -s http://localhost:9090/-/healthy || echo "❌ Prometheus: FAILED"
 	@echo ""
-	@curl -sk https://localhost/grafana/api/health || echo "❌ Grafana: FAILED"
+	@curl -sk https://localhost:$(HTTPS_PORT)/grafana/api/health || echo "❌ Grafana: FAILED"
 	@echo ""
 	@echo "✅ Health check complete"
 

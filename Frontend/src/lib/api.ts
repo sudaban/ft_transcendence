@@ -11,7 +11,7 @@ const MOCK_USERS: UserDTO[] = [
   { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false }
 ];
 
-export const API_BASE_URL = 'https://localhost';
+export const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const ApiService = {
