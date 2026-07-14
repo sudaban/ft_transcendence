@@ -265,9 +265,25 @@ namespace Backend.Application.Services
             {
                 CreatePasswordHash(Guid.NewGuid().ToString(), out string password_hash, out string password_salt);
 
+                string base_username = username.Replace(" ", "_").ToLower();
+                base_username = new string(base_username.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+                
+                if (string.IsNullOrEmpty(base_username))
+                {
+                    base_username = email.Split('@')[0];
+                }
+
+                string final_username = base_username;
+                int counter = 1;
+                while (users.Any(u => u.Username.Equals(final_username, StringComparison.OrdinalIgnoreCase)))
+                {
+                    final_username = $"{base_username}{counter}";
+                    counter++;
+                }
+
                 user = new User
                 {
-                    Username = username,
+                    Username = final_username,
                     Email = email,
                     PasswordHash = password_hash,
                     PasswordSalt = password_salt
