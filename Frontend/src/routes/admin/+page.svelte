@@ -142,7 +142,9 @@
 
                 <!-- Status -->
                 <div class="col-span-1 md:col-span-2 lg:col-span-3 flex items-center md:justify-center mt-2 md:mt-0">
-                  {#if targetUser.isBanned}
+                  {#if targetUser.isDeleted}
+                    <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">Silinmiş</span>
+                  {:else if targetUser.isBanned}
                     <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">Yasaklı</span>
                   {:else}
                     <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Aktif</span>
@@ -151,7 +153,11 @@
 
                 <!-- Actions -->
                 <div class="col-span-1 md:col-span-3 lg:col-span-3 flex items-center md:justify-end gap-2 mt-4 md:mt-0">
-                  {#if targetUser.id !== authStore.user?.id}
+                  {#if targetUser.id === authStore.user?.id}
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest px-4">Sen</span>
+                  {:else if targetUser.isDeleted}
+                    <span class="text-xs font-bold text-red-400 uppercase tracking-widest px-4">Kalıcı Olarak Silindi</span>
+                  {:else}
                     <button 
                       onclick={() => toggleBan(targetUser)} 
                       class="px-4 py-2 rounded-xl text-[13px] font-bold transition-all shadow-sm flex-1 md:flex-none
@@ -167,8 +173,6 @@
                     >
                       Sil
                     </button>
-                  {:else}
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest px-4">Sen</span>
                   {/if}
                 </div>
 

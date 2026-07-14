@@ -214,7 +214,11 @@ export const ApiService = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error("Failed to delete user");
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Delete failed with status", res.status, text);
+      throw new Error("Failed to delete user");
+    }
     return res.json();
   },
 
