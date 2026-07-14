@@ -28,8 +28,8 @@ namespace Backend.Infrastructure
             };
 
             var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
-            if (string.IsNullOrEmpty(secret_key))
-                throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
+            if (string.IsNullOrEmpty(secret_key) || secret_key == "YOUR_SECRET_KEY_PLACEHOLDER_DO_NOT_COMMIT")
+                throw new InvalidOperationException("Insecure or missing JWT SecretKey! Make sure JWT_SECRET_KEY is set in your environment variables (.env).");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -55,8 +55,8 @@ namespace Backend.Infrastructure
             };
 
             var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
-            if (string.IsNullOrEmpty(secret_key))
-                throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
+            if (string.IsNullOrEmpty(secret_key) || secret_key == "YOUR_SECRET_KEY_PLACEHOLDER_DO_NOT_COMMIT")
+                throw new InvalidOperationException("Insecure or missing JWT SecretKey! Make sure JWT_SECRET_KEY is set in your environment variables (.env).");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -80,8 +80,8 @@ namespace Backend.Infrastructure
 
             var token_handler = new JwtSecurityTokenHandler();
             var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["JwtOptions:SecretKey"];
-            if (string.IsNullOrEmpty(secret_key))
-                throw new InvalidOperationException("JWT SecretKey is missing in appsettings.json");
+            if (string.IsNullOrEmpty(secret_key) || secret_key == "YOUR_SECRET_KEY_PLACEHOLDER_DO_NOT_COMMIT")
+                throw new InvalidOperationException("Insecure or missing JWT SecretKey! Make sure JWT_SECRET_KEY is set in your environment variables (.env).");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key));
             var validation_parameters = new TokenValidationParameters

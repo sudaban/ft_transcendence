@@ -25,7 +25,7 @@ public class ChatHub : Hub
         await base.OnConnectedAsync();
         try
         {
-            var user_id = Context.User.GetCurrentUserId();
+            var user_id = Context.User!.GetCurrentUserId();
             var user = await _userRepository.GetByIdAsync(user_id);
             if (user != null)
             {
@@ -43,7 +43,7 @@ public class ChatHub : Hub
     {
         try
         {
-            var user_id = Context.User.GetCurrentUserId();
+            var user_id = Context.User!.GetCurrentUserId();
             var user = await _userRepository.GetByIdAsync(user_id);
             if (user != null)
             {

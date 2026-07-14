@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Application.Services
 {
@@ -39,14 +40,10 @@ namespace Backend.Application.Services
 
         public async Task<string> RegisterAsync(RegisterRequestDto request)
         {
-            var users = await _userRepository.GetAllAsync();
-            if (users.Any(u => u.Username == request.Username || u.Email == request.Email))
+            if (await _userRepository.TableNoTracking.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
                 throw new OverlapException("This username or email is already taken.");
 
             CreatePasswordHash(request.Password, out string password_hash, out string password_salt);
-
-            var admin_email = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin42@gmail.com";
-            var admin_password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "aşiret42";
 
             var user = new User
             {
@@ -54,7 +51,7 @@ namespace Backend.Application.Services
                 Email = request.Email,
                 PasswordHash = password_hash,
                 PasswordSalt = password_salt,
-                Role = (request.Email == admin_email && request.Password == admin_password) ? Backend.Domain.Enums.UserRole.Admin : Backend.Domain.Enums.UserRole.User
+                Role = Backend.Domain.Enums.UserRole.User
             };
 
             await _userRepository.AddAsync(user);
@@ -65,8 +62,7 @@ namespace Backend.Application.Services
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _userRepository.Table.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
                 throw new NotFoundException("Invalid email or password.");
@@ -101,8 +97,7 @@ namespace Backend.Application.Services
             if (email != request.Email)
                 throw new UnAuthorizedAccessException("Invalid 2FA session.");
 
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _userRepository.Table.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
                 throw new NotFoundException("User not found.");
@@ -258,8 +253,7 @@ namespace Backend.Application.Services
                 throw new BadRequestException("Email not found in user info.");
             }
 
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == email);
+            var user = await _userRepository.Table.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
             {
@@ -275,7 +269,7 @@ namespace Backend.Application.Services
 
                 string final_username = base_username;
                 int counter = 1;
-                while (users.Any(u => u.Username.Equals(final_username, StringComparison.OrdinalIgnoreCase)))
+                while (await _userRepository.TableNoTracking.AnyAsync(u => u.Username.ToLower() == final_username.ToLower()))
                 {
                     final_username = $"{base_username}{counter}";
                     counter++;
