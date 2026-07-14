@@ -13,5 +13,6 @@ public record UserDto
     int PostsCount,
     bool IsTwoFactorEnabled,
     bool IsOnline,
-    DateTime? LastSeenAt
+    DateTime? LastSeenAt,
+    bool IsAiAssistant = false
 );

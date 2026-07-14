@@ -18,7 +18,9 @@ public class MessageService : IMessageService
     private readonly IGenericRepository<Message> _messageRepository;
     private readonly IGenericRepository<ChatRoomMember> _memberRepository;
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
+    private readonly IGenericRepository<User> _userRepository;
     private readonly IChatHubService _chatHubService;
+    private readonly IAiChatResponder _aiChatResponder;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
@@ -27,7 +29,9 @@ public class MessageService : IMessageService
         IGenericRepository<Message> messageRepository,
         IGenericRepository<ChatRoomMember> memberRepository,
         IGenericRepository<UserBlock> userBlockRepository,
+        IGenericRepository<User> userRepository,
         IChatHubService chatHubService,
+        IAiChatResponder aiChatResponder,
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
         IMapper mapper)
@@ -35,7 +39,9 @@ public class MessageService : IMessageService
         _messageRepository = messageRepository;
         _memberRepository = memberRepository;
         _userBlockRepository = userBlockRepository;
+        _userRepository = userRepository;
         _chatHubService = chatHubService;
+        _aiChatResponder = aiChatResponder;
         _unitOfWork = unitOfWork;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
@@ -101,6 +107,18 @@ public class MessageService : IMessageService
 
         // SignalR ile odaya anlık mesaj iletimi
         await _chatHubService.SendMessageToRoomAsync(roomId, messageDto);
+
+        if (chatRoom != null && !chatRoom.IsGroup)
+        {
+            var otherMember = room.FirstOrDefault(m => m.UserId != currentUserId);
+            if (otherMember != null)
+            {
+                bool otherIsAi = await _userRepository.TableNoTracking
+                    .AnyAsync(u => u.Id == otherMember.UserId && u.IsAiAssistant);
+                if (otherIsAi)
+                    _aiChatResponder.QueueReply(roomId, otherMember.UserId, currentUserId);
+            }
+        }
 
         return messageDto;
     }
