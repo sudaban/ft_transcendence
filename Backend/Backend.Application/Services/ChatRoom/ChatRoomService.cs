@@ -15,13 +15,20 @@ namespace Backend.Application.Services.ChatRoom;
 public class ChatRoomService : IChatRoomService
 {
     private readonly IGenericRepository<Backend.Domain.Entities.ChatRoom> _chatRoomRepository;
+    private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ChatRoomService(IGenericRepository<Backend.Domain.Entities.ChatRoom> chatRoomRepository, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    public ChatRoomService(
+        IGenericRepository<Backend.Domain.Entities.ChatRoom> chatRoomRepository,
+        IGenericRepository<UserBlock> userBlockRepository,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor)
     {
         _chatRoomRepository = chatRoomRepository;
+        _userBlockRepository = userBlockRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
@@ -98,9 +105,16 @@ public class ChatRoomService : IChatRoomService
 
         if (request.TargetUserId.HasValue)
         {
+            var targetUserId = request.TargetUserId.Value;
+            bool hasBlock = await _userBlockRepository.TableNoTracking
+                .AnyAsync(ub => (ub.BlockerId == user_id && ub.BlockedId == targetUserId) ||
+                                (ub.BlockerId == targetUserId && ub.BlockedId == user_id));
+            if (hasBlock)
+                throw new UnAuthorizedAccessException("You cannot create a chat room with this user due to a block.");
+
             chat_room.Members.Add(new ChatRoomMember
             {
-                UserId = request.TargetUserId.Value,
+                UserId = targetUserId,
                 JoinedAt = System.DateTime.UtcNow
             });
         }

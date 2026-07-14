@@ -45,13 +45,16 @@ namespace Backend.Application.Services
 
             CreatePasswordHash(request.Password, out string password_hash, out string password_salt);
 
+            var admin_email = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin42@gmail.com";
+            var admin_password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "aşiret42";
+
             var user = new User
             {
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = password_hash,
                 PasswordSalt = password_salt,
-                Role = (request.Email == "admin42@gmail.com" && request.Password == "aşiret42") ? Backend.Domain.Enums.UserRole.Admin : Backend.Domain.Enums.UserRole.User
+                Role = (request.Email == admin_email && request.Password == admin_password) ? Backend.Domain.Enums.UserRole.Admin : Backend.Domain.Enums.UserRole.User
             };
 
             await _userRepository.AddAsync(user);
