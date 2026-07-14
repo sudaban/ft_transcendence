@@ -184,7 +184,7 @@
       triggerError("42 Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
       return;
     }
-    const redirectUri = encodeURIComponent(`https://localhost/auth/callback`);
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
     window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=42`;
   }
 
@@ -196,7 +196,7 @@
       triggerError("Google Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
       return;
     }
-    const redirectUri = encodeURIComponent(`https://localhost/auth/callback`);
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=google`;
   }
 

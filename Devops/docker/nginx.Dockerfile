@@ -8,7 +8,9 @@ RUN mkdir -p /etc/nginx/ssl && \
     -out /etc/nginx/ssl/nginx.crt \
     -subj "/C=TR/ST=Kocaeli/L=Kocaeli/O=42/CN=localhost"
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV HTTPS_PORT=8443
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80 443
 
