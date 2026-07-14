@@ -154,17 +154,6 @@
     <h1 class="font-bold text-2xl tracking-tight mb-2" style="font-family: 'Instagram Sans', sans-serif;">Transcendence</h1>
     <p class="text-sm text-social-secondary mb-6 text-center leading-relaxed">Arkadaşlarınızla ve AI ile etkileşime geçmek için kaydolun.</p>
 
-    <!-- 42 Intra Button -->
-    <button class="w-full bg-[#385185] hover:bg-blue-900 text-white font-semibold text-sm rounded py-2.5 mb-4 transition-colors flex items-center justify-center gap-2">
-      42 Intra ile Kaydol
-    </button>
-
-    <div class="w-full flex items-center gap-4 mb-4">
-      <div class="flex-1 h-px bg-social-border"></div>
-      <span class="text-xs font-semibold text-social-secondary uppercase">YA DA</span>
-      <div class="flex-1 h-px bg-social-border"></div>
-    </div>
-
     {#if errorMsg}
       <div class="text-social-danger text-sm mb-4 font-medium text-center w-full">{errorMsg}</div>
     {/if}
