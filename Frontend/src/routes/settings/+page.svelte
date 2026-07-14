@@ -256,8 +256,16 @@
 
         </div>
       {/if}
-    </section>
 
+      <!-- Mobile Legal Footer -->
+      <div class="md:hidden mt-12 mb-8 flex flex-col items-center gap-3 text-[13px] text-slate-500 font-medium">
+        <div class="flex gap-6">
+          <a href="/terms" class="hover:text-slate-900 transition-colors">Hizmet Koşulları</a>
+          <a href="/privacy" class="hover:text-slate-900 transition-colors">Gizlilik Politikası</a>
+        </div>
+        <span class="text-[11px] text-slate-400">© 2026 Transcendence</span>
+      </div>
+    </section>
   </main>
   
   <MobileNav />

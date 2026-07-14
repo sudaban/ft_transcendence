@@ -46,26 +46,26 @@
 </script>
 
 {#if post}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onclick={onClose}>
+  <div class="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onclick={onClose}>
     <!-- Modal Container -->
     <div 
-      class="bg-white rounded-3xl overflow-hidden shadow-2xl w-full {post.imageUrl ? 'max-w-5xl' : 'max-w-2xl'} h-[85vh] flex flex-col md:flex-row relative"
+      class="bg-white rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl w-full {post.imageUrl ? 'max-w-5xl' : 'max-w-2xl'} h-[90dvh] md:h-[85vh] flex flex-col md:flex-row relative"
       onclick={(e) => e.stopPropagation()}
     >
       <!-- Close Button -->
-      <button onclick={onClose} class="absolute top-4 right-4 z-20 w-8 h-8 bg-black/50 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors">
+      <button onclick={onClose} class="absolute top-4 right-4 z-20 w-8 h-8 {post.imageUrl ? 'bg-black/50 hover:bg-black text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'} rounded-full flex items-center justify-center transition-colors">
         ✕
       </button>
 
       {#if post.imageUrl}
         <!-- Left: Image -->
-        <div class="w-full md:w-[60%] bg-black flex items-center justify-center relative">
+        <div class="w-full md:w-[60%] h-[40dvh] md:h-full bg-black flex items-center justify-center relative shrink-0">
           <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-contain" alt="Post" />
         </div>
       {/if}
 
       <!-- Right: Content & Comments -->
-      <div class="w-full {post.imageUrl ? 'md:w-[40%]' : 'md:w-[100%]'} flex flex-col bg-white h-full relative">
+      <div class="w-full {post.imageUrl ? 'md:w-[40%]' : 'md:w-[100%]'} flex flex-col bg-white flex-1 min-h-0 relative">
         <!-- Header -->
         <div class="p-4 border-b border-slate-100 flex items-center gap-3">
           <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
