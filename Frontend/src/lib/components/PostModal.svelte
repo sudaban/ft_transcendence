@@ -90,7 +90,7 @@
 
         <!-- Comments Area (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <CommentsSection postId={post.id} onCommentAdded={() => post.commentsCount++} onCommentDeleted={() => Math.max(0, post.commentsCount--)} />
+          <CommentsSection postId={post.id} onCommentAdded={() => post.commentsCount++} onCommentDeleted={() => post.commentsCount = Math.max(0, post.commentsCount - 1)} />
         </div>
 
         <!-- Actions Footer -->

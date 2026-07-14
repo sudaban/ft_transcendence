@@ -303,7 +303,7 @@
               <CommentsSection 
                 postId={post.id} 
                 onCommentAdded={() => post.commentsCount++} 
-                onCommentDeleted={() => Math.max(0, post.commentsCount--)}
+                onCommentDeleted={() => post.commentsCount = Math.max(0, post.commentsCount - 1)}
               />
             {/if}
           </div>
