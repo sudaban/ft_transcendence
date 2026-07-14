@@ -44,6 +44,8 @@ services:
       OAUTH_GOOGLE_CLIENT_ID: "${OAUTH_GOOGLE_CLIENT_ID:-default-google-client-id}"
       OAUTH_GOOGLE_CLIENT_SECRET: "${OAUTH_GOOGLE_CLIENT_SECRET:-default-google-client-secret}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
     volumes:
       - ./uploads:/app/wwwroot/uploads
     healthcheck:

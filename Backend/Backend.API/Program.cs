@@ -53,9 +53,18 @@ builder.Services.AddScoped<IChatHubService, Backend.API.Services.ChatHubService>
 
 builder.Services.AddApplicationServices();
 
-var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
-    ?? builder.Configuration["JwtOptions:SecretKey"] 
-    ?? throw new InvalidOperationException("JWT SecretKey is missing");
+var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? builder.Configuration["JwtOptions:SecretKey"];
+if (string.IsNullOrEmpty(secret_key) || secret_key == "YOUR_SECRET_KEY_PLACEHOLDER_DO_NOT_COMMIT")
+{
+    throw new InvalidOperationException("Insecure or missing JWT SecretKey! Make sure JWT_SECRET_KEY is set in your environment variables (.env).");
+}
+
+var admin_email_env = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+var admin_password_env = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+if (string.IsNullOrEmpty(admin_email_env) || string.IsNullOrEmpty(admin_password_env))
+{
+    throw new InvalidOperationException("ADMIN_EMAIL or ADMIN_PASSWORD environment variable is missing! Please configure them in your .env file.");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -135,6 +144,33 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();
+
+    var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+    var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+    if (!string.IsNullOrEmpty(adminEmail) && !string.IsNullOrEmpty(adminPassword))
+    {
+        var adminExists = context.Users.Any(u => u.Email == adminEmail);
+        if (!adminExists)
+        {
+            using var hmac = new System.Security.Cryptography.HMACSHA512();
+            var passwordHash = Convert.ToBase64String(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(adminPassword)));
+            var passwordSalt = Convert.ToBase64String(hmac.Key);
+
+            var adminUser = new Backend.Domain.Entities.User
+            {
+                Username = "admin",
+                Email = adminEmail,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt,
+                Role = Backend.Domain.Enums.UserRole.Admin,
+                IsTosAccepted = true,
+                TosAcceptedAt = DateTime.UtcNow
+            };
+            context.Users.Add(adminUser);
+            context.SaveChanges();
+        }
+    }
 }
 
 app.UseExceptionHandler();
