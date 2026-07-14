@@ -22,6 +22,8 @@
 
   // Custom UI State
   let newMessage = $state('');
+  let aiTyping = $state(false);
+  let aiStreamingText = $state('');
   let asciiHistory = $state<string[]>([]);
   let archivedSlices = $state<Array<{ id: number, label: string, char: string, leader: string | null, data: any[] }>>([]);
   let selectedSliceId = $state<number | null>(null);
@@ -68,11 +70,30 @@
       hubConnection.on("ReceiveMessage", (message: MessageDTO) => {
         if (selectedRoomId === message.chatRoomId)
         {
+          aiStreamingText = '';
+          aiTyping = false;
           const room = chatRooms.find(r => r.id === selectedRoomId);
           if (room)
           {
             handleIncomingMessage(formatMessage(message, room));
           }
+        }
+      });
+
+      hubConnection.on("AiTyping", (roomId: number, isTyping: boolean) => {
+        if (selectedRoomId === roomId)
+        {
+          aiTyping = isTyping;
+          if (!isTyping) aiStreamingText = '';
+          scrollToBottom();
+        }
+      });
+
+      hubConnection.on("AiMessageChunk", (roomId: number, delta: string) => {
+        if (selectedRoomId === roomId)
+        {
+          aiStreamingText += delta;
+          scrollToBottom();
         }
       });
 
@@ -129,7 +150,9 @@
 
     selectedRoomId = roomId;
     isLoadingMessages = true;
-    selectedSliceId = null; 
+    selectedSliceId = null;
+    aiTyping = false;
+    aiStreamingText = '';
 
     try
     {
@@ -530,7 +553,7 @@
 
         {#each currentDisplayMessages as msg (msg.id)}
           <div use:popIn class="timeline-bubble relative group flex flex-col {msg.sender === 'Player 1' ? 'pl-8' : ''}">
-            
+
             <div class="absolute -left-[33px] top-0.5 w-5 h-5 rounded-full bg-[#fcfcfc] flex items-center justify-center font-mono text-xs font-bold transition-all duration-200 group-hover:scale-125
               {msg.sender === currentDisplayLeader ? 'text-slate-900 scale-110' : 'text-slate-300'}"
             >
@@ -552,6 +575,29 @@
 
           </div>
         {/each}
+
+        {#if selectedSliceId === null && (aiTyping || aiStreamingText)}
+          <div class="timeline-bubble relative flex flex-col">
+            <div class="absolute -left-[33px] top-0.5 w-5 h-5 rounded-full bg-[#fcfcfc] flex items-center justify-center text-xs">
+              🤖
+            </div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xs font-semibold tracking-tight text-slate-500">ai_assistant</span>
+              <span class="text-[10px] text-slate-400 animate-pulse">typing...</span>
+            </div>
+            <div class="text-[14px] text-slate-800 leading-relaxed max-w-xl font-light">
+              {#if aiStreamingText}
+                {aiStreamingText}<span class="animate-pulse">▌</span>
+              {:else}
+                <span class="inline-flex gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay: 0.15s"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay: 0.3s"></span>
+                </span>
+              {/if}
+            </div>
+          </div>
+        {/if}
 
       </div>
     </div>
