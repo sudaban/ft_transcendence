@@ -2,6 +2,7 @@ services:
   database:
     image: postgres:16-alpine
     container_name: transcendence-db
+    init: true
     labels:
       - "autoheal=true"
     environment:
@@ -21,19 +22,13 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          memory: 128M
 
   backend:
     build:
       context: ./Backend
       dockerfile: ../Devops/docker/backend.Dockerfile
     container_name: transcendence-backend
+    init: true
     labels:
       - "autoheal=true"
     depends_on:
@@ -62,19 +57,13 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          memory: 128M
 
   frontend:
     build:
       context: ./Frontend
       dockerfile: ../Devops/docker/frontend.Dockerfile
     container_name: transcendence-frontend
+    init: true
     labels:
       - "autoheal=true"
     env_file:
@@ -94,19 +83,13 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 256M
-        reservations:
-          memory: 64M
 
   nginx:
     build:
       context: ./nginx
       dockerfile: ../Devops/docker/nginx.Dockerfile
     container_name: transcendence-nginx
+    init: true
     labels:
       - "autoheal=true"
     depends_on:
@@ -124,22 +107,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 128M
-        reservations:
-          memory: 32M
 
-  # ========================
-  # Monitoring Services (profile: monitoring)
-  # İhtiyaç olduğunda: docker compose --profile monitoring up -d
-  # ========================
   prometheus:
     image: prom/prometheus:latest
     container_name: transcendence-prometheus
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     volumes:
@@ -163,16 +136,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 256M
 
   grafana:
     image: grafana/grafana:latest
     container_name: transcendence-grafana
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     depends_on:
@@ -199,16 +168,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 256M
 
   node-exporter:
     image: prom/node-exporter:latest
     container_name: transcendence-node-exporter
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     volumes:
@@ -229,16 +194,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.15'
-          memory: 64M
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: transcendence-cadvisor
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     privileged: true
@@ -260,16 +221,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.20'
-          memory: 128M
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: transcendence-postgres-exporter
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     depends_on:
@@ -286,16 +243,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 64M
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: transcendence-nginx-exporter
     profiles: ["monitoring"]
+    init: true
     labels:
       - "autoheal=true"
     depends_on:
@@ -305,20 +258,13 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 64M
 
-  # ========================
-  # Auto-Heal
-  # ========================
   autoheal:
     build:
       context: ./monitoring/autoheal
       dockerfile: ../../Devops/docker/autoheal.Dockerfile
     container_name: transcendence-autoheal
+    init: true
     environment:
       AUTOHEAL_INTERVAL: 30
       AUTOHEAL_START_PERIOD: 60
@@ -327,20 +273,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.05'
-          memory: 64M
 
-  # ========================
-  # ELK Stack (profile: elk)
-  # İhtiyaç olduğunda: docker compose --profile elk up -d
-  # ========================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
     container_name: transcendence-elasticsearch
     profiles: ["elk"]
+    init: true
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -358,16 +296,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 768M
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.17.1
     container_name: transcendence-logstash
     profiles: ["elk"]
+    init: true
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -380,16 +314,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 512M
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.1
     container_name: transcendence-kibana
     profiles: ["elk"]
+    init: true
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -401,16 +331,12 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 384M
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.17.1
     container_name: transcendence-filebeat
     profiles: ["elk"]
+    init: true
     user: root
     depends_on:
       - logstash
@@ -422,11 +348,6 @@ services:
     networks:
       - transcendence-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.20'
-          memory: 128M
 
 volumes:
   postgres_data:
