@@ -47,7 +47,7 @@ services:
       ADMIN_EMAIL: "${ADMIN_EMAIL}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
-      GEMINI_MODEL: "${GEMINI_MODEL:-gemini-2.5-flash}"
+      GEMINI_MODEL: "${GEMINI_MODEL:-gemini-3-flash-preview}"
     volumes:
       - ./uploads:/app/wwwroot/uploads
     healthcheck:
