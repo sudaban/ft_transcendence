@@ -209,7 +209,7 @@
 
   <Sidebar />
 
-  <main class="flex-1 overflow-y-auto custom-scrollbar flex flex-col lg:flex-row">
+  <main class="flex-1 overflow-y-auto custom-scrollbar flex flex-col lg:flex-row pb-20 lg:pb-0">
     
     {#if isLoading}
       <div class="flex-1 flex items-center justify-center">
