@@ -48,6 +48,8 @@ services:
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       GEMINI_MODEL: "${GEMINI_MODEL:-gemini-3-flash-preview}"
+      HTTP_PORT: "${HTTP_PORT:-8080}"
+      HTTPS_PORT: "${HTTPS_PORT:-8443}"
     volumes:
       - ./uploads:/app/wwwroot/uploads
     healthcheck:
@@ -71,7 +73,7 @@ services:
     env_file:
       - .env
     environment:
-      PUBLIC_API_URL: "https://localhost:${HTTPS_PORT:-8443}/api"
+      PUBLIC_API_URL: "https://localhost:${HTTPS_PORT}/api"
       PUBLIC_42_CLIENT_ID: "${OAUTH_INTRA_CLIENT_ID:-}"
       PUBLIC_GOOGLE_CLIENT_ID: "${OAUTH_GOOGLE_CLIENT_ID:-}"
     healthcheck:
@@ -96,10 +98,10 @@ services:
       - frontend
       - backend
     environment:
-      HTTPS_PORT: "${HTTPS_PORT:-8443}"
+      HTTPS_PORT: "${HTTPS_PORT}"
     ports:
-      - "${HTTP_PORT:-8080}:80"
-      - "${HTTPS_PORT:-8443}:443"
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8888/nginx_status || exit 1"]
       interval: 30s
@@ -152,7 +154,7 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-transcendence42}
       GF_AUTH_ANONYMOUS_ENABLED: "false"
-      GF_SERVER_ROOT_URL: "https://localhost:${HTTPS_PORT:-8443}/grafana/"
+      GF_SERVER_ROOT_URL: "https://localhost:${HTTPS_PORT}/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - grafana_data:/var/lib/grafana
