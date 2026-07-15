@@ -10,6 +10,7 @@ public interface IUserService
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<UserDto> GetUserByIdAsync(int id);
     Task<UserDto> GetUserByUsernameAsync(string username);
+    Task<IEnumerable<UserDto>> SearchUsersAsync(string query);
     Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request);
     Task<UserDto> UpdateAvatarAsync(Microsoft.AspNetCore.Http.IFormFile file);
     Task DeleteUserAsync();

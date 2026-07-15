@@ -40,6 +40,14 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [HttpGet("search")]
+    [Authorize]
+    public async Task<IActionResult> SearchUsers([FromQuery] string query)
+    {
+        var users = await _userService.SearchUsersAsync(query);
+        return Ok(users);
+    }
+
     [HttpPut("profile")]
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request)
