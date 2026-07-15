@@ -223,6 +223,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserBanCheckMiddleware>();
 app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
 

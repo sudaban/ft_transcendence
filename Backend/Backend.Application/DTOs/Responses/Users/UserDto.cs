@@ -14,5 +14,7 @@ public record UserDto
     bool IsTwoFactorEnabled,
     bool IsOnline,
     DateTime? LastSeenAt,
-    bool IsAiAssistant = false
+    bool IsAiAssistant = false,
+    bool IsBanned = false,
+    bool IsDeleted = false
 );
