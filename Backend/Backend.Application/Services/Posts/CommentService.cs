@@ -18,6 +18,7 @@ public class CommentService : ICommentService
     private readonly IGenericRepository<Comment> _commentRepository;
     private readonly IGenericRepository<Post> _postRepository;
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
+    private readonly IAiService _aiService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
@@ -26,6 +27,7 @@ public class CommentService : ICommentService
         IGenericRepository<Comment> commentRepository,
         IGenericRepository<Post> postRepository,
         IGenericRepository<UserBlock> userBlockRepository,
+        IAiService aiService,
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
         IMapper mapper)
@@ -33,6 +35,7 @@ public class CommentService : ICommentService
         _commentRepository = commentRepository;
         _postRepository = postRepository;
         _userBlockRepository = userBlockRepository;
+        _aiService = aiService;
         _unitOfWork = unitOfWork;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
@@ -42,6 +45,10 @@ public class CommentService : ICommentService
     {
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
         bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+
+        var moderation = await _aiService.ModerateContentAsync(request.Content ?? string.Empty);
+        if (!moderation.IsAllowed)
+            throw new BadRequestException($"AI moderation blocked this comment: {moderation.Reason ?? "content violates platform rules"}");
 
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)

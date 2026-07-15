@@ -33,6 +33,7 @@
       if (onCommentAdded) onCommentAdded();
     } catch (err) {
       console.error("Yorum gönderilemedi", err);
+      alert(err instanceof Error ? err.message : "Yorum gönderilirken bir hata oluştu.");
     } finally {
       isSubmitting = false;
     }

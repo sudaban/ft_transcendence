@@ -156,6 +156,7 @@
       if (fileInput) fileInput.value = '';
     } catch (error) {
       console.error("Post paylaşılamadı:", error);
+      alert(error instanceof Error ? error.message : "Gönderi paylaşılırken bir hata oluştu.");
     } finally {
       isSubmitting = false;
     }

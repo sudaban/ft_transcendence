@@ -35,7 +35,10 @@ namespace Backend.Application.Profiles
                 .ForCtorParam("PostsCount", opt => opt.MapFrom(src => src.Posts.Count))
                 .ForCtorParam("IsTwoFactorEnabled", opt => opt.MapFrom(src => src.IsTwoFactorEnabled))
                 .ForCtorParam("IsOnline", opt => opt.MapFrom(src => src.IsOnline))
-                .ForCtorParam("LastSeenAt", opt => opt.MapFrom(src => src.LastSeenAt));
+                .ForCtorParam("LastSeenAt", opt => opt.MapFrom(src => src.LastSeenAt))
+                .ForCtorParam("IsAiAssistant", opt => opt.MapFrom(src => src.IsAiAssistant))
+                .ForCtorParam("IsBanned", opt => opt.MapFrom(src => src.IsBanned))
+                .ForCtorParam("IsDeleted", opt => opt.MapFrom(src => src.IsDeleted));
             
             CreateMap<Post, PostDto>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
