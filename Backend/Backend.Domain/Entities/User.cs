@@ -32,6 +32,8 @@ public class User
 
     public bool IsBanned { get; set; } = false;
 
+    public bool IsAiAssistant { get; set; } = false;
+
     public UserRole Role { get; set; } = UserRole.User;
 
     public bool IsOnline { get; set; } = false;

@@ -43,6 +43,7 @@ export interface UserDTO {
   isTwoFactorEnabled: boolean;
   isBanned: boolean;
   isDeleted: boolean;
+  isAiAssistant?: boolean;
 }
 
 export interface CommentDTO {

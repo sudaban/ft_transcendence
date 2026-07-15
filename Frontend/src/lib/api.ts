@@ -107,7 +107,10 @@ export const ApiService = {
       body: formData,
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error("Failed to create post");
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || "Failed to create post");
+    }
     return res.json();
   },
 
@@ -318,7 +321,10 @@ export const ApiService = {
       },
       body: JSON.stringify({ content })
     });
-    if (!res.ok) throw new Error("Failed to add comment");
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || "Failed to add comment");
+    }
     return res.json();
   },
 

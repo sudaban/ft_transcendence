@@ -50,6 +50,8 @@ builder.Services.AddScoped<ICommentService, Backend.Application.Services.Posts.C
 builder.Services.AddScoped<ISavedPostService, Backend.Application.Services.Posts.SavedPostService>();
 builder.Services.AddScoped<IMessageService, Backend.Application.Services.ChatRoom.MessageService>();
 builder.Services.AddScoped<IChatHubService, Backend.API.Services.ChatHubService>();
+builder.Services.AddScoped<IAiService, Backend.Infrastructure.Services.GeminiAiService>();
+builder.Services.AddSingleton<IAiChatResponder, Backend.Application.Services.Ai.AiChatResponder>();
 
 builder.Services.AddApplicationServices();
 
@@ -178,6 +180,32 @@ using (var scope = app.Services.CreateScope())
             context.Users.Add(adminUser);
             context.SaveChanges();
         }
+    }
+
+    var aiExists = context.Users.Any(u => u.IsAiAssistant);
+    if (!aiExists)
+    {
+        using var aiHmac = new System.Security.Cryptography.HMACSHA512();
+        var aiPassword = Guid.NewGuid().ToString("N");
+        var aiPasswordHash = Convert.ToBase64String(aiHmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(aiPassword)));
+        var aiPasswordSalt = Convert.ToBase64String(aiHmac.Key);
+
+        var aiUser = new Backend.Domain.Entities.User
+        {
+            Username = "ai_assistant",
+            FullName = "AI Assistant",
+            Email = "ai@transcendence.local",
+            Bio = "🤖 I am the platform's AI assistant. Send me a message and let's chat!",
+            PasswordHash = aiPasswordHash,
+            PasswordSalt = aiPasswordSalt,
+            Role = Backend.Domain.Enums.UserRole.User,
+            IsAiAssistant = true,
+            IsTosAccepted = true,
+            TosAcceptedAt = DateTime.UtcNow,
+            IsOnline = true
+        };
+        context.Users.Add(aiUser);
+        context.SaveChanges();
     }
 }
 

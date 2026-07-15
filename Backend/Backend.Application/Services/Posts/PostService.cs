@@ -20,6 +20,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<Follow> _followRepository;
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IFileUploadService _fileUploadService;
+    private readonly IAiService _aiService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
@@ -29,6 +30,7 @@ public class PostService : IPostService
         IGenericRepository<Follow> followRepository,
         IGenericRepository<UserBlock> userBlockRepository,
         IFileUploadService fileUploadService,
+        IAiService aiService,
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
         IMapper mapper)
@@ -37,6 +39,7 @@ public class PostService : IPostService
         _followRepository = followRepository;
         _userBlockRepository = userBlockRepository;
         _fileUploadService = fileUploadService;
+        _aiService = aiService;
         _unitOfWork = unitOfWork;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
@@ -45,6 +48,10 @@ public class PostService : IPostService
     public async Task<PostDto> CreatePostAsync(CreatePostDto request)
     {
         int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+
+        var moderation = await _aiService.ModerateContentAsync(request.Content ?? string.Empty);
+        if (!moderation.IsAllowed)
+            throw new BadRequestException($"AI moderation blocked this post: {moderation.Reason ?? "content violates platform rules"}");
 
         // using var stream = request.File.OpenReadStream();
         // var fileUrl = await _fileUploadService.UploadFileAsync(stream, request.File.FileName, request.File.ContentType);
