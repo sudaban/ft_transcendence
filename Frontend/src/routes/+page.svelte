@@ -6,6 +6,7 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
   import CommentsSection from '$lib/components/CommentsSection.svelte';
+  import 'emoji-picker-element';
 
   let suggestions = $state<UserDTO[]>([]);
   let feedPosts = $state<PostDTO[]>([]);
@@ -16,6 +17,25 @@
   
   let fileInput: HTMLInputElement;
   let selectedFile = $state<File | null>(null);
+
+  // Emoji State
+  let showEmojiPicker = $state(false);
+
+  function toggleEmojiPicker() {
+    showEmojiPicker = !showEmojiPicker;
+  }
+
+  function emojiAction(node: HTMLElement) {
+    const handler = (e: any) => {
+      newPostContent += e.detail.unicode;
+    };
+    node.addEventListener('emoji-click', handler);
+    return {
+      destroy() {
+        node.removeEventListener('emoji-click', handler);
+      }
+    };
+  }
 
   // Search State
   let searchQuery = $state('');
@@ -182,6 +202,7 @@
       feedPosts = [newPost, ...feedPosts];
       newPostContent = '';
       selectedFile = null;
+      showEmojiPicker = false;
       if (fileInput) fileInput.value = '';
     } catch (error) {
       console.error("Post paylaşılamadı:", error);
@@ -246,7 +267,14 @@
           <div class="flex gap-2 text-[#1d9bf0]">
             <button onclick={triggerFileInput} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>🖼️</button>
             <input bind:this={fileInput} type="file" accept="image/*,video/*" class="hidden" onchange={handleFileChange} />
-            <button class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>😊</button>
+            <div class="relative flex items-center">
+              <button onclick={toggleEmojiPicker} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>😊</button>
+              {#if showEmojiPicker}
+                <div class="absolute top-10 left-0 z-50 shadow-2xl rounded-lg overflow-hidden border border-gray-200">
+                  <emoji-picker use:emojiAction></emoji-picker>
+                </div>
+              {/if}
+            </div>
           </div>
           <button 
             onclick={handlePostSubmit}
