@@ -331,7 +331,7 @@ services:
         condition: service_healthy
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - "NODE_OPTIONS=--max-old-space-size=256"
+      - "NODE_OPTIONS=--max-old-space-size=1024"
       - SERVER_BASEPATH=/kibana
       - SERVER_REWRITEBASEPATH=true
     ports:
