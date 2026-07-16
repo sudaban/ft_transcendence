@@ -175,9 +175,14 @@
         window.location.href = '/'; 
       }
     }
-    catch (err)
+    catch (err: any)
     {
-      triggerError("Giriş başarısız oldu.");
+      let msg = err.message || "Giriş başarısız oldu.";
+      if (msg.toLowerCase().includes("banned"))
+      {
+        msg = "Hesabınız yasaklı olduğu için giriş yapılamıyor.";
+      }
+      triggerError(msg);
     }
     finally
     {

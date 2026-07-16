@@ -157,9 +157,12 @@ export const ApiService = {
       body: JSON.stringify({ email, password }),
       headers: { 'Content-Type': 'application/json' }
     });
-    if (!res.ok)
-      throw new Error("Login failed");
-    return res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error)))
+    {
+      throw new Error(data?.detail || data?.message || data?.error || "Login failed");
+    }
+    return data;
   },
 
   oauthLogin: async (provider: string, code: string, redirectUri: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
@@ -168,9 +171,12 @@ export const ApiService = {
       body: JSON.stringify({ provider, code, redirectUri }),
       headers: { 'Content-Type': 'application/json' }
     });
-    if (!res.ok)
-      throw new Error("OAuth login failed");
-    return res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error)))
+    {
+      throw new Error(data?.detail || data?.message || data?.error || "OAuth login failed");
+    }
+    return data;
   },
 
   login2fa: async (email: string, code: string, tempToken: string) => {

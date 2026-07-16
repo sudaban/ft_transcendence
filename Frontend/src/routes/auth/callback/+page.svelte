@@ -36,8 +36,13 @@
     }
     catch (err: any)
     {
-      toastStore.error(err.message || 'OAuth Login Error');
-      errorMsg = 'Giriş başarısız oldu.';
+      let msg = err.message || 'OAuth Login Error';
+      if (msg.toLowerCase().includes("banned"))
+      {
+        msg = "Hesabınız yasaklı olduğu için giriş yapılamıyor.";
+      }
+      toastStore.error(msg);
+      errorMsg = msg;
       isProcessing = false;
     }
   });
