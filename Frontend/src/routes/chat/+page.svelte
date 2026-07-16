@@ -497,7 +497,7 @@
     </div>
   </aside>
 
-  <main class="flex-1 flex flex-col h-[100dvh] pb-14 md:pb-0">
+  <main class="flex-1 flex flex-col h-[100dvh] pb-14 md:pb-0 min-w-0">
     
     <section class="h-[70px] md:h-[80px] border-b border-slate-100 bg-white/60 backdrop-blur-md flex items-center px-4 md:px-8 gap-3 shrink-0 overflow-x-auto no-scrollbar">
       <div class="flex items-center gap-2 pr-4 mr-2 border-r border-slate-200 shrink-0">
