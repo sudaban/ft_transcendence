@@ -25,6 +25,7 @@ export const ApiService = {
   },
 
   getFollowers: async (userId: string, token: string): Promise<UserDTO[]> => {
+    if (!userId) throw new Error("Invalid userId");
     const res = await fetch(`${API_URL}/Follows/${userId}/followers`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -33,6 +34,7 @@ export const ApiService = {
   },
 
   getFollowing: async (userId: string, token: string): Promise<UserDTO[]> => {
+    if (!userId) throw new Error("Invalid userId");
     const res = await fetch(`${API_URL}/Follows/${userId}/following`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -51,6 +53,7 @@ export const ApiService = {
   },
 
   getUserPosts: async (userId: string, token: string): Promise<PostDTO[]> => {
+    if (!userId) throw new Error("Invalid userId");
     const res = await fetch(`${API_URL}/posts/user/${userId}`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -69,6 +72,7 @@ export const ApiService = {
   },
 
   savePost: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/save`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -78,6 +82,7 @@ export const ApiService = {
   },
 
   unsavePost: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/save`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -115,6 +120,7 @@ export const ApiService = {
   },
 
   deletePost: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -213,6 +219,7 @@ export const ApiService = {
   },
 
   adminBanUser: async (targetUserId: string, isBanned: boolean, token: string) => {
+    if (!targetUserId) throw new Error("Invalid targetUserId");
     const res = await fetch(`${API_URL}/users/admin/ban/${targetUserId}?isBanned=${isBanned}`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -222,6 +229,7 @@ export const ApiService = {
   },
 
   adminDeleteUser: async (targetUserId: string, token: string) => {
+    if (!targetUserId) throw new Error("Invalid targetUserId");
     const res = await fetch(`${API_URL}/users/admin/${targetUserId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -234,6 +242,7 @@ export const ApiService = {
   },
 
   getUserById: async (id: string, token: string) => {
+    if (!id) throw new Error("Invalid id");
     const res = await fetch(`${API_URL}/users/${id}`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -256,6 +265,7 @@ export const ApiService = {
   },
 
   getUserByUsername: async (username: string, token: string) => {
+    if (!username) throw new Error("Invalid username");
     const res = await fetch(`${API_URL}/users/username/${username}`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -266,6 +276,7 @@ export const ApiService = {
 
   // FOLLOW endpoints
   followUser: async (targetUserId: string, token: string) => {
+    if (!targetUserId) throw new Error("Invalid targetUserId");
     const res = await fetch(`${API_URL}/follows/${targetUserId}`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -275,6 +286,7 @@ export const ApiService = {
   },
 
   unfollowUser: async (targetUserId: string, token: string) => {
+    if (!targetUserId) throw new Error("Invalid targetUserId");
     const res = await fetch(`${API_URL}/follows/${targetUserId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -284,6 +296,7 @@ export const ApiService = {
   },
 
   getFollowing: async (userId: string, token: string): Promise<UserDTO[]> => {
+    if (!userId) throw new Error("Invalid userId");
     const res = await fetch(`${API_URL}/follows/${userId}/following`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -294,6 +307,7 @@ export const ApiService = {
 
   // LIKES & COMMENTS endpoints
   likePost: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/likes`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -303,6 +317,7 @@ export const ApiService = {
   },
 
   unlikePost: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/likes`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -312,6 +327,7 @@ export const ApiService = {
   },
 
   getComments: async (postId: number, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/comments`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -321,6 +337,7 @@ export const ApiService = {
   },
 
   addComment: async (postId: number, content: string, token: string) => {
+    if (!postId) throw new Error("Invalid postId");
     const res = await fetch(`${API_URL}/posts/${postId}/comments`, {
       method: 'POST',
       headers: {
@@ -337,6 +354,7 @@ export const ApiService = {
   },
 
   deleteComment: async (commentId: number, token: string) => {
+    if (!commentId) throw new Error("Invalid commentId");
     const res = await fetch(`${API_URL}/comments/${commentId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -356,6 +374,7 @@ export const ApiService = {
   },
 
   getChatMessages: async (roomId: number, token: string) => {
+    if (!roomId) throw new Error("Invalid roomId");
     const res = await fetch(`${API_URL}/chat-rooms/${roomId}/messages`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
@@ -365,6 +384,7 @@ export const ApiService = {
   },
 
   sendMessage: async (roomId: number, content: string, token: string) => {
+    if (!roomId) throw new Error("Invalid roomId");
     const res = await fetch(`${API_URL}/chat-rooms/${roomId}/messages`, {
       method: 'POST',
       headers: {
@@ -378,6 +398,7 @@ export const ApiService = {
   },
 
   createChatRoom: async (targetUserId: number, token: string) => {
+    if (!targetUserId) throw new Error("Invalid targetUserId");
     const res = await fetch(`${API_URL}/ChatRooms`, {
       method: 'POST',
       headers: {
