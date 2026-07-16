@@ -13,7 +13,10 @@
   let isSubmitting = $state(false);
 
   onMount(async () => {
-    if (!authStore.token) return;
+    if (!authStore.token || !postId) {
+      isLoading = false;
+      return;
+    }
     try {
       comments = await ApiService.getComments(postId, authStore.token);
     } catch (err: any) {
@@ -24,7 +27,7 @@
   });
 
   async function submitComment() {
-    if (!authStore.token || !newCommentContent.trim()) return;
+    if (!authStore.token || !newCommentContent.trim() || !postId) return;
     isSubmitting = true;
     try {
       const addedComment = await ApiService.addComment(postId, newCommentContent.trim(), authStore.token);
