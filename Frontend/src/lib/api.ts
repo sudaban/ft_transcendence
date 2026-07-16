@@ -203,6 +203,15 @@ export const ApiService = {
     return res.json();
   },
 
+  searchUsers: async (query: string, token: string): Promise<UserDTO[]> => {
+    const res = await fetch(`${API_URL}/users/search?query=${encodeURIComponent(query)}`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to search users");
+    return res.json();
+  },
+
   adminBanUser: async (targetUserId: string, isBanned: boolean, token: string) => {
     const res = await fetch(`${API_URL}/users/admin/ban/${targetUserId}?isBanned=${isBanned}`, {
       method: 'POST',

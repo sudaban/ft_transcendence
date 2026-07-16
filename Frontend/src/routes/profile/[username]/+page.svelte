@@ -331,7 +331,10 @@
                 {#if post.imageUrl}
                   <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
                 {:else}
-                  <div class="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-[1.02]"></div>
+                  <div class="w-full h-full bg-gradient-to-br from-indigo-50 via-white to-cyan-50 border-2 border-transparent group-hover:border-indigo-100 p-6 flex flex-col items-center justify-center text-center transition-all duration-500 group-hover:scale-[1.02]">
+                    <div class="text-3xl mb-3 opacity-20">❝</div>
+                    <p class="text-slate-600 font-medium text-base md:text-lg line-clamp-4 leading-relaxed px-4">{post.content}</p>
+                  </div>
                 {/if}
 
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-6 text-white">

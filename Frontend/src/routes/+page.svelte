@@ -17,6 +17,12 @@
   let fileInput: HTMLInputElement;
   let selectedFile = $state<File | null>(null);
 
+  // Search State
+  let searchQuery = $state('');
+  let searchResults = $state<UserDTO[]>([]);
+  let isSearching = $state(false);
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
   onMount(async () => {
     if (!authStore.isAuthenticated || !authStore.token) {
       isLoading = false;
@@ -69,6 +75,29 @@
 
   function toggleComments(postId: number) {
     openComments[postId] = !openComments[postId];
+  }
+
+  function handleSearch() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    
+    if (!searchQuery.trim()) {
+      searchResults = [];
+      isSearching = false;
+      return;
+    }
+
+    isSearching = true;
+    searchTimeout = setTimeout(async () => {
+      try {
+        if (authStore.token) {
+          searchResults = await ApiService.searchUsers(searchQuery.trim(), authStore.token);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        isSearching = false;
+      }
+    }, 300);
   }
 
   async function toggleLike(post: PostDTO) {
@@ -319,21 +348,28 @@
   <aside class="hidden lg:flex flex-col w-[350px] pl-8 pt-1 h-screen sticky top-0">
     
     <!-- Search -->
-    <div class="bg-gray-100 rounded-full flex items-center mt-1 mb-4 group focus-within:bg-white focus-within:ring-1 focus-within:ring-[#1d9bf0] focus-within:border-[#1d9bf0] border border-transparent transition-all">
+    <div class="bg-gray-100 rounded-full flex items-center mt-1 mb-4 group focus-within:bg-white focus-within:ring-1 focus-within:ring-[#1d9bf0] focus-within:border-[#1d9bf0] border border-transparent transition-all relative">
       <span class="pl-4 pr-3 text-gray-500 group-focus-within:text-[#1d9bf0]">🔍</span>
-      <input type="text" placeholder="Ara..." class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
+      <input type="text" bind:value={searchQuery} oninput={handleSearch} placeholder="Ara..." class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
+      {#if searchQuery}
+        <button onclick={() => { searchQuery = ''; searchResults = []; isSearching = false; }} class="absolute right-4 text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      {/if}
     </div>
 
-    <!-- Suggested -->
+    <!-- Suggested / Search Results -->
     <div class="bg-gray-50 rounded-2xl flex flex-col pt-3">
-      <h2 class="font-bold text-[20px] px-4 mb-4">Developers</h2>
+      <h2 class="font-bold text-[20px] px-4 mb-4">
+        {searchQuery.trim() ? 'Arama Sonuçları' : 'Developers'}
+      </h2>
       
-      {#if isLoading}
+      {#if isLoading || isSearching}
         <div class="flex justify-center py-4">
           <span class="w-6 h-6 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin"></span>
         </div>
       {:else}
-        {#each suggestions as user}
+        {#each (searchQuery.trim() ? searchResults : suggestions) as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
               <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
@@ -345,19 +381,27 @@
               </a>
               <div class="flex flex-col">
                 <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>
-                <span class="text-social-secondary text-[15px]">{user.handle}</span>
+                <span class="text-social-secondary text-[15px]">{user.handle || '@' + user.username}</span>
               </div>
             </div>
             <a href="/profile/{user.username}" class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
               Profil
             </a>
           </div>
+        {:else}
+          {#if searchQuery.trim()}
+            <div class="text-center text-gray-500 py-6 text-[15px]">
+              Hiçbir sonuç bulunamadı.
+            </div>
+          {/if}
         {/each}
       {/if}
       
-      <button class="p-4 text-[#1d9bf0] hover:bg-gray-100 rounded-b-2xl text-left text-[15px] transition-colors">
-        Daha fazlası...
-      </button>
+      {#if !searchQuery.trim()}
+        <button class="p-4 text-[#1d9bf0] hover:bg-gray-100 rounded-b-2xl text-left text-[15px] transition-colors">
+          Daha fazlası...
+        </button>
+      {/if}
     </div>
   </aside>
 
