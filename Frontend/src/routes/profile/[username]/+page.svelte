@@ -80,11 +80,13 @@
     }
   });
 
-  async function loadUserData() {
-    if (!authStore.token || !targetUsername) return;
+  async function loadUserData()
+  {
+    if (!authStore.token || !targetUsername)
+      return;
     isLoading = true;
-    try {
-      // 1. Get user data by username
+    try
+    {
       const data = await ApiService.getUserByUsername(targetUsername, authStore.token);
       user.id = data.id || '';
       user.username = data.username || '';
@@ -96,7 +98,6 @@
       user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
       user.avatar = data.avatar || '';
 
-      // 2. Fetch User Posts
       const userPostsData = await ApiService.getUserPosts(user.id, authStore.token);
       posts = userPostsData.map((p, index) => ({
         ...p,
@@ -106,8 +107,8 @@
               'col-span-1 row-span-1 h-[160px]'
       }));
 
-      // 3. Check if we are following this user
-      if (authStore.user) {
+      if (authStore.user)
+      {
         const myFollowingList = await ApiService.getFollowing(authStore.user.id, authStore.token);
         isFollowing = myFollowingList.some(u => u.id.toString() === user.id.toString());
       }
@@ -125,9 +126,14 @@
         );
       }, 50);
 
-    } catch (err) {
-      console.error("Kullanıcı yüklenemedi", err);
-    } finally {
+    }
+    catch (err)
+    {
+      // 404 hatası beklenen bir durum olduğu için konsolu kırmızıya boyamamak adına error bastırmıcam
+      // Zaten arayüzde "Kullanıcı Bulunamadı" sayfası gösteriliyo
+    }
+    finally
+    {
       isLoading = false;
     }
   }
