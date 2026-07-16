@@ -1,5 +1,6 @@
 using Backend.API.Middlewares;
 using Backend.API.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using Backend.Application.Abstractions;
 using Backend.Application.Profiles;
 using Backend.Application.Services;
@@ -104,6 +105,37 @@ builder.Services.AddAuthentication(options =>
                 context.Token = access_token;
             }
             return Task.CompletedTask;
+        },
+        OnChallenge = async context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "application/problem+json";
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = 401,
+                Title = "Unauthorized",
+                Detail = "You are not authorized to access this resource. Please log in.",
+                Instance = context.Request.Path
+            };
+
+            await context.Response.WriteAsJsonAsync(problemDetails);
+        },
+        OnForbidden = async context =>
+        {
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "application/problem+json";
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = 403,
+                Title = "Forbidden",
+                Detail = "You do not have permission to access this resource.",
+                Instance = context.Request.Path
+            };
+
+            await context.Response.WriteAsJsonAsync(problemDetails);
         }
     };
 });
@@ -135,7 +167,22 @@ builder.Services.AddSwaggerDocumentation();
 
 builder.Services.AddRateLimiter(options =>
 {
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.RejectionStatusCode = StatusCodes.Status200OK;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 200;
+        context.HttpContext.Response.ContentType = "application/problem+json";
+
+        var problemDetails = new ProblemDetails
+        {
+            Status = 429,
+            Title = "Too Many Requests",
+            Detail = "Rate limit exceeded. Please try again later.",
+            Instance = context.HttpContext.Request.Path
+        };
+
+        await context.HttpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken: token);
+    };
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(),

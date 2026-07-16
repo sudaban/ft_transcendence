@@ -4,6 +4,7 @@ using Backend.Application.DTOs.Responses.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Backend.Application.Exceptions;
 
 namespace Backend.API.Controllers
 {
@@ -56,7 +57,7 @@ namespace Backend.API.Controllers
             var success = await _authService.EnableTwoFactorAsync(user_id, request.Code);
             if (!success)
             {
-                return BadRequest(new { Message = "Invalid verification code." });
+                throw new BadRequestException("Invalid verification code.");
             }
             return Ok(new { Message = "Two-factor authentication enabled successfully." });
         }
@@ -69,7 +70,7 @@ namespace Backend.API.Controllers
             var success = await _authService.DisableTwoFactorAsync(user_id);
             if (!success)
             {
-                return BadRequest(new { Message = "Failed to disable two-factor authentication." });
+                throw new BadRequestException("Failed to disable two-factor authentication.");
             }
             return Ok(new { Message = "Two-factor authentication disabled successfully." });
         }

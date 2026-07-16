@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace Backend.API.Middlewares
@@ -35,7 +35,7 @@ namespace Backend.API.Middlewares
                     Instance = context.HttpContext.Request.Path
                 };
 
-                return new BadRequestObjectResult(problemDetails)
+                return new OkObjectResult(problemDetails)
                 {
                     ContentTypes = { "application/problem+json" }
                 };
