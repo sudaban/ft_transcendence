@@ -10,7 +10,7 @@ namespace Backend.Infrastructure.Services;
 public class FileUploadService : IFileUploadService
 {
     private readonly string _uploadDirectory;
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".mp4" };
+    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png"};
     private readonly long _maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     public FileUploadService(IConfiguration configuration)
