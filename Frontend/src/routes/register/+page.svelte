@@ -106,9 +106,14 @@
       const res = await ApiService.register({ username, email, password });
       window.location.href = '/login';
     }
-    catch (err)
+    catch (err: any)
     {
-      errorMsg = "Kayıt olurken bir hata oluştu.";
+      let msg = err.message || "Kayıt olurken bir hata oluştu.";
+      if (msg.toLowerCase().includes("taken") || msg.toLowerCase().includes("already"))
+      {
+        msg = "Bu e-posta adresi veya kullanıcı adı zaten kullanımda.";
+      }
+      errorMsg = msg;
       triggerErrorAnimation();
     }
     finally

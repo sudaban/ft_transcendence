@@ -120,8 +120,7 @@ export const ApiService = {
       body: formData,
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok)
-    {
+    if (!res.ok) {
       const err = await res.json().catch(() => null);
       throw new Error(err?.detail || "Failed to create post");
     }
@@ -146,9 +145,12 @@ export const ApiService = {
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' }
     });
-    if (!res.ok)
-      throw new Error("Registration failed");
-    return res.json();
+    const resultData = await res.json().catch(() => null);
+    if (!res.ok || (resultData && resultData.status >= 400) || (resultData && (resultData.detail || resultData.error)))
+    {
+      throw new Error(resultData?.detail || resultData?.message || resultData?.error || "Registration failed");
+    }
+    return resultData;
   },
 
   login: async (email: string, password: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
@@ -158,8 +160,7 @@ export const ApiService = {
       headers: { 'Content-Type': 'application/json' }
     });
     const data = await res.json().catch(() => null);
-    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error)))
-    {
+    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error))) {
       throw new Error(data?.detail || data?.message || data?.error || "Login failed");
     }
     return data;
@@ -172,8 +173,7 @@ export const ApiService = {
       headers: { 'Content-Type': 'application/json' }
     });
     const data = await res.json().catch(() => null);
-    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error)))
-    {
+    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error))) {
       throw new Error(data?.detail || data?.message || data?.error || "OAuth login failed");
     }
     return data;
@@ -260,8 +260,7 @@ export const ApiService = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok)
-    {
+    if (!res.ok) {
       const text = await res.text();
       throw new Error(`Failed to delete user: ${res.status} - ${text}`);
     }
@@ -389,8 +388,7 @@ export const ApiService = {
       },
       body: JSON.stringify({ content })
     });
-    if (!res.ok)
-    {
+    if (!res.ok) {
       const err = await res.json().catch(() => null);
       throw new Error(err?.detail || "Failed to add comment");
     }
