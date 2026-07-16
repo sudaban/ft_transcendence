@@ -118,12 +118,15 @@
         tl.fromTo('.editorial-sidebar', 
           { opacity: 0, x: -30 }, 
           { opacity: 1, x: 0, duration: 0.8 }
-        )
-        .fromTo('.portfolio-item', 
-          { opacity: 0, y: 20, scale: 0.98 }, 
-          { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
-          "-=0.5"
         );
+        
+        if (posts.length > 0) {
+          tl.fromTo('.portfolio-item', 
+            { opacity: 0, y: 20, scale: 0.98 }, 
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
+            "-=0.5"
+          );
+        }
       }, 50);
 
     }
