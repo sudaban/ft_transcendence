@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Backend.Application.Abstractions;
 using Microsoft.Extensions.Configuration;
+using Backend.Application.Exceptions;
 
 namespace Backend.Infrastructure.Services;
 
@@ -32,13 +33,13 @@ public class FileUploadService : IFileUploadService
 
         if (fileStream.Length > _maxFileSize)
         {
-            throw new InvalidOperationException($"File size exceeds the limit of 10 MB.");
+            throw new BadRequestException($"File size exceeds the limit of 10 MB.");
         }
 
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(extension))
         {
-            throw new InvalidOperationException("Unsupported file type.");
+            throw new BadRequestException("Unsupported file type.");
         }
 
         var unique_file_name = $"{Guid.NewGuid()}{extension}";
