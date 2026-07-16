@@ -17,15 +17,19 @@
 	});
 
 	$effect(() => {
-		if (!initialized || !browser) return;
+		if (!initialized || !browser)
+			return;
 		
 		const currentPath = $page.url.pathname;
 		const isAuthRoute = currentPath === '/login' || currentPath === '/register';
 		const isPublicRoute = isAuthRoute || currentPath === '/privacy' || currentPath === '/terms';
 
-		if (authStore.isAuthenticated && isAuthRoute) {
+		if (authStore.isAuthenticated && isAuthRoute)
+		{
 			goto('/');
-		} else if (!authStore.isAuthenticated && !isPublicRoute) {
+		}
+		else if (!authStore.isAuthenticated && !isPublicRoute)
+		{
 			goto('/login');
 		}
 	});

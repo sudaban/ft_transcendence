@@ -6,19 +6,17 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import { env } from '$env/dynamic/public';
 
-  // State
   let email = $state('');
   let password = $state('');
   let errorMsg = $state('');
   let isSubmitting = $state(false);
 
-  // 2FA State
   let is2faPending = $state(false);
   let tempToken = $state('');
   let otpValues = $state(['', '', '', '', '', '']);
   let otpInputs: HTMLInputElement[] = [];
   
-  let timeRemaining = $state(300); // 5 dakika
+  let timeRemaining = $state(300);
   let timerInterval: ReturnType<typeof setInterval>;
   let formattedTime = $derived(`${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`);
 
@@ -39,10 +37,12 @@
       is2faPending = true;
       timeRemaining = 300;
       
-      if (timerInterval) clearInterval(timerInterval);
+      if (timerInterval)
+        clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         timeRemaining--;
-        if (timeRemaining <= 0) {
+        if (timeRemaining <= 0)
+        {
           clearInterval(timerInterval);
           is2faPending = false;
           tempToken = '';
@@ -52,7 +52,8 @@
       }, 1000);
     }
 
-    if (document.querySelector('.auth-container')) {
+    if (document.querySelector('.auth-container'))
+    {
       gsap.fromTo('.auth-container', 
         { opacity: 0, y: 30 }, 
         { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
@@ -65,7 +66,8 @@
     }
     
     const handleResize = () => {
-      if (eyeElement) eyeRect = eyeElement.getBoundingClientRect();
+      if (eyeElement)
+        eyeRect = eyeElement.getBoundingClientRect();
     };
     window.addEventListener('resize', handleResize);
     return () => {
@@ -81,7 +83,8 @@
   }
 
   let targetPos = $derived.by(() => {
-    if (!eyeRect.width) return { x: 0, y: 0 };
+    if (!eyeRect.width)
+      return { x: 0, y: 0 };
     
     const centerX = eyeRect.left + eyeRect.width / 2;
     const centerY = eyeRect.top + eyeRect.height / 2;
@@ -113,7 +116,8 @@
   function triggerError(msg: string)
   {
     errorMsg = msg;
-    if (document.querySelector('.auth-container')) {
+    if (document.querySelector('.auth-container'))
+    {
       gsap.fromTo('.auth-container', 
         { x: -8 }, 
         { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => {
@@ -142,18 +146,15 @@
       
       if (res.requiresTwoFactor)
       {
-        // Switch to 2FA view
         tempToken = res.tempToken || '';
         is2faPending = true;
-        timeRemaining = 300; // Reset timer
+        timeRemaining = 300;
         
-        // Start countdown
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
           timeRemaining--;
           if (timeRemaining <= 0) {
             clearInterval(timerInterval);
-            // Session expired
             is2faPending = false;
             tempToken = '';
             otpValues = ['', '', '', '', '', ''];
@@ -161,8 +162,8 @@
           }
         }, 1000);
 
-        // Animate the transition
-        if (document.querySelector('.otp-container')) {
+        if (document.querySelector('.otp-container'))
+        {
           gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
         }
         await tick();
@@ -171,8 +172,6 @@
       else
       {
         authStore.login(res.token || '');
-        // goto('/') is handled by authStore if it redirects, but authStore doesn't redirect on login.
-        // Wait, init() just sets state. We should redirect explicitly.
         window.location.href = '/'; 
       }
     }
@@ -210,16 +209,13 @@
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=google`;
   }
 
-  // OTP Logic
   async function handleOtpKeydown(e: KeyboardEvent, index: number)
   {
     if (e.key === 'Backspace')
     {
       if (!otpValues[index] && index > 0)
       {
-        // Move to previous if empty
         otpInputs[index - 1].focus();
-        // Prevent default to avoid jumping cursor issues
         e.preventDefault(); 
       }
     }
@@ -232,7 +228,6 @@
     
     if (val.length > 1)
     {
-      // Handle paste directly into the input (some browsers)
       const pasted = val.slice(0, 6).split('');
       for (let i = 0; i < pasted.length && index + i < 6; i++)
       {
@@ -255,11 +250,13 @@
   {
     e.preventDefault();
     const pastedData = e.clipboardData?.getData('text/plain').trim() || '';
-    if (!/^\d+$/.test(pastedData)) return; // Only numbers
+    if (!/^\d+$/.test(pastedData))
+      return;
     
     const chars = pastedData.slice(0, 6).split('');
     chars.forEach((char, i) => {
-      if (i < 6) otpValues[i] = char;
+      if (i < 6)
+        otpValues[i] = char;
     });
     
     const nextIndex = Math.min(chars.length, 5);
@@ -279,7 +276,7 @@
         const res = await ApiService.login2fa(email, code, tempToken);
         if (timerInterval) clearInterval(timerInterval);
         authStore.login(res.token || '');
-        window.location.href = '/'; // Success
+        window.location.href = '/';
       }
       catch (err)
       {
@@ -296,33 +293,27 @@
   }
 </script>
 
-<!-- Global Mouse Tracker -->
 <svelte:window onmousemove={handleMouseMove} />
 
 <div class="min-h-screen bg-social-bg flex flex-col items-center justify-center p-4 selection:bg-social-accent selection:text-white">
   
   <div class="auth-container w-full max-w-[350px] bg-social-card border border-social-border rounded-lg p-8 flex flex-col items-center shadow-sm relative z-10">
     
-    <!-- The Interactive Face -->
     <div 
       bind:this={eyeElement}
       class="mb-6 relative w-28 h-32 rounded-[50px] bg-gray-50 border-[3px] border-social-border flex flex-col items-center justify-center shadow-inner overflow-hidden transition-colors hover:border-social-secondary"
     >
       <div class="absolute inset-0 border-t-4 border-social-accent rounded-[50px] opacity-10"></div>
       
-      <!-- The Eye -->
       <div class="relative w-16 h-16 rounded-full bg-white border-[2px] border-social-border flex items-center justify-center shadow-inner mb-2">
-        <!-- Pupil -->
         <div 
           class="w-7 h-7 bg-social-primary rounded-full relative"
           style="transform: translate({$pupilSpring.x}px, {$pupilSpring.y}px);"
         >
-          <!-- Cute Light Reflection -->
           <div class="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-90"></div>
         </div>
       </div>
 
-      <!-- The Mouth (Static) -->
       <div class="w-8 h-3 border-b-[4px] border-social-primary rounded-b-full"></div>
     </div>
 
@@ -384,7 +375,6 @@
       <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>
     
     {:else}
-      <!-- 2FA OTP UI -->
       <div class="otp-container w-full flex flex-col items-center">
         <p class="text-xs text-social-secondary mb-4 text-center">
           <span class="font-bold text-social-primary">{email}</span> adresine (veya Authenticator uygulamana) gönderilen 6 haneli kodu gir.

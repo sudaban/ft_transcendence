@@ -16,14 +16,12 @@
 
 <aside class="hidden md:flex flex-col w-20 xl:w-64 h-screen pt-4 pb-6 px-3 xl:px-4 shrink-0 z-10 sticky top-0 border-r border-social-border">
   
-  <!-- Logo -->
   <div class="mb-4 p-3 flex items-center justify-center xl:justify-start">
     <div class="w-10 h-10 flex items-center justify-center text-social-primary font-bold text-2xl hover:bg-gray-100 rounded-full cursor-pointer transition-colors">
       T
     </div>
   </div>
   
-  <!-- Nav -->
   <nav class="flex-1 flex flex-col gap-1">
     {#each navItems as item}
       {@const isActive = pathname === item.href}
@@ -39,7 +37,6 @@
     {/each}
   </nav>
 
-  <!-- User Profile & Auth -->
   <div class="mt-auto pt-4 flex flex-col gap-2 w-full items-center xl:items-stretch">
     {#if authStore.isAuthenticated && authStore.user}
       <a href="/profile" class="flex items-center justify-center xl:justify-start gap-3 p-3 rounded-full hover:bg-gray-100 transition-colors cursor-pointer w-max xl:w-full">
@@ -67,7 +64,6 @@
     {/if}
   </div>
 
-  <!-- Footer links for PP/ToS -->
   <div class="hidden xl:flex flex-wrap gap-x-3 gap-y-2 mt-4 pb-2 px-4 text-[13px] text-social-secondary/70">
     <a href="/terms" class="hover:underline">Hizmet Koşulları</a>
     <a href="/privacy" class="hover:underline">Gizlilik Politikası</a>

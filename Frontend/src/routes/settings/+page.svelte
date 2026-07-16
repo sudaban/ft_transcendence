@@ -9,7 +9,6 @@
 
   let activeTab = $state('security');
   
-  // 2FA States
   let is2FaLoading = $state(false);
   let qrCodeDataUrl = $state('');
   let secretKey = $state('');
@@ -19,9 +18,6 @@
   let is2faEnabled = $state(false);
   let isFetchingStatus = $state(true);
   
-  // Theme State
-  // Removed dark mode logic
-
   onMount(async () => {
     if (authStore.isAuthenticated && authStore.user && authStore.token)
     {
@@ -129,7 +125,6 @@
 
   <main class="flex-1 overflow-y-auto flex flex-col md:flex-row pb-20 md:pb-0">
     
-    <!-- Settings Nav (Left Sidebar) -->
     <section class="w-full md:w-[280px] lg:w-[320px] md:h-screen md:border-r border-slate-100 bg-white p-6 md:p-8 flex flex-col shrink-0 md:sticky top-0">
       <h1 class="text-2xl font-bold tracking-tight text-slate-900 mb-8">Settings</h1>
       
@@ -149,7 +144,6 @@
       </div>
     </section>
 
-    <!-- Settings Content -->
     <section class="flex-1 p-6 md:p-10 lg:p-16 max-w-4xl mx-auto md:mx-0 w-full animate-fade-in-up">
       
       {#if activeTab === 'security'}
@@ -258,14 +252,12 @@
         </div>
       {/if}
 
-      <!-- Mobile Logout Button -->
       <div class="md:hidden mt-8 w-full flex justify-center">
         <button onclick={() => authStore.logout()} class="w-full max-w-sm flex items-center justify-center gap-2 px-6 py-3.5 bg-red-50 text-red-600 font-bold text-[14px] rounded-2xl hover:bg-red-100 transition-colors">
           <span class="text-xl">🚪</span> Çıkış Yap
         </button>
       </div>
 
-      <!-- Mobile Legal Footer -->
       <div class="md:hidden mt-12 mb-8 flex flex-col items-center gap-3 text-[13px] text-slate-500 font-medium">
         <div class="flex gap-6">
           <a href="/terms" class="hover:text-slate-900 transition-colors">Hizmet Koşulları</a>

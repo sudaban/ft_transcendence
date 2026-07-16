@@ -21,15 +21,14 @@ export interface DatabasePost {
   id: string;
   authorId: string;
   createdAt: string;
-  likes: string[]; // beğenen kullanıcıların ID'leri
-  comments: string[]; // yorum ID'leri
-  saves: string[]; // kaydeden kullanıcıların ID'leri
+  likes: string[];
+  comments: string[];
+  saves: string[];
   viewsCount: number;
   content: string;
   isVideo?: boolean;
 }
 
-// Frontend arayüzünde (UI) göstermek için Backend'den aggregate edilmesini beklediğimiz DTO tipleri
 export interface UserDTO {
   id: string;
   username: string;

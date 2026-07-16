@@ -13,45 +13,66 @@
   let isSubmitting = $state(false);
 
   onMount(async () => {
-    if (!authStore.token) return;
-    try {
+    if (!authStore.token)
+      return;
+    try
+    {
       comments = await ApiService.getComments(postId, authStore.token);
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Yorumlar yüklenemedi.");
-    } finally {
+    }
+    finally
+    {
       isLoading = false;
     }
   });
 
-  async function submitComment() {
-    if (!authStore.token || !newCommentContent.trim()) return;
+  async function submitComment()
+  {
+    if (!authStore.token || !newCommentContent.trim())
+      return;
     isSubmitting = true;
-    try {
+    try
+    {
       const addedComment = await ApiService.addComment(postId, newCommentContent.trim(), authStore.token);
       comments = [addedComment, ...comments];
       newCommentContent = '';
       if (onCommentAdded) onCommentAdded();
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Yorum gönderilemedi.");
       alert(err instanceof Error ? err.message : "Yorum gönderilirken bir hata oluştu.");
-    } finally {
+    }
+    finally
+    {
       isSubmitting = false;
     }
   }
 
-  function getAvatarInitial(username: string) {
+  function getAvatarInitial(username: string)
+  {
     return username ? username.substring(0, 2).toUpperCase() : 'U';
   }
 
-  async function handleDeleteComment(commentId: number) {
-    if (!authStore.token) return;
-    if (!confirm("Bu yorumu silmek istediğinize emin misiniz?")) return;
+  async function handleDeleteComment(commentId: number)
+  {
+    if (!authStore.token)
+      return;
+    if (!confirm("Bu yorumu silmek istediğinize emin misiniz?"))
+      return;
     
-    try {
+    try
+    {
       await ApiService.deleteComment(commentId, authStore.token);
       comments = comments.filter(c => c.id !== commentId);
-      if (onCommentDeleted) onCommentDeleted();
-    } catch (err: any) {
+      if (onCommentDeleted)
+        onCommentDeleted();
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Yorum silinemedi.");
       alert("Yorum silinirken hata oluştu.");
     }
@@ -60,7 +81,6 @@
 
 <div class="mt-4 pt-4 border-t border-social-border w-full animate-fade-in-up">
   
-  <!-- Add Comment Input -->
   <div class="flex gap-3 mb-6">
     <div class="w-8 h-8 rounded-full bg-slate-900 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
       {#if authStore.user?.avatar}
@@ -88,7 +108,6 @@
     </div>
   </div>
 
-  <!-- Comments List -->
   {#if isLoading}
     <div class="flex justify-center py-4">
       <span class="w-5 h-5 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin"></span>
