@@ -6,6 +6,7 @@
   import type { UserDTO } from '$lib/types';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileNav from '$lib/components/MobileNav.svelte';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let users: (UserDTO & { isBanned?: boolean })[] = $state([]);
   let isLoading = $state(true);
@@ -31,8 +32,8 @@
       // Let's assume some users might be banned. Our API doesn't expose `isBanned` directly yet, 
       // but we will keep track of it if we toggle it here, or we can just keep state locally.
       users = data;
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Kullanıcılar yüklenirken bir hata oluştu.");
       errorMsg = "Kullanıcılar yüklenirken bir hata oluştu.";
     } finally {
       isLoading = false;
@@ -53,9 +54,8 @@
       targetUser.isBanned = !isCurrentlyBanned;
       // Trigger reactivity
       users = [...users];
-    } catch (err) {
-      console.error(err);
-      alert("Ban işlemi başarısız oldu.");
+    } catch (err: any) {
+      toastStore.error(err.message || "Ban işlemi başarısız oldu.");
     }
   }
 
@@ -68,9 +68,8 @@
     try {
       await ApiService.adminDeleteUser(targetUser.id, authStore.token);
       users = users.filter(u => u.id !== targetUser.id);
-    } catch (err) {
-      console.error(err);
-      alert("Kullanıcı silinemedi.");
+    } catch (err: any) {
+      toastStore.error(err.message || "Kullanıcı silinemedi.");
     }
   }
 

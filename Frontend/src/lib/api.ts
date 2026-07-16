@@ -228,8 +228,7 @@ export const ApiService = {
     });
     if (!res.ok) {
       const text = await res.text();
-      console.error("Delete failed with status", res.status, text);
-      throw new Error("Failed to delete user");
+      throw new Error(`Failed to delete user: ${res.status} - ${text}`);
     }
     return res.json();
   },

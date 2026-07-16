@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import Toast from '$lib/components/Toast.svelte';
 
 	let { children } = $props();
 	let initialized = $state(false);
@@ -31,6 +32,7 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<Toast />
 {#if initialized}
 	{@render children()}
 {/if}

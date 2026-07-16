@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { ApiService } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let isProcessing = $state(true);
   let errorMsg = $state('');
@@ -34,9 +35,9 @@
         window.location.href = '/';
       }
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error('OAuth Login Error:', err);
+      toastStore.error(err.message || 'OAuth Login Error');
       errorMsg = 'Giriş başarısız oldu.';
       isProcessing = false;
     }

@@ -10,6 +10,7 @@
   import type { PostDTO, UserDTO } from '$lib/types';
   import PostModal from '$lib/components/PostModal.svelte';
   import UserListModal from '$lib/components/UserListModal.svelte';
+  import { toastStore } from '$lib/stores/toast.svelte';
   
   let targetUsername = $derived($page.params.username);
 
@@ -57,8 +58,8 @@
           authStore.user.avatar = updatedUser.avatar;
           localStorage.setItem('avatar', updatedUser.avatar);
         }
-      } catch (err) {
-        console.error("Avatar yüklenemedi", err);
+      } catch (err: any) {
+        toastStore.error(err.message || "Avatar yüklenemedi.");
         alert("Avatar yüklenirken bir hata oluştu.");
       } finally {
         isUploadingAvatar = false;
@@ -156,8 +157,8 @@
         isFollowing = true;
         user.followers += 1;
       }
-    } catch (err) {
-      console.error("Takip işlemi başarısız", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Takip işlemi başarısız oldu.");
       alert("İşlem sırasında bir hata oluştu.");
     } finally {
       isActionLoading = false;
@@ -168,8 +169,8 @@
     if (!user.id || !authStore.token) return;
     try {
       const existingRooms = await ApiService.getChatRooms(authStore.token);
-      const existingRoom = existingRooms.find(r => 
-        !r.isGroup && r.members && r.members.some(m => m.id.toString() === user.id.toString())
+      const existingRoom = existingRooms.find((r: any) => 
+        !r.isGroup && r.members && r.members.some((m: any) => m.id.toString() === user.id.toString())
       );
       
       let roomId;
@@ -181,8 +182,8 @@
       }
       
       goto(`/chat?roomId=${roomId}`);
-    } catch (err) {
-      console.error("Mesaj başlatılamadı", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Mesaj başlatılamadı.");
       goto('/chat');
     }
   }
@@ -193,8 +194,8 @@
       userListUsers = await ApiService.getFollowers(user.id, authStore.token);
       userListTitle = 'Takipçiler';
       isUserListOpen = true;
-    } catch (err) {
-      console.error("Followers fetch error", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Takipçiler yüklenemedi.");
     }
   }
 
@@ -204,8 +205,8 @@
       userListUsers = await ApiService.getFollowing(user.id, authStore.token);
       userListTitle = 'Takip Edilenler';
       isUserListOpen = true;
-    } catch (err) {
-      console.error("Following fetch error", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Takip edilenler yüklenemedi.");
     }
   }
 

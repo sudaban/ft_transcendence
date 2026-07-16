@@ -3,6 +3,7 @@
   import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { CommentDTO } from '$lib/types';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let { postId, onCommentAdded, onCommentDeleted } = $props<{ postId: number, onCommentAdded?: () => void, onCommentDeleted?: () => void }>();
 
@@ -15,8 +16,8 @@
     if (!authStore.token) return;
     try {
       comments = await ApiService.getComments(postId, authStore.token);
-    } catch (err) {
-      console.error("Yorumlar yüklenemedi", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Yorumlar yüklenemedi.");
     } finally {
       isLoading = false;
     }
@@ -30,8 +31,8 @@
       comments = [addedComment, ...comments];
       newCommentContent = '';
       if (onCommentAdded) onCommentAdded();
-    } catch (err) {
-      console.error("Yorum gönderilemedi", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Yorum gönderilemedi.");
       alert(err instanceof Error ? err.message : "Yorum gönderilirken bir hata oluştu.");
     } finally {
       isSubmitting = false;
@@ -50,8 +51,8 @@
       await ApiService.deleteComment(commentId, authStore.token);
       comments = comments.filter(c => c.id !== commentId);
       if (onCommentDeleted) onCommentDeleted();
-    } catch (err) {
-      console.error("Yorum silinemedi", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Yorum silinemedi.");
       alert("Yorum silinirken hata oluştu.");
     }
   }

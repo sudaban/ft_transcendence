@@ -3,6 +3,7 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO } from '$lib/types';
   import CommentsSection from './CommentsSection.svelte';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let { post = $bindable(), onClose } = $props<{ post: PostDTO | null, onClose: () => void }>();
 
@@ -19,8 +20,8 @@
       } else {
         await ApiService.unlikePost(post.id, authStore.token);
       }
-    } catch (err) {
-      console.error("Beğeni işlemi başarısız", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Beğeni işlemi başarısız oldu.");
       post.isLiked = currentlyLiked;
       post.likesCount += currentlyLiked ? 1 : -1;
     }
@@ -38,8 +39,8 @@
       } else {
         await ApiService.unsavePost(post.id, authStore.token);
       }
-    } catch (err) {
-      console.error("Kaydetme işlemi başarısız", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Kaydetme işlemi başarısız oldu.");
       post.isSaved = currentlySaved;
     }
   }

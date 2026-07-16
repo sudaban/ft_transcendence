@@ -5,6 +5,7 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import { ApiService } from '$lib/api';
   import QRCode from 'qrcode';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let activeTab = $state('security');
   
@@ -31,7 +32,7 @@
       }
       catch (err)
       {
-        console.error("Güvenlik durumu alınamadı", err);
+        toastStore.error("Güvenlik durumu alınamadı.");
       }
       finally
       {
@@ -55,9 +56,9 @@
       qrCodeDataUrl = await QRCode.toDataURL(data.qrCodeUri, { margin: 1, width: 200, color: { dark: '#0f172a', light: '#ffffff' } });
       setupMode = true;
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "2FA Kurulumu başlatılamadı.");
       alert("2FA Kurulumu başlatılamadı.");
     }
     finally
@@ -81,9 +82,9 @@
       qrCodeDataUrl = '';
       verifyCode = '';
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "2FA aktifleştirilemedi.");
       alert("Girdiğiniz kod hatalı veya süresi dolmuş olabilir. Tekrar deneyin.");
     }
     finally
@@ -106,9 +107,9 @@
       setupMode = false;
       is2faEnabled = false;
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "2FA devre dışı bırakılamadı.");
       alert("2FA devre dışı bırakılamadı.");
     }
     finally
