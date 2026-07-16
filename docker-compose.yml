@@ -163,8 +163,7 @@ services:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "3001:3000"
+    # Port kaldırıldı — sadece Nginx üzerinden erişilir (/grafana/)
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s
@@ -202,20 +201,25 @@ services:
     restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: transcendence-cadvisor
     profiles: ["monitoring"]
     init: true
     labels:
       - "autoheal=true"
     privileged: true
+    command:
+      - "--docker_only=true"
+      - "--store_container_labels=true"
+      - "--housekeeping_interval=15s"
+      - "--raw_cgroup_prefix_whitelist=/docker"
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     devices:
       - /dev/kmsg:/dev/kmsg
     healthcheck:
@@ -312,7 +316,7 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      - "LS_JAVA_OPTS=-Xms128m -Xmx128m"
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
     volumes:
       - ./monitoring/elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
