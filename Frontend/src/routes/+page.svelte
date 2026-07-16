@@ -49,6 +49,14 @@
   let isSearching = $state(false);
   let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  const developersList = [
+    { username: 'idkahram', handle: '@Celtenn', avatar: '', github: 'https://github.com/Celtenn' },
+    { username: 'omadali', handle: '@adalomer', avatar: '', github: 'https://github.com/adalomer' },
+    { username: 'saincesu', handle: '@sincesu', avatar: '', github: 'https://github.com/sincesu' },
+    { username: 'sdaban', handle: '@sudaban', avatar: '', github: 'https://github.com/sudaban' },
+    { username: 'asezgin', handle: '@ahmetkeremsezgin', avatar: '', github: 'https://github.com/ahmetkeremsezgin' }
+  ];
+
   onMount(async () => {
     if (!authStore.isAuthenticated || !authStore.token) {
       isLoading = false;
@@ -177,6 +185,21 @@
       return;
     }
     
+    if (selectedFile) {
+      if (!selectedFile.type.startsWith('image/')) {
+        toastStore.error("Sadece fotoğraf (resim) dosyası yükleyebilirsiniz.");
+        if (fileInput) fileInput.value = '';
+        selectedFile = null;
+        return;
+      }
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        toastStore.error("Fotoğraf boyutu 10 MB'dan küçük olmalıdır.");
+        if (fileInput) fileInput.value = '';
+        selectedFile = null;
+        return;
+      }
+    }
+    
     isSubmitting = true;
     try {
       const formData = new FormData();
@@ -274,7 +297,7 @@
         <div class="border-t border-social-border mt-3 pt-3 flex justify-between items-center">
           <div class="flex gap-2 text-[#1d9bf0]">
             <button onclick={triggerFileInput} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>🖼️</button>
-            <input bind:this={fileInput} type="file" accept="image/*,video/*" class="hidden" onchange={handleFileChange} />
+            <input bind:this={fileInput} type="file" accept="image/*" class="hidden" onchange={handleFileChange} />
             <div class="relative flex items-center">
               <button onclick={toggleEmojiPicker} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>😊</button>
               {#if showEmojiPicker}
@@ -405,10 +428,10 @@
           <span class="w-6 h-6 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin"></span>
         </div>
       {:else}
-        {#each (searchQuery.trim() ? searchResults : suggestions) as user}
+        {#each (searchQuery.trim() ? searchResults : developersList) as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
-              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
+              <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
                 {#if user.avatar && user.avatar.length > 3}
                   <img src={user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}${user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
                 {:else}
@@ -416,12 +439,12 @@
                 {/if}
               </a>
               <div class="flex flex-col">
-                <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>
+                <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="font-bold text-[15px] hover:underline">{user.username}</a>
                 <span class="text-social-secondary text-[15px]">{user.handle || '@' + user.username}</span>
               </div>
             </div>
-            <a href="/profile/{user.username}" class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
-              Profil
+            <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
+              {searchQuery.trim() ? 'Profil' : 'GitHub'}
             </a>
           </div>
         {:else}

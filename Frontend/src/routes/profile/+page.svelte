@@ -161,6 +161,16 @@
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       const file = target.files[0];
+      if (!file.type.startsWith('image/')) {
+        toastStore.error("Sadece fotoğraf (resim) dosyası yükleyebilirsiniz.");
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toastStore.error("Avatar boyutu 10 MB'dan küçük olmalıdır.");
+        if (fileInput) fileInput.value = '';
+        return;
+      }
       if (!authStore.token) return;
       isUploadingAvatar = true;
       try {

@@ -46,12 +46,7 @@
         <li>Yapay Zeka (AI) modülümüz aracılığıyla daha iyi yanıtlar üretebilmek için istemleri (prompt) işlemek.</li>
       </ul>
 
-      <h2 class="text-xl font-bold mt-8 mb-4">3. Veri Güvenliği (HashiCorp Vault & WAF)</h2>
-      <p>
-        Verilerinizin güvenliğini en üst düzeyde tutmak amacıyla sistemimizde **ModSecurity (WAF)** kullanılmakta ve tüm hassas anahtarlarımız **HashiCorp Vault** ile şifrelenerek korunmaktadır. Kullanıcı şifreleri asla düz metin (plain text) olarak saklanmaz, endüstri standardı algoritmalarla (hash) saklanır.
-      </p>
-
-      <h2 class="text-xl font-bold mt-8 mb-4">4. İletişim</h2>
+      <h2 class="text-xl font-bold mt-8 mb-4">3. İletişim</h2>
       <p>
         Bu gizlilik politikası hakkında sorularınız veya veri silme talepleriniz varsa (GDPR kuralları gereği), sistem yöneticileri ile iletişime geçebilirsiniz.
       </p>
