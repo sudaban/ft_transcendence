@@ -2,6 +2,7 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Auth;
 using Backend.Application.DTOs.Responses.Auth;
 using Backend.Application.Exceptions;
+using InvalidOperationException = Backend.Application.Exceptions.InvalidOperationException;
 using Backend.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
