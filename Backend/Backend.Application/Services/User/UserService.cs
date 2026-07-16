@@ -95,6 +95,25 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
 
+    public async Task<IEnumerable<UserDto>> SearchUsersAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return new List<UserDto>();
+        }
+
+        query = query.ToLower();
+
+        var users = await _userRepository.TableNoTracking
+            .Include(u => u.FollowedBy)
+            .Include(u => u.Following)
+            .Include(u => u.Posts)
+            .Where(u => u.Username.ToLower().StartsWith(query))
+            .Take(10)
+            .ToListAsync();
+
+        return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
 
     public async Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request)
     {

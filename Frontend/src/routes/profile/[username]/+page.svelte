@@ -80,11 +80,13 @@
     }
   });
 
-  async function loadUserData() {
-    if (!authStore.token || !targetUsername) return;
+  async function loadUserData()
+  {
+    if (!authStore.token || !targetUsername)
+      return;
     isLoading = true;
-    try {
-      // 1. Get user data by username
+    try
+    {
       const data = await ApiService.getUserByUsername(targetUsername, authStore.token);
       user.id = data.id || '';
       user.username = data.username || '';
@@ -96,7 +98,6 @@
       user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
       user.avatar = data.avatar || '';
 
-      // 2. Fetch User Posts
       const userPostsData = await ApiService.getUserPosts(user.id, authStore.token);
       posts = userPostsData.map((p, index) => ({
         ...p,
@@ -106,8 +107,8 @@
               'col-span-1 row-span-1 h-[160px]'
       }));
 
-      // 3. Check if we are following this user
-      if (authStore.user) {
+      if (authStore.user)
+      {
         const myFollowingList = await ApiService.getFollowing(authStore.user.id, authStore.token);
         isFollowing = myFollowingList.some(u => u.id.toString() === user.id.toString());
       }
@@ -117,17 +118,25 @@
         tl.fromTo('.editorial-sidebar', 
           { opacity: 0, x: -30 }, 
           { opacity: 1, x: 0, duration: 0.8 }
-        )
-        .fromTo('.portfolio-item', 
-          { opacity: 0, y: 20, scale: 0.98 }, 
-          { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
-          "-=0.5"
         );
+        
+        if (posts.length > 0) {
+          tl.fromTo('.portfolio-item', 
+            { opacity: 0, y: 20, scale: 0.98 }, 
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
+            "-=0.5"
+          );
+        }
       }, 50);
 
-    } catch (err) {
-      console.error("Kullanıcı yüklenemedi", err);
-    } finally {
+    }
+    catch (err)
+    {
+      // 404 hatası beklenen bir durum olduğu için konsolu kırmızıya boyamamak adına error bastırmıcam
+      // Zaten arayüzde "Kullanıcı Bulunamadı" sayfası gösteriliyo
+    }
+    finally
+    {
       isLoading = false;
     }
   }
@@ -331,7 +340,10 @@
                 {#if post.imageUrl}
                   <img src={post.imageUrl.startsWith('http') ? post.imageUrl : API_BASE_URL + post.imageUrl} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="Post" />
                 {:else}
-                  <div class="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-[1.02]"></div>
+                  <div class="w-full h-full bg-gradient-to-br from-indigo-50 via-white to-cyan-50 border-2 border-transparent group-hover:border-indigo-100 p-6 flex flex-col items-center justify-center text-center transition-all duration-500 group-hover:scale-[1.02]">
+                    <div class="text-3xl mb-3 opacity-20">❝</div>
+                    <p class="text-slate-600 font-medium text-base md:text-lg line-clamp-4 leading-relaxed px-4">{post.content}</p>
+                  </div>
                 {/if}
 
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-6 text-white">
