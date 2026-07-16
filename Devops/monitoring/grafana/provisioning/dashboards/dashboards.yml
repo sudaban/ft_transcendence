@@ -5,7 +5,7 @@
 # otomatik olarak yüklenmesini sağlar. Manuel olarak Grafana
 # arayüzünden dashboard oluşturmaya gerek kalmaz.
 #
-# Dashboard dosyaları: monitoring/grafana/dashboards/ dizininde
+# Dashboard dosyaları: Devops/monitoring/grafana/dashboards/ dizininde
 # (transcendence-dashboard.json)
 # ============================================================
 
@@ -27,7 +27,7 @@ providers:
     options:
       # Dashboard JSON dosyalarının container içindeki yolu
       # docker-compose.yml'de bu dizine mount ediliyor:
-      # ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # ./Devops/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       path: /var/lib/grafana/dashboards
       # Alt klasör yapısından otomatik klasör oluşturma (kapalı)
       foldersFromFilesStructure: false

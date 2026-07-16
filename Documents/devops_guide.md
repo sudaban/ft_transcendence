@@ -262,7 +262,7 @@ Grafana, Kibana, Prometheus gibi profil servisleri her zaman çalışmayabilir. 
 
 ### Prometheus Alert'leri
 
-Alert'ler [alert_rules.yml](file:///home/omadali/dosyaubuntu/transendence2/monitoring/prometheus/alert_rules.yml) dosyasında tanımlıdır.
+Alert'ler [alert_rules.yml](file:///home/omadali/dosyaubuntu/transendence2/Devops/monitoring/prometheus/alert_rules.yml) dosyasında tanımlıdır.
 
 #### Alert Durumları
 

@@ -89,5 +89,23 @@ ELK Nasıl Çalışır?
 Hangi soruyu cevaplar? "Sistem neden yavaşladı? Hangi kod satırında hata fırlatıldı? Saat 14:05'te sisteme kim giriş yapmaya çalıştı?"
 
 
-make monitoring-up	+ Monitoring	11 (~2 GB RAM)
-make full-up	Hepsi	15 (~4-5 GB RAM)
+Windows tarayıcından http://localhost:5601 adresine git (Kibana arayüzü).
+Soldaki menüden Management -> Stack Management -> Data Views (veya Index Patterns) bölümüne gir.
+Yeni bir Data View oluştur ve index pattern kısmına logstash-* yaz (Logstash verileri bu isme gönderiyor).
+Zaman alanı (Time field) olarak @timestamp seç ve kaydet.
+Şimdi soldaki menüden Discover sekmesine tıklayarak projedeki tüm logları canlı olarak arayabilir, filtreleyebilir ve inceleyebilirsin!
+
+https://localhost:8443/kibana/
+
+
+
+Monitoring system with Prometheus and Grafana: İkisi de docker-compose.yml içerisinde tanımlı ve demin ayağa kaldırdığımızda sorunsuz çalıştıklarını teyit ettik.
+Set up Prometheus to collect metrics: Projende Devops/monitoring/prometheus/prometheus.yml adlı bir ayar dosyası var ve tüm metrikleri otomatik olarak topluyor.
+Configure exporters and integrations: Sisteme çoktan 4 adet özel exporter entegre etmişiz:
+node-exporter (Sunucu kaynakları)
+cadvisor (Docker konteyner kaynakları)
+postgres-exporter (Veritabanı metrikleri)
+nginx-exporter (Web sunucusu trafik metrikleri)
+Create custom Grafana dashboards: Projende Devops/monitoring/grafana/dashboards/transcendence-dashboard.json adında özel bir pano (dashboard) oluşturulmuş durumda. Grafana'ya girdiğinde tüm metrikleri görsel grafikler halinde hazır göreceksin.
+Set up alerting rules: Devops/monitoring/prometheus/alert_rules.yml dosyası mevcut. Eğer sunucuda işlemci tavan yaparsa, bellek dolarsa veya bir konteyner kapanırsa Prometheus bunu algılayacak altyapıya sahip.
+Secure access to Grafana: Grafana direkt dışarıya güvensiz olarak (HTTP ile) açık değil. Güvenli Nginx ters vekil (reverse proxy) arkasında gizli ve sadece güvenli HTTPS bağlantısı (https://localhost/grafana/) üzerinden erişime izin veriyor. Ayrıca girişleri şifreledik

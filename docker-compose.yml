@@ -88,8 +88,8 @@ services:
 
   nginx:
     build:
-      context: ./nginx
-      dockerfile: ../Devops/docker/nginx.Dockerfile
+      context: ./Devops/nginx
+      dockerfile: ../docker/nginx.Dockerfile
     container_name: transcendence-nginx
     init: true
     labels:
@@ -120,8 +120,8 @@ services:
     labels:
       - "autoheal=true"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - ./Devops/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./Devops/monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -160,9 +160,9 @@ services:
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./Devops/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./Devops/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./Devops/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     # Port kaldırıldı — sadece Nginx üzerinden erişilir (/grafana/)
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
@@ -271,8 +271,8 @@ services:
 
   autoheal:
     build:
-      context: ./monitoring/autoheal
-      dockerfile: ../../Devops/docker/autoheal.Dockerfile
+      context: ./Devops/monitoring/autoheal
+      dockerfile: ../../docker/autoheal.Dockerfile
     container_name: transcendence-autoheal
     init: true
     environment:
@@ -318,7 +318,7 @@ services:
     environment:
       - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
     volumes:
-      - ./monitoring/elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./Devops/monitoring/elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
       - "5044:5044"
     networks:
@@ -353,7 +353,7 @@ services:
     depends_on:
       - logstash
     volumes:
-      - ./monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./Devops/monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: filebeat -e --strict.perms=false

@@ -1,7 +1,0 @@
-Windows tarayıcından http://localhost:5601 adresine git (Kibana arayüzü).
-Soldaki menüden Management -> Stack Management -> Data Views (veya Index Patterns) bölümüne gir.
-Yeni bir Data View oluştur ve index pattern kısmına logstash-* yaz (Logstash verileri bu isme gönderiyor).
-Zaman alanı (Time field) olarak @timestamp seç ve kaydet.
-Şimdi soldaki menüden Discover sekmesine tıklayarak projedeki tüm logları canlı olarak arayabilir, filtreleyebilir ve inceleyebilirsin!
-
-https://localhost:8443/kibana/
