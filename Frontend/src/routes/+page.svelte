@@ -6,7 +6,12 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import type { PostDTO, UserDTO } from '$lib/types';
   import CommentsSection from '$lib/components/CommentsSection.svelte';
-  import 'emoji-picker-element';
+  import { browser } from '$app/environment';
+
+  if (browser)
+  {
+    import('emoji-picker-element');
+  }
 
   let suggestions = $state<UserDTO[]>([]);
   let feedPosts = $state<PostDTO[]>([]);
