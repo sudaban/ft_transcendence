@@ -52,10 +52,12 @@
       }, 1000);
     }
 
-    gsap.fromTo('.auth-container', 
-      { opacity: 0, y: 30 }, 
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
-    );
+    if (document.querySelector('.auth-container')) {
+      gsap.fromTo('.auth-container', 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+      );
+    }
     
     if (eyeElement)
     {
@@ -111,10 +113,16 @@
   function triggerError(msg: string)
   {
     errorMsg = msg;
-    gsap.fromTo('.auth-container', 
-      { x: -8 }, 
-      { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => gsap.to('.auth-container', {x: 0, duration: 0.1}) }
-    );
+    if (document.querySelector('.auth-container')) {
+      gsap.fromTo('.auth-container', 
+        { x: -8 }, 
+        { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => {
+          if (document.querySelector('.auth-container')) {
+            gsap.to('.auth-container', {x: 0, duration: 0.1});
+          }
+        }}
+      );
+    }
   }
 
   async function handleLogin(e: Event)
@@ -154,7 +162,9 @@
         }, 1000);
 
         // Animate the transition
-        gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
+        if (document.querySelector('.otp-container')) {
+          gsap.fromTo('.otp-container', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.1 });
+        }
         await tick();
         otpInputs[0]?.focus();
       }

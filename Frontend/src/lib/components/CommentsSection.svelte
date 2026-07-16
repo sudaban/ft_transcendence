@@ -3,7 +3,6 @@
   import { ApiService, API_BASE_URL } from '$lib/api';
   import { authStore } from '$lib/stores/auth.svelte';
   import type { CommentDTO } from '$lib/types';
-  import gsap from 'gsap';
 
   let { postId, onCommentAdded, onCommentDeleted } = $props<{ postId: number, onCommentAdded?: () => void, onCommentDeleted?: () => void }>();
 

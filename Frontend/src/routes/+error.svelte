@@ -4,10 +4,12 @@
   import { onMount } from 'svelte';
 
   onMount(() => {
-    gsap.fromTo('.error-content', 
-      { opacity: 0, y: 30 }, 
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
-    );
+    if (document.querySelector('.error-content')) {
+      gsap.fromTo('.error-content', 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+      );
+    }
   });
 </script>
 

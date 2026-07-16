@@ -26,13 +26,16 @@ Before starting, copy the `.env.example` to `.env` and fill in the required envi
 ```bash
 cp .env.example .env
 ```
-Ensure the following variables are securely populated:
-- `JWT_SECRET_KEY` (Min 32 characters)
-- `ADMIN_EMAIL` (Email for the seed admin account)
-- `ADMIN_PASSWORD` (Password for the seed admin account)
+Ensure the following variables are securely populated (boot will fail if they are weak or missing):
+- `JWT_SECRET_KEY` (Min 32 characters, required)
+- `ADMIN_EMAIL` (Email for the seed admin account, required)
+- `ADMIN_PASSWORD` (Password for the seed admin account, required)
 - `DB_USER` & `DB_PASSWORD` (PostgreSQL credentials)
+- `HTTP_PORT` (e.g., 8080 - HTTP bind port, required)
+- `HTTPS_PORT` (e.g., 8443 - HTTPS bind port, required)
 - `OAUTH_INTRA_CLIENT_ID` & `OAUTH_INTRA_CLIENT_SECRET` (42 API credentials)
 - `OAUTH_GOOGLE_CLIENT_ID` & `OAUTH_GOOGLE_CLIENT_SECRET` (Google OAuth credentials)
+- `GEMINI_API_KEY` (Gemini API key for AI assistant & content moderation)
 
 ### Compilation and Execution:
 To start the entire core stack (Frontend, Backend, Database, Nginx, Autoheal) under HTTPS:
@@ -44,7 +47,7 @@ Or use the Makefile shortcuts:
 make build
 make up
 ```
-The application will be accessible securely at **`https://localhost`**.
+The application will be accessible securely at **`https://localhost:8443`** (or whatever port you set for `HTTPS_PORT`).
 
 To launch the monitoring profile (Prometheus, Grafana, exporters):
 ```bash
@@ -96,43 +99,72 @@ We adopted **Agile/Scrum** methodologies to organize our development sprints:
 ---
 
 ## 6. Database Schema
-Our relational schema is managed by Entity Framework Core with strict constraints:
+Our relational database schema is managed via Entity Framework Core Code-First migrations with strict indexes, cascade deletions, and keys:
 
 ```
-+------------------+         +------------------+         +------------------+
-|      Users       |         |      Posts       |         |     Comments     |
-+------------------+         +------------------+         +------------------+
-| Id (PK, int)     |<---+    | Id (PK, int)     |<---+    | Id (PK, int)     |
-| Username (unique)|    |    | Content (text)   |    |    | Content (text)   |
-| Email (unique)   |    +--->| UserId (FK)      |    +--->| PostId (FK)      |
-| PasswordHash     |         | ImageUrl (varchar)    +--->| UserId (FK)      |
-| PasswordSalt     |         | CreatedAt (date) |         | CreatedAt (date) |
-| ProfilePicture   |         +------------------+         +------------------+
-| IsOnline / 2FA   |
-+------------------+
-    |          |
-    |          +-------------------------+
-    v                                    v
-+------------------+             +------------------+
-|     Follows      |             |    UserBlocks    |
-+------------------+             +------------------+
-| FollowerId (FK)  |             | BlockerId (FK)   |
-| FollowingId (FK) |             | BlockedId (FK)   |
-| CreatedAt (date) |             | CreatedAt (date) |
-+------------------+             +------------------+
+                  +-----------------------------------+
+                  |               Users               |
+                  +-----------------------------------+
+                  | Id (PK, int)                      |<--------------------------+
+                  | Username (varchar, unique)        |                           |
+                  | Email (varchar, unique)           |                           |
+                  | PasswordHash / PasswordSalt       |                           |
+                  | ProfilePicture / Bio / IsOnline   |                           |
+                  | TwoFactorEnabled / TwoFactorSecret|                           |
+                  +-----------------------------------+                           |
+                     |       |      |      |      |                               |
+      +--------------+       |      |      |      +-----------------+             |
+      |                      |      |      |                        |             |
+      v                      v      v      v                        v             |
++------------+   +------------+  +-------+  +------------+   +------------+       |
+|  Follows   |   | UserBlocks |  | Posts |  | ChatRooms  |   | ChatRoomMem|       |
++------------+   +------------+  +-------+  +------------+   +------------+       |
+|FollowerId  |   |BlockerId   |  |Id (PK)|  |Id (PK, int)|   |Id (PK, int)|       |
+|FollowingId |   |BlockedId   |  |Content|  |Name        |   |ChatRoomId  |       |
+|CreatedAt   |   |CreatedAt   |  |UserId |  |IsGroup     |   |UserId (FK) |----->|
++------------+   +------------+  |ImgUrl |  |CreatedAt   |   |JoinedAt    |       |
+                                 |Date   |  +------------+   +------------+       |
+                                 +-------+         ^                              |
+                                   ^   |           |                              |
+                                   |   +-------+   |                              |
+                                   |           |   |                              |
+                                   |           v   |                              |
+                                   |     +-----------+                            |
+                                   |     | Comments  |                            |
+                                   |     +-----------+                            |
+                                   |     |Id (PK)    |                            |
+                                   |     |Content    |                            |
+                                   |     |PostId (FK)|                            |
+                                   |     |UserId (FK)|----------------------------+
+                                   |     |CreatedAt  |                            |
+                                   |     +-----------+                            |
+                                   |                                              |
+      +----------------------------+-----------------+                            |
+      |                            |                 |                            |
+      v                            v                 v                            v
++------------+               +------------+    +------------+               +------------+
+| PostLikes  |               | SavedPosts |    |  Messages  |<--------------|DeletedMsgs |
++------------+               +------------+    +------------+               +------------+
+|PostId (FK) |               |PostId (FK) |    |Id (PK, int)|               |MsgId (FK)  |
+|UserId (FK) |               |UserId (FK) |    |ChatRoom(FK)|               |UserId (FK) |
+|CreatedAt   |               |SavedAt     |    |SenderId(FK)|               |DeletedAt   |
++------------+               +------------+    |Content /At |               +------------+
+                                               +------------+
 ```
 
-### Key Tables:
-- **Users:** Stores credentials, TOTP secrets, status metadata, and roles.
-- **Posts & Comments:** Linked via cascade delete constraints.
-- **Follows:** Self-referencing N-M relationship mapping follower-following states.
-- **UserBlocks:** Maps block relationships to dynamically restrict messaging and room creation.
-- **ChatRooms, ChatRoomMembers & Messages:** Handles direct messaging groups and histories.
+### Table Definitions:
+- **Users:** Stores hashed credentials, TOTP metadata, and account status fields (`isBanned`, `isDeleted`).
+- **Follows:** Many-to-many join table for managing the mutual friendship and follower graph.
+- **UserBlocks:** Tracks block lists to prevent message exchanges and room creation.
+- **Posts & Comments:** Houses microblogging content. Cascades automatically on user/post removal.
+- **PostLikes & SavedPosts:** Maps interactive user signals on feed posts.
+- **ChatRooms, ChatRoomMembers & Messages:** Powers SignalR workspace channels, private/group messaging history.
+- **DeletedMessages:** Implements a soft-delete log per user for individual message clearings.
 
 ---
 
 ## 7. Claimed Modules & Point Calculation
-We claim **16 points** in total, exceeding the 14-point threshold:
+We claim **19 points** in total, exceeding the 14-point mandatory threshold:
 
 | Category | Module | Complexity | Points |
 | :--- | :--- | :---: | :---: |
@@ -142,50 +174,119 @@ We claim **16 points** in total, exceeding the 14-point threshold:
 | **User Management** | Standard Auth & User profiles | Major | 2 |
 | **Devops** | ELK Log Infrastructure (Elasticsearch, Logstash, Kibana) | Major | 2 |
 | **Devops** | Prometheus & Grafana Monitoring | Major | 2 |
+| **Artificial Intelligence** | LLM System Interface (Gemini Assistant) | Major | 2 |
 | **Database** | Database ORM (EF Core) | Minor | 1 |
 | **Web** | File Upload System (Secure avatar and post media) | Minor | 1 |
 | **User Management** | OAuth 2.0 Integration (Google & 42 Intra) | Minor | 1 |
 | **User Management** | Complete 2FA TOTP | Minor | 1 |
-| **TOTAL** | | | **16 / 19** |
+| **Artificial Intelligence** | Content Moderation AI (Gemini Safety Checks) | Minor | 1 |
+| **TOTAL** | | | **19 / 19** |
 
 ---
 
-## 8. Individual Contributions
+## 8. Detailed Module Implementations & Justifications
 
-### sdaban:
+### 1. Framework for FE & BE (SvelteKit + .NET 10)
+- **Justification:** Chosen to segregate the concerns completely through Clean Architecture.
+- **Implementation:** SvelteKit handles reactive routing, state stores, and dynamic components on the frontend. ASP.NET Core 10 delivers a high-speed, type-safe Web API with dependency injection controllers. Both are fully containerized under Docker.
+
+### 2. Real-time WebSockets (SignalR)
+- **Justification:** Standardizes asynchronous bidirectional event streams.
+- **Implementation:** SignalR Hubs (`ChatHub`) handle real-time message broadcasting, direct DMs, online/offline presence updates, and streaming AI chunks.
+
+### 3. User Interaction
+- **Justification:** Essential social layer for building network graphs.
+- **Implementation:** Custom follow controller mapping relationships, a SignalR-powered direct messaging window, and a full-featured microblogging feed where posts can be liked, commented on, or bookmarked.
+
+### 4. Standard Auth & User Profiles
+- **Justification:** Secure, role-based registration/login flows.
+- **Implementation:** HMAC-SHA512 salted hashing protects credentials. Frontends query specific profiles where users update their avatars, bios, and passwords in secure areas.
+
+### 5. ELK Log Infrastructure
+- **Justification:** Enterprise-grade central log inspection.
+- **Implementation:** Filebeat monitors container outputs, sending logs to Logstash which parses fields (e.g. `service_name`) and routes them to Elasticsearch indices for visualization in Kibana.
+
+### 6. Prometheus & Grafana Monitoring
+- **Justification:** Visual inspection of server/resource health.
+- **Implementation:** Prometheus pulls system metrics from Cadvisor, Node-exporter, Postgres-exporter, and Nginx-log-exporter. Grafana provisions dashboard panels with alerting thresholds for memory, CPU, and network bottlenecks.
+
+### 7. LLM System Interface (Gemini Assistant)
+- **Justification:** Provides users with a companion AI inside the messaging interface.
+- **Implementation:** Integrates Gemini AI API. The backend processes chats, streams responses chunk-by-chunk using Server-Sent Events (SSE) through the SignalR connection, and enforces rate limits (5 requests/min per user).
+
+### 8. Database ORM (EF Core)
+- **Justification:** Simplifies entity management and structure syncs.
+- **Implementation:** Entity Framework Core maps database entities to PostgreSQL using Code-First workflows. Includes index definitions and foreign key rules.
+
+### 9. File Upload System
+- **Justification:** Enables profile visual customization safely.
+- **Implementation:** Secure controllers handle multi-part media upload. Checks file extensions, sizes, and formats. Stores items in a volume-mounted static files directory.
+
+### 10. OAuth 2.0 Integration
+- **Justification:** Reduces registration friction with third-party auth.
+- **Implementation:** Connects to Google OAuth and 42 Intra APIs. Frontend exchanges tokens with redirect callbacks to backend endpoints, logging the user in or auto-registering.
+
+### 11. Complete 2FA TOTP
+- **Justification:** Critical security layer to protect against credential leaks.
+- **Implementation:** Implements RFC 6238 TOTP logic. Provides QR setup codes, validates numeric inputs on login, and allows enabling/disabling from the account settings.
+
+### 12. Content Moderation AI
+- **Justification:** Automates social guidelines and block harmful messages.
+- **Implementation:** Middleware triggers safety prompts to Gemini when creating posts or comments. If the content is rejected, the DB save is cancelled, returning a clean error payload explaining the block.
+
+---
+
+## 9. Implemented Features Details
+
+| Feature | Primary Developer | Supporting Developer | Description |
+|:---|:---:|:---:|:---|
+| **Real-time DM & SignalR Hub** | saincesu | sdaban | Setup the WebSocket Hub with message delivery, notifications, and client state bindings. |
+| **Authentication & TOTP 2FA** | asezgin | sdaban | SHA512 hashing, TOTP generator, validation endpoints, and security middlewares. |
+| **Microblogging & Social Graph** | sdaban | saincesu | Post, comment, follow controllers, feed feeds, and PostgreSQL database queries. |
+| **Svelte 5 Responsive UI** | idkahram | - | Built UI, Svelte runes (`$state`, `$effect`), dark/light mode adjustments, and GSAP micro-animations. |
+| **Nginx, SSL & Containerization** | omadali | - | Docker orchestration, HTTPS self-signed Nginx proxy config, Multi-stage builds, cAdvisor metrics. |
+| **Gemini LLM & AI Moderation** | asezgin | sdaban | Integrated Gemini API, SSE streaming, content safety filter hooks, and bad request exception handlers. |
+
+---
+
+## 10. Individual Contributions
+
+### sdaban (Team Lead & Backend Developer):
 - Orchestrated team objectives and task definitions.
-- Coded core startup controllers, middleware filters, and database entities.
-- Implemented environment validations to prevent boot on weak credentials.
-- Resolved security gaps in custom repository layers.
+- Coded core startup controllers, middleware filters, validation checks, and database entities.
+- Implemented environment validations (verifying `HTTP_PORT`, `HTTPS_PORT`, and strong keys) to prevent boot on weak credentials.
+- Resolved security gaps in repository layers and database context.
 
-### saincesu:
+### saincesu (Backend Developer):
 - Engineered backend repository and DbContext relations.
 - Coded direct messaging SignalR Hubs and client event mapping.
 - Resolved in-memory query bottlenecks (`GetAllAsync`) with tracked/non-tracked LINQ db queries.
 
-### idkahram:
+### idkahram (Frontend Developer):
 - Built the reactive Svelte 5 component design layout.
 - Developed modular responsive interfaces for feed, direct chat, and admin panels.
-- Designed visual micro-interactions and transitions with Tailwind and GSAP.
+- Designed visual micro-interactions and transitions with Tailwind and GSAP (guarded to prevent console warnings).
 
-### omadali:
-- Configured multi-container Docker orchestration and secure Nginx configuration.
+### omadali (DevOps & Release Manager):
+- Configured multi-container Docker orchestration and secure Nginx configuration on port `8443`.
 - Configured PID 1 tini daemon signals and resolved Alpine Rolldown build errors.
 - Handled HTTPS reverse proxy routing for SvelteKit and SignalR WebSockets.
 
-### asezgin:
-- Developed the secure SHA-512 password hashing routines.
-- Built custom Two-Factor Authentication TOTP algorithm services and QR code generator integrations.
-- Configured EF Core entity configurations, indexes, and database schemas.
+### asezgin (Database & Security Specialist):
+- Developed the secure SHA-512 password hashing routines and TOTP 2FA algorithm services.
+- Coded the backend integration for Gemini AI Service (SSE stream reply, rate limits, and client error handling).
+- Implemented the content moderation safety checks called during post/comment creation.
+- Configured EF Core entity configurations, database indexes, and schema join tables.
 
 ---
 
-## 9. Resources & AI Usage
+## 11. Resources & AI Usage
 - **Resources:**
   - .NET 10 Documentation: https://learn.microsoft.com/en-us/dotnet/
   - Svelte 5 Runes: https://svelte.dev/docs/svelte/runes
   - Docker Compose Specification: https://docs.docker.com/compose/
 - **AI Usage:**
-  - **Code Generation:** Used AI to scaffold boilerplate EF Core entity mappings and Svelte 5 layout components.
+  - **Code Generation:** Used AI to scaffold EF Core entity mappings, AI moderation filtering middleware, and Svelte 5 layout components.
   - **Debugging:** Leveraged AI for diagnosing Docker networking resolution issues and optimizing database-level asynchronous LINQ queries.
   - **Refactoring:** Used AI to rewrite dockerfiles into optimized, multi-stage minimal builds.
+  - **Verification:** Used AI to scan front-end components for GSAP DOM errors and configure inactive client-side hooks.

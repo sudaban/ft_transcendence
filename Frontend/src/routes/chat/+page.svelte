@@ -19,6 +19,7 @@
   let isLoadingMessages = $state(false);
   let isSending = $state(false);
   let hubConnection: signalR.HubConnection | null = null;
+  let connectionPromise: Promise<void> | null = null;
 
   // Custom UI State
   let newMessage = $state('');
@@ -97,7 +98,8 @@
         }
       });
 
-      await hubConnection.start();
+      connectionPromise = hubConnection.start();
+      await connectionPromise;
       
     }
     catch(err)
@@ -111,10 +113,12 @@
     
     if (chatRooms.length > 0) {
       await tick();
-      gsap.fromTo('.horizontal-inbox-item', 
-        { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
-      );
+      if (document.querySelector('.horizontal-inbox-item')) {
+        gsap.fromTo('.horizontal-inbox-item', 
+          { opacity: 0, scale: 0.9 },
+          { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
+        );
+      }
       
       const queryRoomId = $page.url.searchParams.get('roomId');
       if (queryRoomId) {
@@ -128,9 +132,20 @@
     scrollToBottom();
   });
 
-  onDestroy(() => {
+  onDestroy(async () => {
     if (hubConnection) {
-      hubConnection.stop();
+      if (connectionPromise) {
+        try {
+          await connectionPromise;
+        } catch (e) {
+          // ignore start failures
+        }
+      }
+      try {
+        await hubConnection.stop();
+      } catch (err) {
+        // ignore stop failures
+      }
     }
   });
 

@@ -18,10 +18,12 @@
   let eyeElement: HTMLElement;
 
   onMount(() => {
-    gsap.fromTo('.auth-container', 
-      { opacity: 0, y: 30 }, 
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
-    );
+    if (document.querySelector('.auth-container')) {
+      gsap.fromTo('.auth-container', 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+      );
+    }
     
     if (eyeElement)
     {
@@ -115,10 +117,16 @@
 
   function triggerErrorAnimation()
   {
-    gsap.fromTo('.auth-container', 
-      { x: -8 }, 
-      { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => gsap.to('.auth-container', {x: 0, duration: 0.1}) }
-    );
+    if (document.querySelector('.auth-container')) {
+      gsap.fromTo('.auth-container', 
+        { x: -8 }, 
+        { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => {
+          if (document.querySelector('.auth-container')) {
+            gsap.to('.auth-container', {x: 0, duration: 0.1});
+          }
+        }}
+      );
+    }
   }
 </script>
 
