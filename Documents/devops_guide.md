@@ -15,7 +15,6 @@ Bu doküman projenin tüm DevOps altyapısını, container'ları, monitoring sis
 8. [Veri Akış Diyagramları](#veri-akış-diyagramları)
 9. [Healthcheck Mekanizması](#healthcheck-mekanizması)
 10. [Makefile Komutları](#makefile-komutları)
-11. [Sık Sorulan Sorular](#sık-sorulan-sorular)
 
 ---
 
@@ -351,37 +350,6 @@ Her container'ın sağlık kontrolü tanımlıdır. Docker bu kontrolleri düzen
 | `make monitoring-logs` | Monitoring loglarını izle |
 | `make full-up` | Core + Monitoring + ELK hepsini başlat |
 | `make full-down` | Hepsini durdur |
-
----
-
-## Sık Sorulan Sorular
-
-### ❓ "Alert inactive" ne demek?
-**Her şey normal demek.** Alert koşulu (örn. CPU > %80) sağlanmadığı için tetiklenmemiş. Bu iyi bir şey.
-
-### ❓ Grafana'da "No Data" görüyorum
-Olası nedenler:
-1. **Datasource bağlantısı**: Prometheus URL'i yanlış olabilir (sub-path dahil olmalı)
-2. **Dashboard UID**: Panel'lerin datasource UID'si boşsa veri çekemez
-3. **Prometheus henüz yeterli veri toplamadı**: İlk başlatmada 1-2 dakika bekle
-4. **Servis çalışmıyor**: Target UP durumunda mı kontrol et
-
-### ❓ Kibana'da Data View oluşturamıyorum
-1. Logstash çalışıyor mu kontrol et: `docker logs transcendence-logstash`
-2. OutOfMemoryError varsa heap artır (docker-compose.yml'de `LS_JAVA_OPTS`)
-3. Elasticsearch'te index var mı: `curl http://localhost:9200/_cat/indices`
-4. `logstash-*` index'i yoksa Logstash veri işleyememiştir
-
-### ❓ Bir container sürekli restart ediyor
-1. `docker logs <container-name>` ile hatayı kontrol et
-2. Autoheal unhealthy container'ları restart eder — bu beklenen davranış
-3. Healthcheck'in neden fail olduğunu anla ve root cause'u düzelt
-
-### ❓ Docker compose profil sistemi nasıl çalışır?
-- Profile olmayan servisler **her zaman** başlar
-- `--profile monitoring` eklenirse monitoring servisleri de başlar
-- `--profile elk` eklenirse ELK servisleri de başlar
-- İkisi birden: `--profile monitoring --profile elk`
 
 ---
 
