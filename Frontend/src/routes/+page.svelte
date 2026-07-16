@@ -7,6 +7,7 @@
   import type { PostDTO, UserDTO } from '$lib/types';
   import CommentsSection from '$lib/components/CommentsSection.svelte';
   import { browser } from '$app/environment';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   if (browser)
   {
@@ -78,8 +79,8 @@
           }
         } catch(e) {}
       }
-    } catch (error) {
-      console.error("Veriler çekilirken hata oluştu:", error);
+    } catch (error: any) {
+      toastStore.error(error.message || "Veriler çekilirken hata oluştu.");
     } finally {
       isLoading = false;
     }
@@ -117,8 +118,8 @@
         if (authStore.token) {
           searchResults = await ApiService.searchUsers(searchQuery.trim(), authStore.token);
         }
-      } catch (err) {
-        console.error("Search error:", err);
+      } catch (err: any) {
+        toastStore.error(err.message || "Arama sırasında bir hata oluştu.");
       } finally {
         isSearching = false;
       }
@@ -140,8 +141,8 @@
       } else {
         await ApiService.unlikePost(post.id, authStore.token);
       }
-    } catch (err) {
-      console.error("Beğeni işlemi başarısız", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Beğeni işlemi başarısız oldu.");
       // Revert optimistic update
       post.isLiked = currentlyLiked;
       post.likesCount += currentlyLiked ? 1 : -1;
@@ -162,8 +163,8 @@
       } else {
         await ApiService.unsavePost(post.id, authStore.token);
       }
-    } catch (err) {
-      console.error("Kaydetme işlemi başarısız", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Kaydetme işlemi başarısız oldu.");
       post.isSaved = currentlySaved;
       feedPosts = [...feedPosts];
     }
@@ -200,7 +201,9 @@
           followersCount: 0,
           followingCount: 0,
           postsCount: 0,
-          isTwoFactorEnabled: false
+          isTwoFactorEnabled: false,
+          isBanned: false,
+          isDeleted: false
         };
       }
       
@@ -209,8 +212,8 @@
       selectedFile = null;
       showEmojiPicker = false;
       if (fileInput) fileInput.value = '';
-    } catch (error) {
-      console.error("Post paylaşılamadı:", error);
+    } catch (error: any) {
+      toastStore.error(error.message || "Post paylaşılamadı.");
       alert(error instanceof Error ? error.message : "Gönderi paylaşılırken bir hata oluştu.");
     } finally {
       isSubmitting = false;
@@ -224,8 +227,8 @@
     try {
       await ApiService.deletePost(postId, authStore.token);
       feedPosts = feedPosts.filter(p => p.id !== postId);
-    } catch (err) {
-      console.error("Post silinemedi", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Post silinemedi.");
       alert("Gönderi silinirken bir hata oluştu.");
     }
   }

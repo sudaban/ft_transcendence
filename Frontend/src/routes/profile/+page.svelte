@@ -9,6 +9,7 @@
   import PostModal from '$lib/components/PostModal.svelte';
   import UserListModal from '$lib/components/UserListModal.svelte';
   import type { UserDTO } from '$lib/types';
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   let isLoading = $state(true);
   let isEditing = $state(false);
@@ -89,9 +90,9 @@
                   'col-span-1 row-span-1 h-[160px]'
           }));
         }
-        catch (err)
+        catch (err: any)
         {
-          console.error("Failed to fetch posts", err);
+          toastStore.error(err.message || "Gönderiler yüklenemedi.");
         }
         
         await tick();
@@ -110,8 +111,8 @@
             );
           }
         }
-      } catch (err) {
-        console.error("Profil yüklenemedi", err);
+      } catch (err: any) {
+        toastStore.error(err.message || "Profil yüklenemedi.");
       } finally {
         isLoading = false;
       }
@@ -142,8 +143,8 @@
       user.fullName = editForm.fullName;
       user.bio = editForm.bio;
       isEditing = false;
-    } catch (err) {
-      console.error("Güncelleme hatası:", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Profil güncellenirken bir hata oluştu.");
       alert("Profil güncellenirken bir hata oluştu.");
     } finally {
       isSaving = false;
@@ -168,8 +169,8 @@
           authStore.user.avatar = updatedUser.avatar;
           localStorage.setItem('avatar', updatedUser.avatar);
         }
-      } catch (err) {
-        console.error("Avatar yüklenemedi", err);
+      } catch (err: any) {
+        toastStore.error(err.message || "Avatar yüklenemedi.");
         alert("Avatar yüklenirken bir hata oluştu.");
       } finally {
         isUploadingAvatar = false;
@@ -184,8 +185,8 @@
       userListUsers = await ApiService.getFollowers(user.id, authStore.token);
       userListTitle = 'Takipçiler';
       isUserListOpen = true;
-    } catch (err) {
-      console.error("Followers fetch error", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Takipçiler yüklenemedi.");
     }
   }
 
@@ -195,8 +196,8 @@
       userListUsers = await ApiService.getFollowing(user.id, authStore.token);
       userListTitle = 'Takip Edilenler';
       isUserListOpen = true;
-    } catch (err) {
-      console.error("Following fetch error", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Takip edilenler yüklenemedi.");
     }
   }
 </script>

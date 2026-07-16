@@ -11,6 +11,7 @@
   import { authStore } from '$lib/stores/auth.svelte';
   import type { ChatRoomDTO, MessageDTO, UserDTO } from '$lib/types';
   import * as signalR from "@microsoft/signalr";
+  import { toastStore } from '$lib/stores/toast.svelte';
 
   // API State
   let chatRooms = $state<ChatRoomDTO[]>([]);
@@ -102,9 +103,9 @@
       await connectionPromise;
       
     }
-    catch(err)
+    catch(err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "Odalar yüklenemedi.");
     }
     finally
     {
@@ -158,8 +159,8 @@
     {
       try {
         await hubConnection.invoke("LeaveRoom", selectedRoomId.toString());
-      } catch (err) {
-        console.warn("LeaveRoom err:", err);
+      } catch (err: any) {
+        toastStore.warn(err.message || "Oda değiştirilirken uyarı.");
       }
     }
 
@@ -219,15 +220,15 @@
       if (hubConnection?.state === signalR.HubConnectionState.Connected) {
         try {
           await hubConnection.invoke("JoinRoom", roomId.toString());
-        } catch (err) {
-          console.warn("JoinRoom err:", err);
+        } catch (err: any) {
+          toastStore.warn(err.message || "Odaya katılırken uyarı.");
         }
       }
       scrollToBottom();
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "Mesajlar yüklenemedi.");
     }
     finally
     {
@@ -344,9 +345,9 @@
       newMessage = '';
       scrollToBottom();
     }
-    catch (err)
+    catch (err: any)
     {
-      console.error(err);
+      toastStore.error(err.message || "Mesaj gönderilemedi.");
     }
     finally
     {
@@ -382,8 +383,8 @@
       if (chatRooms.length > 0) {
         selectRoom(chatRooms[0].id);
       }
-    } catch (err) {
-      console.error("Sohbet silinirken hata:", err);
+    } catch (err: any) {
+      toastStore.error(err.message || "Sohbet silinirken hata.");
       alert("Sohbet silinemedi.");
     }
   }
