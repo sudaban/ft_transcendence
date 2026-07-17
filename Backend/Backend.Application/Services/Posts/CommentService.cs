@@ -93,8 +93,7 @@ public class CommentService : ICommentService
 
         if (comment == null)
             throw new NotFoundException($"Comment with ID {commentId} not found.");
-
-        // Kullanıcı kendi yorumunu, admin herhangi bir yorumu, post sahibi de kendi postuna atılan herhangi bir yorumu silebilir.
+ 
         if (comment.UserId != currentUserId && comment.Post.UserId != currentUserId && !isAdmin)
         {
             throw new UnAuthorizedAccessException("You are not authorized to delete this comment.");

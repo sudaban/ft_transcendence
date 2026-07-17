@@ -37,7 +37,7 @@ namespace Backend.API.Middlewares
                 }
                 catch
                 {
-                    // ignore exceptions for let auth flow - sdaban
+                    
                 }
             }
 

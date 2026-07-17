@@ -8,11 +8,7 @@ namespace Backend.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            // AutoMapper vb. kayıtları buraya eklenebilir.
-            
-            // Tüm FluentValidation sınıflarını (IValidator<T> türevleri) IoC container'a kaydet.
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
             return services;
         }
     }

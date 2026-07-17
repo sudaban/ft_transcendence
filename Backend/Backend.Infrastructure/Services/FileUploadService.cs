@@ -12,7 +12,7 @@ public class FileUploadService : IFileUploadService
 {
     private readonly string _uploadDirectory;
     private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png"};
-    private readonly long _maxFileSize = 10 * 1024 * 1024; // 10 MB
+    private readonly long _maxFileSize = 10 * 1024 * 1024; 
 
     public FileUploadService(IConfiguration configuration)
     {

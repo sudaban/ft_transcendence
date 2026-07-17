@@ -76,8 +76,7 @@ public class AiChatResponder : IAiChatResponder
             if (rateState == RateState.JustExceeded)
             {
                 replyContent = "🚦 Slow down a bit! You can send me at most " + MaxRequestsPerWindow +
-                               " messages per minute. / Biraz yavaşla! Bana dakikada en fazla " +
-                               MaxRequestsPerWindow + " mesaj gönderebilirsin.";
+                               " messages per minute.";
             }
             else if (!aiService.IsConfigured)
             {

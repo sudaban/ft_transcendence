@@ -53,10 +53,6 @@ public class PostService : IPostService
         if (!moderation.IsAllowed)
             throw new BadRequestException($"AI moderation blocked this post: {moderation.Reason ?? "content violates platform rules"}");
 
-        // using var stream = request.File.OpenReadStream();
-        // var fileUrl = await _fileUploadService.UploadFileAsync(stream, request.File.FileName, request.File.ContentType);
-        // var post = BuildPostEntity(currentUserId, fileUrl, request.Content, request.File.ContentType);
-
         string? file_url = null;
         string? content_type = null;
 

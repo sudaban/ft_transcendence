@@ -35,7 +35,7 @@ public class MessagesController : ControllerBase
     [HttpDelete("{messageId}")]
     public async Task<IActionResult> DeleteMessage(int roomId, int messageId)
     {
-        // roomId is just for routing aesthetics here, but we pass messageId to service
+        
         await _messageService.DeleteMessageAsync(messageId);
         return Ok(new { Message = "Message deleted successfully" });
     }

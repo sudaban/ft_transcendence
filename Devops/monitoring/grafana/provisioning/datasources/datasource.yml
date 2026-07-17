@@ -1,31 +1,10 @@
-# ============================================================
-# Grafana Datasource Provisioning — Veri Kaynağı Tanımı
-# ============================================================
-# Bu dosya, Grafana'nın hangi veri kaynaklarından metrik okuyacağını
-# tanımlar. Grafana başlatıldığında bu datasource otomatik oluşturulur.
-# Manuel olarak Grafana arayüzünden eklemeye gerek kalmaz.
-#
-# Prometheus → metrikleri toplar (CPU, RAM, istek sayısı vs.)
-# Grafana   → Prometheus'taki metrikleri grafik olarak gösterir
-# ============================================================
-
 apiVersion: 1
 
 datasources:
-  # Prometheus veri kaynağı tanımı
   - name: Prometheus
-    # Sabit UID — dashboard panelleri bu UID'yi referans alır
     uid: prometheus-ds
-    # Veri kaynağı türü: Prometheus
     type: prometheus
-    # "proxy" modu: Grafana sunucusu Prometheus'a bağlanır
-    # (tarayıcı doğrudan bağlanmaz, güvenlik açısından daha iyi)
     access: proxy
-    # Prometheus'un Docker network içindeki adresi
-    # docker-compose.yml'deki servis adı "prometheus" ve portu 9090
     url: http://prometheus:9090/prometheus
-    # Bu datasource'u varsayılan olarak ayarla
-    # Yeni dashboard oluştururken otomatik seçili olur
     isDefault: true
-    # Grafana arayüzünden düzenlenebilir
     editable: true

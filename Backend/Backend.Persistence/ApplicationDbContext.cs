@@ -25,8 +25,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // 1. User Yapılandırması
+  
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
@@ -35,8 +34,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(u => u.Email).IsUnique().HasFilter("\"IsDeleted\" = false");
             entity.HasIndex(u => u.IsOnline);
         });
-
-        // 2. Post Yapılandırması
+   
         modelBuilder.Entity<Post>(entity =>
         {
             entity.HasKey(p => p.Id);
@@ -46,10 +44,9 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(p => p.User)
                 .WithMany(u => u.Posts)
                 .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Kullanıcı silinirse gönderileri de silinsin
+                .OnDelete(DeleteBehavior.Cascade); 
         });
-
-        // 3. Comment (Yorum) İlişkileri
+   
         modelBuilder.Entity<Comment>(entity =>
         {
             entity.HasKey(c => c.Id);
@@ -58,15 +55,14 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId)
-                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse yorumlar gitsin
+                .OnDelete(DeleteBehavior.Cascade); 
 
             entity.HasOne(c => c.User)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Restrict); // PostgreSQL çakışan cascade yollarını engellemek için Restrict
+                .OnDelete(DeleteBehavior.Restrict); 
         });
 
-        // 4. Follow (Takip) İlişkisi (Kendi İçinde Çoka-Çok)
         modelBuilder.Entity<Follow>(entity =>
         {
             entity.HasKey(f => new { f.FollowerId, f.FollowingId });
@@ -82,7 +78,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // 5. UserBlock (Engelleme) İlişkisi (Kendi İçinde Çoka-Çok)
+        
         modelBuilder.Entity<UserBlock>(entity =>
         {
             entity.HasKey(ub => new { ub.BlockerId, ub.BlockedId });
@@ -98,7 +94,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // 6. PostLike (Beğeni) İlişkisi
+        
         modelBuilder.Entity<PostLike>(entity =>
         {
             entity.HasKey(pl => new { pl.UserId, pl.PostId });
@@ -111,10 +107,10 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(pl => pl.Post)
                 .WithMany(p => p.Likes)
                 .HasForeignKey(pl => pl.PostId)
-                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse beğeniler temizlensin
+                .OnDelete(DeleteBehavior.Cascade); 
         });
 
-        // 7. SavedPost (Kaydedilenler) İlişkisi
+        
         modelBuilder.Entity<SavedPost>(entity =>
         {
             entity.HasKey(sp => new { sp.UserId, sp.PostId });
@@ -127,10 +123,10 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(sp => sp.Post)
                 .WithMany(p => p.SavedByUsers)
                 .HasForeignKey(sp => sp.PostId)
-                .OnDelete(DeleteBehavior.Cascade); // Gönderi silinirse kaydedilenlerden düşsün
+                .OnDelete(DeleteBehavior.Cascade); 
         });
 
-        // 8. ChatRoom ve ChatRoomMember İlişkileri
+        
         modelBuilder.Entity<ChatRoom>(entity =>
         {
             entity.HasKey(cr => cr.Id);
@@ -143,7 +139,7 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(crm => crm.ChatRoom)
                 .WithMany(cr => cr.Members)
                 .HasForeignKey(crm => crm.ChatRoomId)
-                .OnDelete(DeleteBehavior.Cascade); // Oda silinirse üyeler tablodan temizlensin
+                .OnDelete(DeleteBehavior.Cascade); 
 
             entity.HasOne(crm => crm.User)
                 .WithMany(u => u.ChatRoomMemberships)
@@ -151,7 +147,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // 9. Message (Mesajlar) İlişkileri
+        
         modelBuilder.Entity<Message>(entity =>
         {
             entity.HasKey(m => m.Id);
@@ -161,7 +157,7 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(m => m.ChatRoom)
                 .WithMany(cr => cr.Messages)
                 .HasForeignKey(m => m.ChatRoomId)
-                .OnDelete(DeleteBehavior.Cascade); // Oda silinirse içindeki mesajlar da silinsin
+                .OnDelete(DeleteBehavior.Cascade); 
 
             entity.HasOne(m => m.Sender)
                 .WithMany()
@@ -169,7 +165,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // 10. DeletedMessage (Kullanıcı için silinen mesajlar)
+        
         modelBuilder.Entity<DeletedMessage>(entity =>
         {
             entity.HasKey(dm => new { dm.UserId, dm.MessageId });
@@ -182,7 +178,7 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(dm => dm.Message)
                 .WithMany(m => m.DeletedByUsers)
                 .HasForeignKey(dm => dm.MessageId)
-                .OnDelete(DeleteBehavior.Cascade); // Mesaj veritabanından tamamen silinirse DeletedMessage kaydı da silinsin
+                .OnDelete(DeleteBehavior.Cascade); 
         });
 
     }
