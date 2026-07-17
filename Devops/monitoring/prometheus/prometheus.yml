@@ -15,9 +15,11 @@ scrape_configs:
     static_configs:
       - targets: ["node-exporter:9100"]
 
-  - job_name: "cadvisor"
+  # Docker Exporter: Özel rootless container metrikleri
+  # (Her container'ın CPU ve RAM kullanımı)
+  - job_name: "docker-exporter"
     static_configs:
-      - targets: ["cadvisor:8080"]
+      - targets: ["docker-exporter:8000"]
 
   - job_name: "postgres-exporter"
     static_configs:
