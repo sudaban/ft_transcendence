@@ -297,8 +297,7 @@ export const ApiService = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok)
-    {
+    if (!res.ok) {
       const err = await res.json().catch(() => null);
       throw new Error(err?.detail || err?.message || "Hesap silinemedi");
     }
@@ -437,7 +436,10 @@ export const ApiService = {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok)
-      throw new Error("Failed to fetch messages");
+    {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || "Mesajlar alınamadı");
+    }
     return res.json();
   },
 
@@ -453,7 +455,10 @@ export const ApiService = {
       body: JSON.stringify({ content })
     });
     if (!res.ok)
-      throw new Error("Failed to send message");
+    {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || "Mesaj gönderilemedi");
+    }
     return res.json();
   },
 
