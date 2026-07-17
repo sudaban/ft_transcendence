@@ -164,7 +164,6 @@ services:
       - ./Devops/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./Devops/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./Devops/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    # Port kaldırıldı — sadece Nginx üzerinden erişilir (/grafana/)
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s

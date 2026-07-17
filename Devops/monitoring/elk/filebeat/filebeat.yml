@@ -1,34 +1,11 @@
-# ============================================================
-# Filebeat Yapılandırması — Docker Container Log Toplayıcı
-# ============================================================
-# Filebeat, tüm Docker container'larının log dosyalarını
-# otomatik olarak toplar ve Logstash'e gönderir.
-# Logstash bu logları işleyip Elasticsearch'e yazar.
-# Kibana arayüzünden bu loglar aranabilir ve filtrelenebilir.
-#
-# Akış: Container Logları → Filebeat → Logstash → Elasticsearch → Kibana
-# ============================================================
-
-# Hangi tür log dosyalarını topla
 filebeat.inputs:
-  # "container" tipi: Docker container loglarını otomatik toplar
 - type: container
   paths: 
-    # Tüm container'ların log dosyaları bu dizinde bulunur
-    # Docker her container için ayrı bir alt klasör oluşturur
     - '/var/lib/docker/containers/*/*.log'
 
-# Log'lara ek bilgi ekle (hangi container'dan geldiği vs.)
 processors:
-  # Docker metadata ekleyici: Container adı, image, label bilgilerini
-  # her log satırına otomatik olarak ekler
-  # Böylece Kibana'da "transcendence-backend" gibi filtreleme yapılabilir
 - add_docker_metadata:
-    # Docker socket üzerinden container bilgilerine erişir
     host: "unix:///var/run/docker.sock"
 
-# Toplanan logları nereye gönder
 output.logstash:
-  # Logstash'in 5044 portuna gönder
-  # Logstash burada logları işler (filter) ve Elasticsearch'e yazar
   hosts: ["logstash:5044"]
