@@ -113,3 +113,64 @@ filebeat: Konteynerlerdeki log dosyalarını anlık olarak okuyan ve bunları ok
 
 
 Konfigürasyon isteyen dosyalarda monitoring kısmında alert vs belirtiyoruz / yml dosyası basit okunabilir bir config dosyası görevi görünüyor
+
+
+
+# Node Exporter metriklerini gör
+docker exec transcendence-node-exporter wget -qO- http://localhost:9100/metrics | head -50
+# cAdvisor metriklerini gör
+docker exec transcendence-cadvisor wget -qO- http://localhost:8080/metrics | head -50
+# Postgres Exporter metriklerini gör
+docker exec transcendence-postgres-exporter wget -qO- http://localhost:9187/metrics | head -50
+# Nginx stub_status'u gör (bu nginx container'ının kendisi)
+docker exec transcendence-nginx curl -s http://localhost:8888/nginx_status
+
+
+prometheus manuel sorgu:
+
+promql
+# Tüm container'ların CPU kullanımı
+rate(container_cpu_usage_seconds_total{id=~"/docker/.*"}[5m]) * 100
+# Node RAM kullanım yüzdesi
+(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+# PostgreSQL aktif bağlantı sayısı
+pg_stat_activity_count
+# Nginx toplam istek sayısı
+nginx_http_requests_total
+# Hangi exporter'lar ayakta?
+up
+
+----------
+alert tetikleme
+
+# Bir exporter'ı durdur
+docker stop transcendence-node-exporter
+# 1 dakika bekle (for: 1m kuralı)
+# Prometheus /alerts sayfasında InstanceDown → Firing olacak
+# Tekrar başlat
+docker start transcendence-node-exporter
+
+-----
+HighCpuUsage alert'ini tetiklemek:
+
+bash
+# Bir container'da CPU'yu yükselt (stress test)
+docker exec transcendence-backend sh -c "dd if=/dev/zero of=/dev/null bs=1M &"
+# 5 dakika sonra alert tetiklenir
+# Durdurmak için:
+docker exec transcendence-backend pkill dd
+-----
+DatabaseDown alert'ini tetiklemek:
+
+bash
+docker stop transcendence-db
+# 1 dakika sonra DatabaseDown → Firing
+docker start transcendence-db
+
+-----------------
+ELK test:
+
+# Backend'e birkaç istek at (log üretmek için)
+curl -k https://localhost:HTTPS_PORT/api/some-endpoint
+# Kibana'da Discover'a git ve son 5 dakikayı filtrele
+# container.name: "transcendence-backend" ile filtrele
