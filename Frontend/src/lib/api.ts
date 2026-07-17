@@ -146,8 +146,7 @@ export const ApiService = {
       headers: { 'Content-Type': 'application/json' }
     });
     const resultData = await res.json().catch(() => null);
-    if (!res.ok || (resultData && resultData.status >= 400) || (resultData && (resultData.detail || resultData.error)))
-    {
+    if (!res.ok || (resultData && resultData.status >= 400) || (resultData && (resultData.detail || resultData.error))) {
       throw new Error(resultData?.detail || resultData?.message || resultData?.error || "Registration failed");
     }
     return resultData;
@@ -290,6 +289,19 @@ export const ApiService = {
     });
     if (!res.ok)
       throw new Error("Failed to update profile");
+    return res.json();
+  },
+
+  deleteProfile: async (token: string) => {
+    const res = await fetch(`${API_URL}/users/profile`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok)
+    {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || "Hesap silinemedi");
+    }
     return res.json();
   },
 
