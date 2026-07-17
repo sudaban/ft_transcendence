@@ -152,7 +152,7 @@ export const ApiService = {
     return resultData;
   },
 
-  login: async (email: string, password: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
+  login: async (email: string, password: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null, email?: string }> => {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       body: JSON.stringify({ email, password }),
@@ -165,7 +165,7 @@ export const ApiService = {
     return data;
   },
 
-  oauthLogin: async (provider: string, code: string, redirectUri: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null }> => {
+  oauthLogin: async (provider: string, code: string, redirectUri: string): Promise<{ requiresTwoFactor: boolean, token: string | null, tempToken: string | null, email?: string }> => {
     const res = await fetch(`${API_URL}/auth/oauth/login`, {
       method: 'POST',
       body: JSON.stringify({ provider, code, redirectUri }),

@@ -77,7 +77,7 @@ namespace Backend.Application.Services
             if (user.IsTwoFactorEnabled)
             {
                 var temp_token = _tokenService.CreateTempToken(user);
-                return new LoginResponseDto(true, null, null, temp_token);
+                return new LoginResponseDto(true, null, null, temp_token, user.Email);
             }
 
             var token = _tokenService.CreateToken(user);
@@ -296,7 +296,7 @@ namespace Backend.Application.Services
             if (user.IsTwoFactorEnabled)
             {
                 var temp_token = _tokenService.CreateTempToken(user);
-                return new LoginResponseDto(true, null, null, temp_token);
+                return new LoginResponseDto(true, null, null, temp_token, user.Email);
             }
 
             var token = _tokenService.CreateToken(user);

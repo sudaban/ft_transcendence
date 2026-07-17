@@ -26,7 +26,7 @@
       
       if (res.requiresTwoFactor)
       {
-        window.location.href = `/login?tempToken=${res.tempToken}&email=oauth_user`;
+        window.location.href = `/login?tempToken=${res.tempToken}&email=${encodeURIComponent(res.email || '')}`;
       }
       else
       {
