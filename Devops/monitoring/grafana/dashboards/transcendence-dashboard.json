@@ -22,8 +22,8 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\"/docker/.*\"}[5m])) by (id) * 100",
-          "legendFormat": "{{ id }}",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"transcendence-.*\"}[5m])) by (name) * 100",
+          "legendFormat": "{{ name }}",
           "refId": "A"
         }
       ]
@@ -42,8 +42,8 @@
       },
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{id=~\"/docker/.*\"}",
-          "legendFormat": "{{ id }}",
+          "expr": "container_memory_usage_bytes{name=~\"transcendence-.*\"}",
+          "legendFormat": "{{ name }}",
           "refId": "A"
         }
       ]
@@ -200,8 +200,8 @@
       },
       "targets": [
         {
-          "expr": "rate(container_network_receive_bytes_total{id=~\"/docker/.*\"}[5m])",
-          "legendFormat": "{{ id }}",
+          "expr": "rate(container_network_receive_bytes_total{name=~\"transcendence-.*\"}[5m])",
+          "legendFormat": "{{ name }}",
           "refId": "A"
         }
       ]
@@ -220,8 +220,8 @@
       },
       "targets": [
         {
-          "expr": "rate(container_network_transmit_bytes_total{id=~\"/docker/.*\"}[5m])",
-          "legendFormat": "{{ id }}",
+          "expr": "rate(container_network_transmit_bytes_total{name=~\"transcendence-.*\"}[5m])",
+          "legendFormat": "{{ name }}",
           "refId": "A"
         }
       ]

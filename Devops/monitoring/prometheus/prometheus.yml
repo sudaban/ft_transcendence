@@ -38,11 +38,11 @@ scrape_configs:
     static_configs:
       - targets: ["node-exporter:9100"]
 
-  # cAdvisor: Docker container düzeyinde metrikler
-  # (Her container'ın CPU, RAM, ağ kullanımı)
-  - job_name: "cadvisor"
+  # Docker Exporter: Özel rootless container metrikleri
+  # (Her container'ın CPU ve RAM kullanımı)
+  - job_name: "docker-exporter"
     static_configs:
-      - targets: ["cadvisor:8080"]
+      - targets: ["docker-exporter:8000"]
 
   # Postgres Exporter: PostgreSQL veritabanı metrikleri
   # (Aktif bağlantı sayısı, sorgu süreleri, tablo boyutları)

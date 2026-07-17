@@ -201,30 +201,22 @@ services:
       - transcendence-network
     restart: unless-stopped
 
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
-    container_name: transcendence-cadvisor
+  docker-exporter:
+    build:
+      context: .
+      dockerfile: Devops/monitoring/docker/docker-exporter.Dockerfile
+    container_name: transcendence-docker-exporter
     profiles: ["monitoring"]
     init: true
     labels:
       - "autoheal=true"
-    privileged: true
-    command:
-      - "--docker_only=true"
-      - "--store_container_labels=true"
-      - "--housekeeping_interval=15s"
-      - "--raw_cgroup_prefix_whitelist=/docker"
+    userns_mode: "host"
+    environment:
+      - PORT=8000
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    devices:
-      - /dev/kmsg:/dev/kmsg
+      - /run/user/103388/docker.sock:/var/run/docker.sock:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/metrics || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -280,7 +272,7 @@ services:
       AUTOHEAL_INTERVAL: 30
       AUTOHEAL_START_PERIOD: 60
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /run/user/103388/docker.sock:/var/run/docker.sock
     networks:
       - transcendence-network
     restart: unless-stopped
@@ -353,12 +345,13 @@ services:
     profiles: ["elk"]
     init: true
     user: root
+    userns_mode: "host"
     depends_on:
       - logstash
     volumes:
       - ./Devops/monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /goinfre/{$USER}/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /goinfre/omadali/docker/containers:/var/lib/docker/containers:ro
+      - /run/user/103388/docker.sock:/var/run/docker.sock:ro
     command: filebeat -e --strict.perms=false
     networks:
       - transcendence-network
