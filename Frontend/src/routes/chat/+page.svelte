@@ -474,14 +474,6 @@
       </div>
 
       <div class="w-full mt-2 pt-4 border-t border-slate-100 flex flex-col gap-5">
-        <div>
-          <span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase block mb-3">Shared Space</span>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs text-slate-400 cursor-pointer hover:bg-slate-100 transition-colors">📂 Docs</div>
-            <div class="h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs text-slate-400 cursor-pointer hover:bg-slate-100 transition-colors">🔗 Links</div>
-          </div>
-        </div>
-
         <div class="pt-2 border-t border-slate-100 w-full">
           <button 
             onclick={() => isHistoryOpen = !isHistoryOpen}
@@ -531,7 +523,6 @@
     </div>
 
     <div class="text-[11px] text-slate-400 font-mono pt-4 mt-4 border-t border-slate-50 flex items-center justify-between">
-      <span>Enc: Active (Dümenden)</span>
       {#if selectedRoomId}
         <button onclick={deleteCurrentRoom} class="text-red-400 hover:text-red-500 hover:underline transition-colors">Sohbeti Sil</button>
       {/if}

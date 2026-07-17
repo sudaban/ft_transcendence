@@ -376,8 +376,6 @@
       <button type="button" onclick={initiateGoogleLogin} class="text-sm font-semibold text-[#ea4335] hover:text-[#c5221f] transition-colors flex items-center justify-center gap-2 mb-4">
         Google ile Giriş Yap
       </button>
-
-      <a href="#" class="text-xs text-social-secondary hover:text-social-primary transition-colors">Şifreni mi unuttun?</a>
     
     {:else}
       <div class="otp-container w-full flex flex-col items-center">
