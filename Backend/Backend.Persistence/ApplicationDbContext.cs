@@ -31,8 +31,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(u => u.Id);
             entity.HasQueryFilter(u => !u.IsDeleted);
-            entity.HasIndex(u => u.Username).IsUnique();
-            entity.HasIndex(u => u.Email).IsUnique();
+            entity.HasIndex(u => u.Username).IsUnique().HasFilter("\"IsDeleted\" = false");
+            entity.HasIndex(u => u.Email).IsUnique().HasFilter("\"IsDeleted\" = false");
             entity.HasIndex(u => u.IsOnline);
         });
 
