@@ -146,13 +146,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                  "https://localhost",
-                  $"https://localhost:{https_port_env}",
-                  $"http://localhost:{http_port_env}",
-                  "http://localhost:3000",
-                  "https://tr.celten.fun"
-              )
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
