@@ -47,7 +47,6 @@ class AuthStore
         this.token = storedToken;
         this.isAuthenticated = true;
 
-        // We are converting .net core claim keys back to standard JWT keys
         const nameIdKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
         const nameKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
         const emailKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';

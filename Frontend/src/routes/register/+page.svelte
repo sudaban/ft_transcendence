@@ -18,7 +18,8 @@
   let eyeElement: HTMLElement;
 
   onMount(() => {
-    if (document.querySelector('.auth-container')) {
+    if (document.querySelector('.auth-container'))
+    {
       gsap.fromTo('.auth-container', 
         { opacity: 0, y: 30 }, 
         { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
@@ -31,7 +32,8 @@
     }
     
     const handleResize = () => {
-      if (eyeElement) eyeRect = eyeElement.getBoundingClientRect();
+      if (eyeElement)
+        eyeRect = eyeElement.getBoundingClientRect();
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -44,7 +46,8 @@
   }
 
   let targetPos = $derived.by(() => {
-    if (!eyeRect.width) return { x: 0, y: 0 };
+    if (!eyeRect.width)
+      return { x: 0, y: 0 };
     
     const centerX = eyeRect.left + eyeRect.width / 2;
     const centerY = eyeRect.top + eyeRect.height / 2;
@@ -101,12 +104,16 @@
     try
     {
       const res = await ApiService.register({ username, email, password });
-      // Simulate auto-login or redirect
       window.location.href = '/login';
     }
-    catch (err)
+    catch (err: any)
     {
-      errorMsg = "Kayıt olurken bir hata oluştu.";
+      let msg = err.message || "Kayıt olurken bir hata oluştu.";
+      if (msg.toLowerCase().includes("taken") || msg.toLowerCase().includes("already"))
+      {
+        msg = "Bu e-posta adresi veya kullanıcı adı zaten kullanımda.";
+      }
+      errorMsg = msg;
       triggerErrorAnimation();
     }
     finally
@@ -117,11 +124,13 @@
 
   function triggerErrorAnimation()
   {
-    if (document.querySelector('.auth-container')) {
+    if (document.querySelector('.auth-container'))
+    {
       gsap.fromTo('.auth-container', 
         { x: -8 }, 
         { x: 8, duration: 0.1, yoyo: true, repeat: 3, onComplete: () => {
-          if (document.querySelector('.auth-container')) {
+          if (document.querySelector('.auth-container'))
+          {
             gsap.to('.auth-container', {x: 0, duration: 0.1});
           }
         }}
@@ -136,26 +145,21 @@
   
   <div class="auth-container w-full max-w-[350px] bg-social-card border border-social-border rounded-lg p-8 flex flex-col items-center shadow-sm relative z-10">
     
-    <!-- The Interactive Face -->
     <div 
       bind:this={eyeElement}
       class="mb-6 relative w-28 h-32 rounded-[50px] bg-gray-50 border-[3px] border-social-border flex flex-col items-center justify-center shadow-inner overflow-hidden transition-colors hover:border-social-secondary"
     >
       <div class="absolute inset-0 border-t-4 border-social-accent rounded-[50px] opacity-10"></div>
       
-      <!-- The Eye -->
       <div class="relative w-16 h-16 rounded-full bg-white border-[2px] border-social-border flex items-center justify-center shadow-inner mb-2">
-        <!-- Pupil -->
         <div 
           class="w-7 h-7 bg-social-primary rounded-full relative"
           style="transform: translate({$pupilSpring.x}px, {$pupilSpring.y}px);"
         >
-          <!-- Cute Light Reflection -->
           <div class="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-90"></div>
         </div>
       </div>
 
-      <!-- The Mouth (Static) -->
       <div class="w-8 h-3 border-b-[4px] border-social-primary rounded-b-full"></div>
     </div>
 

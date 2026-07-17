@@ -13,7 +13,6 @@
   import * as signalR from "@microsoft/signalr";
   import { toastStore } from '$lib/stores/toast.svelte';
 
-  // API State
   let chatRooms = $state<ChatRoomDTO[]>([]);
   let selectedRoomId = $state<number | null>(null);
   let isLoadingRooms = $state(true);
@@ -22,7 +21,6 @@
   let hubConnection: signalR.HubConnection | null = null;
   let connectionPromise: Promise<void> | null = null;
 
-  // Custom UI State
   let newMessage = $state('');
   let aiTyping = $state(false);
   let aiStreamingText = $state('');
@@ -112,9 +110,11 @@
       isLoadingRooms = false;
     }
     
-    if (chatRooms.length > 0) {
+    if (chatRooms.length > 0)
+    {
       await tick();
-      if (document.querySelector('.horizontal-inbox-item')) {
+      if (document.querySelector('.horizontal-inbox-item'))
+      {
         gsap.fromTo('.horizontal-inbox-item', 
           { opacity: 0, scale: 0.9 },
           { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
@@ -122,9 +122,11 @@
       }
       
       const queryRoomId = $page.url.searchParams.get('roomId');
-      if (queryRoomId) {
+      if (queryRoomId)
+      {
         const roomId = parseInt(queryRoomId);
-        if (!isNaN(roomId)) {
+        if (!isNaN(roomId))
+        {
           selectRoom(roomId);
         }
       }
@@ -134,18 +136,24 @@
   });
 
   onDestroy(async () => {
-    if (hubConnection) {
-      if (connectionPromise) {
-        try {
+    if (hubConnection)
+    {
+      if (connectionPromise)
+      {
+        try
+        {
           await connectionPromise;
-        } catch (e) {
-          // ignore start failures
+        }
+        catch (e)
+        {
         }
       }
-      try {
+      try
+      {
         await hubConnection.stop();
-      } catch (err) {
-        // ignore stop failures
+      }
+      catch (err)
+      {
       }
     }
   });
@@ -157,9 +165,12 @@
     
     if (selectedRoomId && hubConnection?.state === signalR.HubConnectionState.Connected)
     {
-      try {
+      try
+      {
         await hubConnection.invoke("LeaveRoom", selectedRoomId.toString());
-      } catch (err: any) {
+      }
+      catch (err: any)
+      {
         toastStore.warn(err.message || "Oda değiştirilirken uyarı.");
       }
     }
@@ -217,10 +228,14 @@
       liveMessages = buffer;
       currentLoopLeader = tempLeader;
 
-      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
-        try {
+      if (hubConnection?.state === signalR.HubConnectionState.Connected)
+      {
+        try
+        {
           await hubConnection.invoke("JoinRoom", roomId.toString());
-        } catch (err: any) {
+        }
+        catch (err: any)
+        {
           toastStore.warn(err.message || "Odaya katılırken uyarı.");
         }
       }
@@ -240,11 +255,13 @@
   {
     const isMe = msg.senderId.toString() === authStore.user?.id?.toString();
     let senderName = "Bilinmeyen";
-    if (isMe) senderName = authStore.user?.username || "Ben";
+    if (isMe)
+      senderName = authStore.user?.username || "Ben";
     else
     {
       const otherUser = room.members?.find(m => m.id.toString() === msg.senderId.toString());
-      if (otherUser) senderName = otherUser.username;
+      if (otherUser)
+        senderName = otherUser.username;
     }
 
     return {
@@ -258,11 +275,11 @@
 
   function handleIncomingMessage(formattedMsg: any)
   {
-    // Fix: Prevent double rendering for the sender (locally added + SignalR received)
     const existsInLive = liveMessages.some(m => m.id === formattedMsg.id);
     const existsInArchive = archivedSlices.some(slice => slice.data.some(m => m.id === formattedMsg.id));
     
-    if (existsInLive || existsInArchive) {
+    if (existsInLive || existsInArchive)
+    {
       return; 
     }
 
@@ -355,24 +372,33 @@
     }
   }
 
-  async function deleteCurrentRoom() {
-    if (!selectedRoomId || !authStore.token) return;
+  async function deleteCurrentRoom()
+  {
+    if (!selectedRoomId || !authStore.token)
+      return;
     
     const confirmDelete = confirm("Bu sohbeti silmek istediğine emin misin?");
-    if (!confirmDelete) return;
+    if (!confirmDelete)
+      return;
 
-    try {
+    try
+    {
       await fetch(`${API_BASE_URL}/api/ChatRooms/${selectedRoomId}/hide`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${authStore.token}` }
       });
       
-      // Update local state
       chatRooms = chatRooms.filter(r => r.id !== selectedRoomId);
       
-      // Reset UI
-      if (hubConnection?.state === signalR.HubConnectionState.Connected) {
-        try { await hubConnection.invoke("LeaveRoom", selectedRoomId.toString()); } catch(e){}
+      if (hubConnection?.state === signalR.HubConnectionState.Connected)
+      {
+        try
+        {
+          await hubConnection.invoke("LeaveRoom", selectedRoomId.toString());
+        }
+        catch(e)
+        {
+        }
       }
       
       selectedRoomId = null;
@@ -380,10 +406,13 @@
       archivedSlices = [];
       asciiHistory = [];
       
-      if (chatRooms.length > 0) {
+      if (chatRooms.length > 0)
+      {
         selectRoom(chatRooms[0].id);
       }
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Sohbet silinirken hata.");
       alert("Sohbet silinemedi.");
     }
@@ -406,10 +435,7 @@
 
   <Sidebar />
 
-  <!-- Mobile Overlay -->
   {#if isMobileSidebarOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div 
       class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden" 
       onclick={() => isMobileSidebarOpen = false}
@@ -420,7 +446,6 @@
     fixed lg:relative inset-y-0 left-0 z-50 w-[280px] border-r border-slate-100 bg-white h-[100dvh] lg:h-screen flex flex-col shrink-0 px-8 pt-8 pb-24 lg:pb-8 justify-between overflow-y-auto custom-scrollbar transform transition-transform duration-300 ease-in-out lg:translate-x-0
     {isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
   ">
-    <!-- Mobile Close Button -->
     <button 
       onclick={() => isMobileSidebarOpen = false}
       class="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-900 p-2"

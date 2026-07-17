@@ -38,7 +38,6 @@
   let selectedPost = $state<PostDTO | null>(null);
   let isPostModalOpen = $state(false);
 
-  // User List Modal State
   let isUserListOpen = $state(false);
   let userListTitle = $state('');
   let userListUsers = $state<UserDTO[]>([]);
@@ -46,8 +45,10 @@
   let fileInput: HTMLInputElement;
 
   onMount(async () => {
-    if (authStore.isAuthenticated && authStore.user && authStore.token) {
-      try {
+    if (authStore.isAuthenticated && authStore.user && authStore.token)
+    {
+      try
+      {
         const data = await ApiService.getUserById(authStore.user.id, authStore.token);
         user.id = data.id || '';
         user.username = data.username || '';
@@ -58,8 +59,10 @@
         user.posts = data.postsCount || 0;
         user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
         
-        if (data.avatar) {
-          if (authStore.user) authStore.user.avatar = data.avatar;
+        if (data.avatar)
+        {
+          if (authStore.user)
+            authStore.user.avatar = data.avatar;
           localStorage.setItem('avatar', data.avatar);
         }
 
@@ -97,13 +100,15 @@
         
         await tick();
         
-        if (document.querySelector('.editorial-sidebar')) {
+        if (document.querySelector('.editorial-sidebar'))
+        {
           const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
           tl.fromTo('.editorial-sidebar', 
             { opacity: 0, x: -30 }, 
             { opacity: 1, x: 0, duration: 0.8 }
           );
-          if (posts.length > 0 && document.querySelector('.portfolio-item')) {
+          if (posts.length > 0 && document.querySelector('.portfolio-item'))
+          {
             tl.fromTo('.portfolio-item', 
               { opacity: 0, y: 20, scale: 0.98 }, 
               { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
@@ -111,30 +116,41 @@
             );
           }
         }
-      } catch (err: any) {
+      }
+      catch (err: any)
+      {
         toastStore.error(err.message || "Profil yüklenemedi.");
-      } finally {
+      }
+      finally
+      {
         isLoading = false;
       }
-    } else {
+    }
+    else
+    {
       isLoading = false;
     }
   });
 
-  function openEditModal() {
+  function openEditModal()
+  {
     editForm.fullName = user.fullName;
     editForm.bio = user.bio;
     isEditing = true;
   }
 
-  function closeEditModal() {
+  function closeEditModal()
+  {
     isEditing = false;
   }
 
-  async function saveProfile() {
-    if (!authStore.token) return;
+  async function saveProfile()
+  {
+    if (!authStore.token)
+      return;
     isSaving = true;
-    try {
+    try
+    {
       await ApiService.updateProfile({
         FullName: editForm.fullName,
         Bio: editForm.bio
@@ -143,60 +159,97 @@
       user.fullName = editForm.fullName;
       user.bio = editForm.bio;
       isEditing = false;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Profil güncellenirken bir hata oluştu.");
       alert("Profil güncellenirken bir hata oluştu.");
-    } finally {
+    }
+    finally
+    {
       isSaving = false;
     }
   }
 
-  function handleAvatarClick() {
+  function handleAvatarClick()
+  {
     fileInput.click();
   }
 
   let isUploadingAvatar = $state(false);
 
-  async function handleFileChange(event: Event) {
+  async function handleFileChange(event: Event)
+  {
     const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
+    if (target.files && target.files.length > 0)
+    {
       const file = target.files[0];
-      if (!authStore.token) return;
+      if (!file.type.startsWith('image/'))
+      {
+        toastStore.error("Sadece fotoğraf (resim) dosyası yükleyebilirsiniz.");
+        if (fileInput)
+          fileInput.value = '';
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024)
+      {
+        toastStore.error("Avatar boyutu 10 MB'dan küçük olmalıdır.");
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+      if (!authStore.token)
+        return;
       isUploadingAvatar = true;
-      try {
+      try
+      {
         const updatedUser = await ApiService.uploadAvatar(file, authStore.token);
-        if (authStore.user) {
+        if (authStore.user)
+        {
           authStore.user.avatar = updatedUser.avatar;
           localStorage.setItem('avatar', updatedUser.avatar);
         }
-      } catch (err: any) {
+      }
+      catch (err: any)
+      {
         toastStore.error(err.message || "Avatar yüklenemedi.");
         alert("Avatar yüklenirken bir hata oluştu.");
-      } finally {
+      }
+      finally
+      {
         isUploadingAvatar = false;
         if (fileInput) fileInput.value = '';
       }
     }
   }
 
-  async function openFollowersModal() {
-    if (!authStore.token || !user.id) return;
-    try {
+  async function openFollowersModal()
+  {
+    if (!authStore.token || !user.id)
+      return;
+    try
+    {
       userListUsers = await ApiService.getFollowers(user.id, authStore.token);
       userListTitle = 'Takipçiler';
       isUserListOpen = true;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Takipçiler yüklenemedi.");
     }
   }
 
-  async function openFollowingModal() {
-    if (!authStore.token || !user.id) return;
-    try {
+  async function openFollowingModal()
+  {
+    if (!authStore.token || !user.id)
+      return;
+    try
+    {
       userListUsers = await ApiService.getFollowing(user.id, authStore.token);
       userListTitle = 'Takip Edilenler';
       isUserListOpen = true;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Takip edilenler yüklenemedi.");
     }
   }
@@ -236,14 +289,10 @@
             <span>Gönderiler</span>
             <span class="font-bold text-slate-900">{user.posts}</span>
           </div>
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div class="flex justify-between text-slate-500 cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowersModal}>
             <span>Takipçi</span>
             <span class="font-bold text-slate-900">{user.followers}</span>
           </div>
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div class="flex justify-between text-slate-500 cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowingModal}>
             <span>Takip Edilen</span>
             <span class="font-bold text-slate-900">{user.following}</span>
@@ -328,7 +377,6 @@
 
 </div>
 
-<!-- Edit Profile Modal -->
 {#if isEditing}
 <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl w-full max-w-[400px] shadow-2xl p-6 flex flex-col gap-4 animate-fade-in-up">

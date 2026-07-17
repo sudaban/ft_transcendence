@@ -34,34 +34,44 @@
   let fileInput: HTMLInputElement;
   let isUploadingAvatar = $state(false);
 
-  // User List Modal State
   let isUserListOpen = $state(false);
   let userListTitle = $state('');
   let userListUsers = $state<UserDTO[]>([]);
 
-  function triggerAvatarUpload() {
-    if (authStore.user?.username === targetUsername) {
+  function triggerAvatarUpload()
+  {
+    if (authStore.user?.username === targetUsername)
+    {
       fileInput.click();
     }
   }
 
-  async function handleFileSelect(event: Event) {
+  async function handleFileSelect(event: Event)
+  {
     const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
+    if (target.files && target.files.length > 0)
+    {
       const file = target.files[0];
-      if (!authStore.token) return;
+      if (!authStore.token)
+        return;
       isUploadingAvatar = true;
-      try {
+      try
+      {
         const updatedUser = await ApiService.uploadAvatar(file, authStore.token);
         user.avatar = updatedUser.avatar;
-        if (authStore.user) {
+        if (authStore.user)
+        {
           authStore.user.avatar = updatedUser.avatar;
           localStorage.setItem('avatar', updatedUser.avatar);
         }
-      } catch (err: any) {
+      }
+      catch (err: any)
+      {
         toastStore.error(err.message || "Avatar yüklenemedi.");
         alert("Avatar yüklenirken bir hata oluştu.");
-      } finally {
+      }
+      finally
+      {
         isUploadingAvatar = false;
         if (fileInput) fileInput.value = '';
       }
@@ -72,8 +82,10 @@
   let selectedPost = $state<PostDTO | null>(null);
 
   $effect(() => {
-    if (authStore.isAuthenticated && authStore.user && authStore.token) {
-      if (targetUsername === authStore.user.username) {
+    if (authStore.isAuthenticated && authStore.user && authStore.token)
+    {
+      if (targetUsername === authStore.user.username)
+      {
         goto('/profile');
         return;
       }
@@ -119,14 +131,16 @@
       }
 
       setTimeout(() => {
-        if (!document.querySelector('.editorial-sidebar')) return;
+        if (!document.querySelector('.editorial-sidebar'))
+          return;
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
         tl.fromTo('.editorial-sidebar', 
           { opacity: 0, x: -30 }, 
           { opacity: 1, x: 0, duration: 0.8 }
         );
         
-        if (posts.length > 0 && document.querySelector('.portfolio-item')) {
+        if (posts.length > 0 && document.querySelector('.portfolio-item'))
+        {
           tl.fromTo('.portfolio-item', 
             { opacity: 0, y: 20, scale: 0.98 }, 
             { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06 },
@@ -138,8 +152,6 @@
     }
     catch (err)
     {
-      // 404 hatası beklenen bir durum olduğu için konsolu kırmızıya boyamamak adına error bastırmıcam
-      // Zaten arayüzde "Kullanıcı Bulunamadı" sayfası gösteriliyo
     }
     finally
     {
@@ -147,69 +159,97 @@
     }
   }
 
-  async function toggleFollow() {
-    if (!authStore.token || !user.id || isActionLoading) return;
+  async function toggleFollow()
+  {
+    if (!authStore.token || !user.id || isActionLoading)
+      return;
     
     isActionLoading = true;
-    try {
-      if (isFollowing) {
+    try
+    {
+      if (isFollowing)
+      {
         await ApiService.unfollowUser(user.id, authStore.token);
         isFollowing = false;
         user.followers = Math.max(0, user.followers - 1);
-      } else {
+      }
+      else
+      {
         await ApiService.followUser(user.id, authStore.token);
         isFollowing = true;
         user.followers += 1;
       }
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Takip işlemi başarısız oldu.");
       alert("İşlem sırasında bir hata oluştu.");
-    } finally {
+    }
+    finally
+    {
       isActionLoading = false;
     }
   }
 
-  async function startMessage() {
-    if (!user.id || !authStore.token) return;
-    try {
+  async function startMessage()
+  {
+    if (!user.id || !authStore.token)
+      return;
+    try
+    {
       const existingRooms = await ApiService.getChatRooms(authStore.token);
       const existingRoom = existingRooms.find((r: any) => 
         !r.isGroup && r.members && r.members.some((m: any) => m.id.toString() === user.id.toString())
       );
       
       let roomId;
-      if (existingRoom) {
+      if (existingRoom)
+      {
         roomId = existingRoom.id;
-      } else {
+      }
+      else
+      {
         const newRoom = await ApiService.createChatRoom(parseInt(user.id), authStore.token);
         roomId = newRoom.id;
       }
       
       goto(`/chat?roomId=${roomId}`);
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Mesaj başlatılamadı.");
       goto('/chat');
     }
   }
 
-  async function openFollowersModal() {
-    if (!authStore.token || !user.id) return;
-    try {
+  async function openFollowersModal()
+  {
+    if (!authStore.token || !user.id)
+      return;
+    try
+    {
       userListUsers = await ApiService.getFollowers(user.id, authStore.token);
       userListTitle = 'Takipçiler';
       isUserListOpen = true;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Takipçiler yüklenemedi.");
     }
   }
 
-  async function openFollowingModal() {
-    if (!authStore.token || !user.id) return;
-    try {
+  async function openFollowingModal()
+  {
+    if (!authStore.token || !user.id)
+      return;
+    try
+    {
       userListUsers = await ApiService.getFollowing(user.id, authStore.token);
       userListTitle = 'Takip Edilenler';
       isUserListOpen = true;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Takip edilenler yüklenemedi.");
     }
   }
@@ -241,8 +281,6 @@
       <section class="editorial-sidebar w-full lg:w-[380px] lg:h-screen lg:border-r border-slate-100 bg-white p-8 md:p-12 flex flex-col justify-between shrink-0">
         
         <div class="flex flex-col gap-8">
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div 
             class="relative w-24 h-24 rounded-[2rem] overflow-hidden flex items-center justify-center font-bold text-4xl shadow-sm border-[3px] border-slate-50 transition-all 
             {authStore.user?.username === targetUsername ? 'cursor-pointer hover:opacity-80' : ''} 
@@ -275,14 +313,10 @@
               <span>Gönderiler</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.posts}</span>
             </div>
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="flex justify-between text-slate-500 items-center cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowersModal}>
               <span>Takipçi</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.followers}</span>
             </div>
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="flex justify-between text-slate-500 items-center cursor-pointer hover:text-slate-900 transition-colors" onclick={openFollowingModal}>
               <span>Takip Edilen</span>
               <span class="font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded">{user.following}</span>

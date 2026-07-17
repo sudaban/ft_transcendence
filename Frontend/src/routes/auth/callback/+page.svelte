@@ -9,7 +9,6 @@
   let errorMsg = $state('');
 
   onMount(async () => {
-    // Read the provider from the state parameter instead of the URL path
     const provider = $page.url.searchParams.get('state');
     const code = $page.url.searchParams.get('code');
     const redirectUri = `${window.location.origin}/auth/callback`;
@@ -37,8 +36,13 @@
     }
     catch (err: any)
     {
-      toastStore.error(err.message || 'OAuth Login Error');
-      errorMsg = 'Giriş başarısız oldu.';
+      let msg = err.message || 'OAuth Login Error';
+      if (msg.toLowerCase().includes("banned"))
+      {
+        msg = "Hesabınız yasaklı olduğu için giriş yapılamıyor.";
+      }
+      toastStore.error(msg);
+      errorMsg = msg;
       isProcessing = false;
     }
   });

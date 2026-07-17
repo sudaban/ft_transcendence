@@ -13,9 +13,9 @@
   let errorMsg = $state('');
 
   onMount(async () => {
-    // Wait a brief moment to ensure authStore initializes from localStorage if necessary
     setTimeout(async () => {
-      if (!authStore.isAuthenticated || authStore.user?.role !== 'Admin') {
+      if (!authStore.isAuthenticated || authStore.user?.role !== 'Admin')
+      {
         goto('/');
         return;
       }
@@ -24,51 +24,67 @@
     }, 100);
   });
 
-  async function fetchUsers() {
-    if (!authStore.token) return;
-    try {
+  async function fetchUsers()
+  {
+    if (!authStore.token)
+      return;
+    try
+    {
       isLoading = true;
       const data = await ApiService.getAllUsers(authStore.token);
-      // Let's assume some users might be banned. Our API doesn't expose `isBanned` directly yet, 
-      // but we will keep track of it if we toggle it here, or we can just keep state locally.
       users = data;
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Kullanıcılar yüklenirken bir hata oluştu.");
       errorMsg = "Kullanıcılar yüklenirken bir hata oluştu.";
-    } finally {
+    }
+    finally
+    {
       isLoading = false;
     }
   }
 
-  async function toggleBan(targetUser: UserDTO & { isBanned?: boolean }) {
-    if (!authStore.token) return;
+  async function toggleBan(targetUser: UserDTO & { isBanned?: boolean })
+  {
+    if (!authStore.token)
+      return;
     const isCurrentlyBanned = !!targetUser.isBanned;
     const confirmMsg = isCurrentlyBanned 
       ? `${targetUser.username} adlı kullanıcının banı kaldırılsın mı?`
       : `${targetUser.username} adlı kullanıcıyı banlamak istediğine emin misin?`;
 
-    if (!confirm(confirmMsg)) return;
+    if (!confirm(confirmMsg))
+      return;
 
-    try {
+    try
+    {
       await ApiService.adminBanUser(targetUser.id, !isCurrentlyBanned, authStore.token);
       targetUser.isBanned = !isCurrentlyBanned;
-      // Trigger reactivity
       users = [...users];
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Ban işlemi başarısız oldu.");
     }
   }
 
-  async function deleteUser(targetUser: UserDTO) {
-    if (!authStore.token) return;
+  async function deleteUser(targetUser: UserDTO)
+  {
+    if (!authStore.token)
+      return;
     const confirmMsg = `DİKKAT! ${targetUser.username} adlı hesabı ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
 
-    if (!confirm(confirmMsg)) return;
+    if (!confirm(confirmMsg))
+      return;
 
-    try {
+    try
+    {
       await ApiService.adminDeleteUser(targetUser.id, authStore.token);
       users = users.filter(u => u.id !== targetUser.id);
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Kullanıcı silinemedi.");
     }
   }
@@ -105,7 +121,6 @@
       {:else}
         
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <!-- Desktop Table Header -->
           <div class="hidden md:grid grid-cols-12 gap-4 bg-slate-50 border-b border-slate-100 p-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <div class="col-span-4 lg:col-span-3">Kullanıcı</div>
             <div class="col-span-3 lg:col-span-3">İstatistikler</div>
@@ -115,10 +130,8 @@
 
           <div class="divide-y divide-slate-100">
             {#each users as targetUser}
-              <!-- Row -->
               <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-6 hover:bg-slate-50/50 transition-colors">
                 
-                <!-- User Info -->
                 <div class="col-span-1 md:col-span-4 lg:col-span-3 flex items-center gap-4">
                   <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden shadow-sm">
                     {#if targetUser.avatar}
@@ -133,13 +146,11 @@
                   </div>
                 </div>
 
-                <!-- Stats -->
                 <div class="col-span-1 md:col-span-3 lg:col-span-3 flex md:flex-col gap-4 md:gap-1 text-[13px] text-slate-500 font-mono mt-2 md:mt-0">
                   <div class="flex gap-2 items-center"><span class="text-slate-300">📝</span> {targetUser.postsCount} Post</div>
                   <div class="flex gap-2 items-center"><span class="text-slate-300">👥</span> {targetUser.followersCount} Takipçi</div>
                 </div>
 
-                <!-- Status -->
                 <div class="col-span-1 md:col-span-2 lg:col-span-3 flex items-center md:justify-center mt-2 md:mt-0">
                   {#if targetUser.isDeleted}
                     <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">Silinmiş</span>
@@ -150,7 +161,6 @@
                   {/if}
                 </div>
 
-                <!-- Actions -->
                 <div class="col-span-1 md:col-span-3 lg:col-span-3 flex items-center md:justify-end gap-2 mt-4 md:mt-0">
                   {#if targetUser.id === authStore.user?.id}
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-widest px-4">Sen</span>

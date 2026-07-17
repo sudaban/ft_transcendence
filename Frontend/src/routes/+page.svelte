@@ -24,14 +24,15 @@
   let fileInput: HTMLInputElement;
   let selectedFile = $state<File | null>(null);
 
-  // Emoji State
   let showEmojiPicker = $state(false);
 
-  function toggleEmojiPicker() {
+  function toggleEmojiPicker()
+  {
     showEmojiPicker = !showEmojiPicker;
   }
 
-  function emojiAction(node: HTMLElement) {
+  function emojiAction(node: HTMLElement)
+  {
     const handler = (e: any) => {
       newPostContent += e.detail.unicode;
     };
@@ -43,18 +44,27 @@
     };
   }
 
-  // Search State
   let searchQuery = $state('');
   let searchResults = $state<UserDTO[]>([]);
   let isSearching = $state(false);
   let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  const developersList = [
+    { username: 'idkahram', handle: '@Celtenn', avatar: '', github: 'https://github.com/Celtenn' },
+    { username: 'omadali', handle: '@adalomer', avatar: '', github: 'https://github.com/adalomer' },
+    { username: 'saincesu', handle: '@sincesu', avatar: '', github: 'https://github.com/sincesu' },
+    { username: 'sdaban', handle: '@sudaban', avatar: '', github: 'https://github.com/sudaban' },
+    { username: 'asezgin', handle: '@ahmetkeremsezgin', avatar: '', github: 'https://github.com/ahmetkeremsezgin' }
+  ];
+
   onMount(async () => {
-    if (!authStore.isAuthenticated || !authStore.token) {
+    if (!authStore.isAuthenticated || !authStore.token)
+    {
       isLoading = false;
       return;
     }
-    try {
+    try
+    {
       const [postsRes, usersRes, savedData] = await Promise.all([
         ApiService.getFeedPosts(authStore.token),
         ApiService.getSuggestedUsers(),
@@ -69,44 +79,60 @@
       }));
       suggestions = usersRes;
       
-      // eğer localstorage da avatar yoksa backend den çekiyoz
-      if (authStore.user && (!authStore.user.avatar || authStore.user.avatar.length <= 3)) {
-        try {
+      if (authStore.user && (!authStore.user.avatar || authStore.user.avatar.length <= 3))
+      {
+        try
+        {
           const profile = await ApiService.getUserById(authStore.user.id, authStore.token);
-          if (profile && profile.avatar) {
+          if (profile && profile.avatar)
+          {
             authStore.user.avatar = profile.avatar;
             localStorage.setItem('avatar', profile.avatar);
           }
-        } catch(e) {}
+        }
+        catch(e)
+        {
+        }
       }
-    } catch (error: any) {
+    }
+    catch (error: any)
+    {
       toastStore.error(error.message || "Veriler çekilirken hata oluştu.");
-    } finally {
+    }
+    finally
+    {
       isLoading = false;
     }
   });
 
-  function triggerFileInput() {
+  function triggerFileInput()
+  {
     fileInput.click();
   }
 
-  function handleFileChange(event: Event) {
+  function handleFileChange(event: Event)
+  {
     const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
+    if (target.files && target.files.length > 0)
+    {
       selectedFile = target.files[0];
     }
   }
 
   let openComments = $state<Record<number, boolean>>({});
 
-  function toggleComments(postId: number) {
+  function toggleComments(postId: number)
+  {
     openComments[postId] = !openComments[postId];
   }
 
-  function handleSearch() {
-    if (searchTimeout) clearTimeout(searchTimeout);
+  function handleSearch()
+  {
+    if (searchTimeout)
+      clearTimeout(searchTimeout);
     
-    if (!searchQuery.trim()) {
+    if (!searchQuery.trim())
+    {
       searchResults = [];
       isSearching = false;
       return;
@@ -114,83 +140,125 @@
 
     isSearching = true;
     searchTimeout = setTimeout(async () => {
-      try {
-        if (authStore.token) {
+      try
+      {
+        if (authStore.token)
+        {
           searchResults = await ApiService.searchUsers(searchQuery.trim(), authStore.token);
         }
-      } catch (err: any) {
+      }
+      catch (err: any)
+      {
         toastStore.error(err.message || "Arama sırasında bir hata oluştu.");
-      } finally {
+      }
+      finally
+      {
         isSearching = false;
       }
     }, 300);
   }
 
-  async function toggleLike(post: PostDTO) {
-    if (!authStore.token) return;
+  async function toggleLike(post: PostDTO)
+  {
+    if (!authStore.token)
+      return;
     
-    // Optimistic UI update
     const currentlyLiked = post.isLiked ?? false;
     post.isLiked = !currentlyLiked;
     post.likesCount += currentlyLiked ? -1 : 1;
     feedPosts = [...feedPosts];
 
-    try {
-      if (!currentlyLiked) {
+    try
+    {
+      if (!currentlyLiked)
+      {
         await ApiService.likePost(post.id, authStore.token);
-      } else {
+      }
+      else
+      {
         await ApiService.unlikePost(post.id, authStore.token);
       }
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Beğeni işlemi başarısız oldu.");
-      // Revert optimistic update
       post.isLiked = currentlyLiked;
       post.likesCount += currentlyLiked ? 1 : -1;
       feedPosts = [...feedPosts];
     }
   }
 
-  async function toggleSave(post: PostDTO) {
-    if (!authStore.token) return;
+  async function toggleSave(post: PostDTO)
+  {
+    if (!authStore.token)
+      return;
 
     const currentlySaved = post.isSaved ?? false;
     post.isSaved = !currentlySaved;
     feedPosts = [...feedPosts];
 
-    try {
-      if (!currentlySaved) {
+    try
+    {
+      if (!currentlySaved)
+      {
         await ApiService.savePost(post.id, authStore.token);
-      } else {
+      }
+      else
+      {
         await ApiService.unsavePost(post.id, authStore.token);
       }
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Kaydetme işlemi başarısız oldu.");
       post.isSaved = currentlySaved;
       feedPosts = [...feedPosts];
     }
   }
 
-  async function handlePostSubmit() {
-    if (!authStore.token) return;
-    if (!selectedFile && !newPostContent.trim()) {
+  async function handlePostSubmit()
+  {
+    if (!authStore.token)
+      return;
+    if (!selectedFile && !newPostContent.trim())
+    {
       alert("Gönderi paylaşmak için fotoğraf seçmeli veya metin yazmalısınız!");
       return;
     }
     
+    if (selectedFile)
+    {
+      if (!selectedFile.type.startsWith('image/'))
+      {
+        toastStore.error("Sadece fotoğraf (resim) dosyası yükleyebilirsiniz.");
+        if (fileInput) fileInput.value = '';
+        selectedFile = null;
+        return;
+      }
+      if (selectedFile.size > 10 * 1024 * 1024)
+      {
+        toastStore.error("Fotoğraf boyutu 10 MB'dan küçük olmalıdır.");
+        if (fileInput) fileInput.value = '';
+        selectedFile = null;
+        return;
+      }
+    }
+    
     isSubmitting = true;
-    try {
+    try
+    {
       const formData = new FormData();
-      if (selectedFile) {
+      if (selectedFile)
+      {
         formData.append('File', selectedFile);
       }
-      if (newPostContent.trim()) {
+      if (newPostContent.trim())
+      {
         formData.append('Content', newPostContent.trim());
       }
       
       const newPost = await ApiService.createPost(formData, authStore.token);
       
-      // backend den dönen modelde Author null ise kendimiz dolduruyoruz
-      // bunu yapmamın sebebi backend yeni gönderinin bilgilerini gönderirken kullanıcının bilgilerini göndermiyo
       if (!newPost.author && authStore.user)
       {
         newPost.author = {
@@ -211,23 +279,34 @@
       newPostContent = '';
       selectedFile = null;
       showEmojiPicker = false;
-      if (fileInput) fileInput.value = '';
-    } catch (error: any) {
+      if (fileInput)
+        fileInput.value = '';
+    }
+    catch (error: any)
+    {
       toastStore.error(error.message || "Post paylaşılamadı.");
       alert(error instanceof Error ? error.message : "Gönderi paylaşılırken bir hata oluştu.");
-    } finally {
+    }
+    finally
+    {
       isSubmitting = false;
     }
   }
 
-  async function handleDeletePost(postId: number) {
-    if (!authStore.token) return;
-    if (!confirm("Bu gönderiyi silmek istediğine emin misin?")) return;
+  async function handleDeletePost(postId: number)
+  {
+    if (!authStore.token)
+      return;
+    if (!confirm("Bu gönderiyi silmek istediğine emin misin?"))
+      return;
     
-    try {
+    try
+    {
       await ApiService.deletePost(postId, authStore.token);
       feedPosts = feedPosts.filter(p => p.id !== postId);
-    } catch (err: any) {
+    }
+    catch (err: any)
+    {
       toastStore.error(err.message || "Post silinemedi.");
       alert("Gönderi silinirken bir hata oluştu.");
     }
@@ -236,18 +315,14 @@
 
 <div class="min-h-screen bg-social-bg text-social-primary flex justify-center">
   <div class="w-full max-w-[1280px] flex justify-between">
-    <!-- 1. LEFT SIDEBAR -->
   <Sidebar />
 
-    <!-- 2. CENTER FEED -->
     <main class="flex-1 max-w-[700px] border-x border-social-border min-h-screen pb-20 md:pb-0 mx-auto">
     
-    <!-- Header -->
     <div class="sticky top-0 bg-[rgba(255,255,255,0.85)] backdrop-blur-md z-10 border-b border-social-border">
       <h2 class="font-bold text-xl p-4 cursor-pointer">Keşfet</h2>
     </div>
     
-    <!-- Create Post Area -->
     <div class="p-4 border-b border-social-border flex gap-3">
       <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center font-bold text-gray-600 overflow-hidden">
         {#if authStore.user?.avatar && authStore.user.avatar.length > 3}
@@ -274,7 +349,7 @@
         <div class="border-t border-social-border mt-3 pt-3 flex justify-between items-center">
           <div class="flex gap-2 text-[#1d9bf0]">
             <button onclick={triggerFileInput} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>🖼️</button>
-            <input bind:this={fileInput} type="file" accept="image/*,video/*" class="hidden" onchange={handleFileChange} />
+            <input bind:this={fileInput} type="file" accept="image/*" class="hidden" onchange={handleFileChange} />
             <div class="relative flex items-center">
               <button onclick={toggleEmojiPicker} class="w-9 h-9 rounded-full hover:bg-[#1d9bf0]/10 flex items-center justify-center transition-colors disabled:opacity-50" disabled={isSubmitting}>😊</button>
               {#if showEmojiPicker}
@@ -298,7 +373,6 @@
       </div>
     </div>
     
-    <!-- Feed Posts -->
     <div class="w-full flex flex-col relative">
       {#if isLoading}
         <div class="flex justify-center py-8">
@@ -307,7 +381,6 @@
       {:else}
         {#each feedPosts as post}
         <article class="p-4 border-b border-social-border flex gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
-          <!-- Left Avatar -->
           <div class="shrink-0">
             <a href="/profile/{post.author.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity overflow-hidden shrink-0">
               {#if post.author.avatar && post.author.avatar.length > 3}
@@ -318,9 +391,7 @@
             </a>
           </div>
           
-          <!-- Right Content -->
           <div class="flex-1 flex flex-col">
-            <!-- Header -->
             <div class="flex items-center gap-1 mb-0.5 relative">
               <a href="/profile/{post.author.username}" class="font-bold text-[15px] hover:underline truncate">{post.author.username}</a>
               <span class="text-social-secondary text-[15px] truncate">{post.author.handle}</span>
@@ -335,7 +406,6 @@
               {/if}
             </div>
             
-            <!-- Body -->
             <div class="text-[15px] leading-normal text-social-primary mb-3 whitespace-pre-wrap">
               {post.content || ''}
             </div>
@@ -346,7 +416,6 @@
               </div>
             {/if}
             
-            <!-- Actions -->
             <div class="flex items-center justify-between text-social-secondary max-w-[425px]">
               <button onclick={() => toggleLike(post)} class="flex items-center gap-2 {post.isLiked ? 'text-[#f91880]' : 'hover:text-[#f91880]'} transition-colors group">
                 <span class="w-8 h-8 rounded-full group-hover:bg-[#f91880]/10 flex items-center justify-center text-lg">
@@ -380,10 +449,8 @@
 
   </main>
 
-  <!-- 3. RIGHT SIDEBAR -->
   <aside class="hidden lg:flex flex-col w-[350px] pl-8 pt-1 h-screen sticky top-0">
     
-    <!-- Search -->
     <div class="bg-gray-100 rounded-full flex items-center mt-1 mb-4 group focus-within:bg-white focus-within:ring-1 focus-within:ring-[#1d9bf0] focus-within:border-[#1d9bf0] border border-transparent transition-all relative">
       <span class="pl-4 pr-3 text-gray-500 group-focus-within:text-[#1d9bf0]">🔍</span>
       <input type="text" bind:value={searchQuery} oninput={handleSearch} placeholder="Ara..." class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
@@ -394,7 +461,6 @@
       {/if}
     </div>
 
-    <!-- Suggested / Search Results -->
     <div class="bg-gray-50 rounded-2xl flex flex-col pt-3">
       <h2 class="font-bold text-[20px] px-4 mb-4">
         {searchQuery.trim() ? 'Arama Sonuçları' : 'Developers'}
@@ -405,10 +471,10 @@
           <span class="w-6 h-6 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin"></span>
         </div>
       {:else}
-        {#each (searchQuery.trim() ? searchResults : suggestions) as user}
+        {#each (searchQuery.trim() ? searchResults : developersList) as user}
           <div class="flex items-center justify-between hover:bg-gray-100 px-4 py-3 cursor-pointer transition-colors">
             <div class="flex items-center gap-3">
-              <a href="/profile/{user.username}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
+              <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm hover:opacity-80 overflow-hidden shrink-0">
                 {#if user.avatar && user.avatar.length > 3}
                   <img src={user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}${user.avatar}`} alt="Avatar" class="w-full h-full object-cover" />
                 {:else}
@@ -416,12 +482,12 @@
                 {/if}
               </a>
               <div class="flex flex-col">
-                <a href="/profile/{user.username}" class="font-bold text-[15px] hover:underline">{user.username}</a>
+                <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="font-bold text-[15px] hover:underline">{user.username}</a>
                 <span class="text-social-secondary text-[15px]">{user.handle || '@' + user.username}</span>
               </div>
             </div>
-            <a href="/profile/{user.username}" class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
-              Profil
+            <a href={searchQuery.trim() ? `/profile/${user.username}` : (user as any).github} target={searchQuery.trim() ? "" : "_blank"} class="bg-black text-white font-bold text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors">
+              {searchQuery.trim() ? 'Profil' : 'GitHub'}
             </a>
           </div>
         {:else}
