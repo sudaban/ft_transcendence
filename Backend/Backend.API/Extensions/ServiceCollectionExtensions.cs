@@ -102,6 +102,15 @@ public static class ServiceCollectionExtensions
                     }
                     return Task.CompletedTask;
                 },
+                OnTokenValidated = context =>
+                {
+                    var pre_auth_claim = context.Principal?.FindFirst("pre_auth")?.Value;
+                    if (pre_auth_claim == "true")
+                    {
+                        context.Fail("Temporary 2FA token cannot be used to access protected resources.");
+                    }
+                    return Task.CompletedTask;
+                },
                 OnChallenge = async context =>
                 {
                     context.HandleResponse();

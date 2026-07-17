@@ -166,21 +166,21 @@ Our relational database schema is managed via Entity Framework Core Code-First m
 ## 7. Claimed Modules & Point Calculation
 We claim **19 points** in total, exceeding the 14-point mandatory threshold:
 
-| Category | Module | Complexity | Points |
-| :--- | :--- | :---: | :---: |
-| **Web** | Framework for FE & BE (SvelteKit + .NET 10) | Major | 2 |
-| **Web** | Real-time WebSockets (SignalR chat & status) | Major | 2 |
-| **Web** | User Interaction (Direct chat, follows, posts) | Major | 2 |
-| **User Management** | Standard Auth & User profiles | Major | 2 |
-| **Devops** | ELK Log Infrastructure (Elasticsearch, Logstash, Kibana) | Major | 2 |
-| **Devops** | Prometheus & Grafana Monitoring | Major | 2 |
-| **Artificial Intelligence** | LLM System Interface (Gemini Assistant) | Major | 2 |
-| **Database** | Database ORM (EF Core) | Minor | 1 |
-| **Web** | File Upload System (Secure avatar and post media) | Minor | 1 |
-| **User Management** | OAuth 2.0 Integration (Google & 42 Intra) | Minor | 1 |
-| **User Management** | Complete 2FA TOTP | Minor | 1 |
-| **Artificial Intelligence** | Content Moderation AI (Gemini Safety Checks) | Minor | 1 |
-| **TOTAL** | | | **19 / 19** |
+| Category | Module | Complexity | Points | Developer(s) |
+| :--- | :--- | :---: | :---: | :--- |
+| **Web** | Framework for FE & BE (SvelteKit + .NET 10) | Major | 2 | idkahram (FE), sdaban (BE) |
+| **Web** | Real-time WebSockets (SignalR chat & status) | Major | 2 | saincesu, sdaban |
+| **Web** | User Interaction (Direct chat, follows, posts) | Major | 2 | sdaban, saincesu |
+| **User Management** | Standard Auth & User profiles | Major | 2 | asezgin, sdaban |
+| **Devops** | ELK Log Infrastructure (Elasticsearch, Logstash, Kibana) | Major | 2 | omadali |
+| **Devops** | Prometheus & Grafana Monitoring | Major | 2 | omadali |
+| **Artificial Intelligence** | LLM System Interface (Gemini Assistant) | Major | 2 | asezgin, sdaban |
+| **Web** | Database ORM (EF Core) | Minor | 1 | saincesu, asezgin |
+| **Web** | File Upload System (Secure avatar and post media) | Minor | 1 | sdaban, saincesu |
+| **User Management** | OAuth 2.0 Integration (Google & 42 Intra) | Minor | 1 | asezgin, sdaban |
+| **User Management** | Complete 2FA TOTP | Minor | 1 | asezgin |
+| **Artificial Intelligence** | Content Moderation AI (Gemini Safety Checks) | Minor | 1 | asezgin |
+| **TOTAL** | | | **19 / 19** | |
 
 ---
 
@@ -208,11 +208,11 @@ We claim **19 points** in total, exceeding the 14-point mandatory threshold:
 
 ### 6. Prometheus & Grafana Monitoring
 - **Justification:** Visual inspection of server/resource health.
-- **Implementation:** Prometheus pulls system metrics from Cadvisor, Node-exporter, Postgres-exporter, and Nginx-log-exporter. Grafana provisions dashboard panels with alerting thresholds for memory, CPU, and network bottlenecks.
+- **Implementation:** Prometheus pulls system metrics from Node-exporter, Postgres-exporter, Nginx-exporter, and a custom Docker-exporter. Grafana provisions dashboard panels with alerting thresholds for memory, CPU, and network bottlenecks.
 
 ### 7. LLM System Interface (Gemini Assistant)
 - **Justification:** Provides users with a companion AI inside the messaging interface.
-- **Implementation:** Integrates Gemini AI API. The backend processes chats, streams responses chunk-by-chunk using Server-Sent Events (SSE) through the SignalR connection, and enforces rate limits (5 requests/min per user).
+- **Implementation:** Integrates the Gemini API. The backend consumes Gemini's streamed HTTP response as an async stream (`IAsyncEnumerable`) and relays each token chunk to clients in real time over the SignalR connection (`AiMessageChunk` events), while enforcing rate limits (5 requests/min per user).
 
 ### 8. Database ORM (EF Core)
 - **Justification:** Simplifies entity management and structure syncs.
@@ -244,8 +244,9 @@ We claim **19 points** in total, exceeding the 14-point mandatory threshold:
 | **Authentication & TOTP 2FA** | asezgin | sdaban | SHA512 hashing, TOTP generator, validation endpoints, and security middlewares. |
 | **Microblogging & Social Graph** | sdaban | saincesu | Post, comment, follow controllers, feed feeds, and PostgreSQL database queries. |
 | **Svelte 5 Responsive UI** | idkahram | - | Built UI, Svelte runes (`$state`, `$effect`), dark/light mode adjustments, and GSAP micro-animations. |
-| **Nginx, SSL & Containerization** | omadali | - | Docker orchestration, HTTPS self-signed Nginx proxy config, Multi-stage builds, cAdvisor metrics. |
-| **Gemini LLM & AI Moderation** | asezgin | sdaban | Integrated Gemini API, SSE streaming, content safety filter hooks, and bad request exception handlers. |
+| **Nginx, SSL & Containerization** | omadali | - | Docker orchestration, HTTPS self-signed Nginx proxy config, Multi-stage builds, container & host metrics via Prometheus exporters. |
+| **Gemini LLM & AI Moderation** | asezgin | sdaban | Integrated Gemini API, SignalR chunk streaming, content safety filter hooks, and bad request exception handlers. |
+| **Privacy Policy & Terms of Service** | idkahram | - | Dedicated `/privacy` and `/terms` pages with project-specific content, linked from the login, register, sidebar, and settings footers (mandatory compliance pages). |
 
 ---
 
@@ -256,27 +257,32 @@ We claim **19 points** in total, exceeding the 14-point mandatory threshold:
 - Coded core startup controllers, middleware filters, validation checks, and database entities.
 - Implemented environment validations (verifying `HTTP_PORT`, `HTTPS_PORT`, and strong keys) to prevent boot on weak credentials.
 - Resolved security gaps in repository layers and database context.
+- **Challenges:** Keeping a Clean-Architecture layer split coherent across five developers. Overcome by enforcing strict layer boundaries, shared abstractions, and mandatory PR reviews before merges.
 
 ### saincesu (Backend Developer):
 - Engineered backend repository and DbContext relations.
 - Coded direct messaging SignalR Hubs and client event mapping.
 - Resolved in-memory query bottlenecks (`GetAllAsync`) with tracked/non-tracked LINQ db queries.
+- **Challenges:** SignalR message duplication and N+1 query blowups under concurrent users. Overcome with connection-group scoping and `AsNoTracking` projections that fetch only required fields.
 
 ### idkahram (Frontend Developer):
 - Built the reactive Svelte 5 component design layout.
 - Developed modular responsive interfaces for feed, direct chat, and admin panels.
 - Designed visual micro-interactions and transitions with Tailwind and GSAP (guarded to prevent console warnings).
+- **Challenges:** GSAP animations touching the DOM during hydration produced console warnings. Overcome by guarding all DOM access behind `onMount`/`$effect` so it runs only client-side after mount.
 
 ### omadali (DevOps & Release Manager):
 - Configured multi-container Docker orchestration and secure Nginx configuration on port `8443`.
 - Configured PID 1 tini daemon signals and resolved Alpine Rolldown build errors.
 - Handled HTTPS reverse proxy routing for SvelteKit and SignalR WebSockets.
+- **Challenges:** Portability across rootless and rootful Docker hosts plus Alpine Rolldown build errors. Overcome with multi-stage builds and environment-driven Docker-socket paths so the stack boots on different setups.
 
 ### asezgin (Database & Security Specialist):
 - Developed the secure SHA-512 password hashing routines and TOTP 2FA algorithm services.
-- Coded the backend integration for Gemini AI Service (SSE stream reply, rate limits, and client error handling).
+- Coded the backend integration for Gemini AI Service (async streamed reply relayed over SignalR, rate limits, and client error handling).
 - Implemented the content moderation safety checks called during post/comment creation.
 - Configured EF Core entity configurations, database indexes, and schema join tables.
+- **Challenges:** RFC 6238 TOTP validation and safe cancellation of long-running Gemini streams under rate limits. Overcome with tested time-step tolerance and cancellation-aware `IAsyncEnumerable` streaming.
 
 ---
 

@@ -334,7 +334,7 @@
       <div class="flex-1 flex flex-col pt-1">
         <textarea 
           bind:value={newPostContent}
-          placeholder="What's going on bro ? Share with me! Cmon" 
+          placeholder="Neler oluyor? Paylaş bakalım..."
           class="w-full bg-transparent outline-none text-xl resize-none placeholder-gray-500 overflow-hidden min-h-[50px]"
           rows="1"
           disabled={isSubmitting}

@@ -65,6 +65,7 @@
           transport: signalR.HttpTransportType.WebSockets
         })
         .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.None)
         .build();
 
       hubConnection.on("ReceiveMessage", (message: MessageDTO) => {

@@ -327,7 +327,7 @@
       {#if is2faPending}
         İki aşamalı doğrulama kodunu girin
       {:else}
-        Giriş yap la
+        Hesabına giriş yap
       {/if}
     </p>
 
@@ -413,5 +413,11 @@
   <div class="auth-container w-full max-w-[350px] bg-social-card border border-social-border rounded-lg p-6 mt-4 flex items-center justify-center shadow-sm relative z-10">
     <p class="text-sm text-social-primary">Hesabın yok mu? <a href="/register" class="text-social-accent font-semibold hover:text-social-accent-hover">Kaydol</a></p>
   </div>
+
+  <footer class="w-full max-w-[350px] mt-6 flex items-center justify-center gap-4 text-xs text-social-secondary relative z-10">
+    <a href="/privacy" class="hover:text-social-primary transition-colors">Gizlilik Politikası</a>
+    <span aria-hidden="true">·</span>
+    <a href="/terms" class="hover:text-social-primary transition-colors">Hizmet Koşulları</a>
+  </footer>
 
 </div>
