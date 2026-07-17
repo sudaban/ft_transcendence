@@ -7,7 +7,7 @@
   import QRCode from 'qrcode';
   import { toastStore } from '$lib/stores/toast.svelte';
 
-  let activeTab = $state('security');
+  let activeTab = $state('general');
   
   let is2FaLoading = $state(false);
   let qrCodeDataUrl = $state('');
@@ -111,6 +111,34 @@
     finally
     {
       is2FaLoading = false;
+    }
+  }
+
+  let isDeleting = $state(false);
+
+  async function deleteAccount()
+  {
+    if (!authStore.token)
+      return;
+    
+    if (!confirm("Hesabınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!"))
+      return;
+      
+    isDeleting = true;
+    try
+    {
+      await ApiService.deleteProfile(authStore.token);
+      toastStore.success("Hesabınız kalıcı olarak silindi.");
+      authStore.logout();
+      window.location.href = '/login';
+    }
+    catch (err: any)
+    {
+      toastStore.error(err.message || "Hesap silinirken hata oluştu.");
+    }
+    finally
+    {
+      isDeleting = false;
     }
   }
 </script>
@@ -248,7 +276,16 @@
           <a href="/profile" class="mt-2 px-6 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-full hover:bg-black transition-colors shadow-sm">
             Profile Git
           </a>
-
+          <div class="mt-8 pt-8 border-t border-slate-100 w-full flex flex-col items-center">
+            <h3 class="text-sm font-bold text-red-600 mb-2 uppercase tracking-wider">Tehlikeli İşlemler</h3>
+            <p class="text-[13px] text-slate-500 mb-4 max-w-sm">Hesabınızı silmek kalıcı bir işlemdir. Profiliniz, gönderileriniz ve mesajlarınız geri getirilemez şekilde silinir.</p>
+            <button onclick={deleteAccount} disabled={isDeleting} class="px-6 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-[13px] font-bold rounded-xl transition-colors shadow-sm disabled:opacity-50">
+              {#if isDeleting}
+                <span class="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin inline-block align-middle mr-2"></span>
+              {/if}
+              Hesabımı Kalıcı Olarak Sil
+            </button>
+          </div>
         </div>
       {/if}
 
