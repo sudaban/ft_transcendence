@@ -111,7 +111,11 @@
       user.avatarLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
       user.avatar = data.avatar || '';
 
-      const userPostsData = await ApiService.getUserPosts(user.id, authStore.token);
+      let userPostsData = [];
+      if (user.id)
+      {
+        userPostsData = await ApiService.getUserPosts(user.id, authStore.token);
+      }
       posts = userPostsData.map((p, index) => ({
         ...p,
         size: index === 0 ? 'col-span-2 row-span-2 h-[340px]' : 
@@ -120,7 +124,7 @@
               'col-span-1 row-span-1 h-[160px]'
       }));
 
-      if (authStore.user)
+      if (authStore.user && user.id)
       {
         const myFollowingList = await ApiService.getFollowing(authStore.user.id, authStore.token);
         isFollowing = myFollowingList.some(u => u.id.toString() === user.id.toString());

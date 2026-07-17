@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Backend.Application.Exceptions;
+using Backend.Application.Extensions;
 
 namespace Backend.API.Controllers
 {
@@ -44,8 +45,7 @@ namespace Backend.API.Controllers
         [Authorize]
         public async Task<IActionResult> SetupTwoFactor()
         {
-            var user_id = GetUserId();
-            var result = await _authService.SetupTwoFactorAsync(user_id);
+            var result = await _authService.SetupTwoFactorAsync(User.GetCurrentUserId());
             return Ok(result);
         }
 
@@ -53,8 +53,7 @@ namespace Backend.API.Controllers
         [Authorize]
         public async Task<IActionResult> EnableTwoFactor([FromBody] EnableTwoFactorRequestDto request)
         {
-            var user_id = GetUserId();
-            var success = await _authService.EnableTwoFactorAsync(user_id, request.Code);
+            var success = await _authService.EnableTwoFactorAsync(User.GetCurrentUserId(), request.Code);
             if (!success)
             {
                 throw new BadRequestException("Invalid verification code.");
@@ -66,8 +65,7 @@ namespace Backend.API.Controllers
         [Authorize]
         public async Task<IActionResult> DisableTwoFactor()
         {
-            var user_id = GetUserId();
-            var success = await _authService.DisableTwoFactorAsync(user_id);
+            var success = await _authService.DisableTwoFactorAsync(User.GetCurrentUserId());
             if (!success)
             {
                 throw new BadRequestException("Failed to disable two-factor authentication.");
@@ -95,16 +93,6 @@ namespace Backend.API.Controllers
         {
             var username = User.Identity?.Name;
             return Ok(new { Message = $"Token is completely valid! Welcome to the secure area, {username}." });
-        }
-
-        private int GetUserId()
-        {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var user_id))
-            {
-                throw new System.Security.Authentication.AuthenticationException("User is not authenticated.");
-            }
-            return user_id;
         }
     }
 }

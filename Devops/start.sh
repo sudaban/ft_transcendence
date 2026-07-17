@@ -6,7 +6,7 @@
 # ============================================
 
 set -e
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 echo "🚀 transcendence Başlatılıyor..."
 echo "================================"
@@ -38,6 +38,7 @@ echo "   ✅ Sistem ayarları uygun"
 echo ""
 echo "📦 [2/3] Servisler başlatılıyor..."
 docker compose up -d
+# (Monitoring ve ELK için 'make full-up' kullanabilirsin)
 
 # 3. Health check'leri bekle
 echo ""
@@ -70,13 +71,14 @@ fi
 
 echo ""
 echo "🌐 Windows tarayıcından erişim:"
-echo "   Frontend:  https://localhost"
-echo "   Backend:   https://localhost/api"
-echo "   Grafana:   https://localhost/grafana/"
-echo "   Prometheus: http://localhost:9090"
+echo "   Frontend:   https://localhost:8443"
+echo "   Backend API: https://localhost:8443/swagger"
+echo "   Grafana:    https://localhost:8443/grafana/"
+echo "   Kibana:     https://localhost:8443/kibana/"
+echo "   Prometheus: https://localhost:8443/prometheus/"
 echo ""
 echo "📝 Faydalı komutlar:"
-echo "   make logs     → Tüm logları gör"
-echo "   make down     → Servisleri durdur"
-echo "   make rebuild  → Sıfırdan başlat"
+echo "   make full-up  → Tüm sistemi (Monitoring+ELK) başlat"
+echo "   make full-down → Tüm servisleri durdur"
+echo "   make nuke     → Tüm servisleri sıfırdan oluştur"
 echo "================================"

@@ -2,6 +2,7 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Auth;
 using Backend.Application.DTOs.Responses.Auth;
 using Backend.Application.Exceptions;
+using InvalidOperationException = Backend.Application.Exceptions.InvalidOperationException;
 using Backend.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
@@ -103,7 +104,7 @@ namespace Backend.Application.Services
                 throw new NotFoundException("User not found.");
 
             if (!user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
-                throw new InvalidOperationException("Two-factor authentication is not enabled for this user.");
+                throw new BadRequestException("Two-factor authentication is not enabled for this user.");
 
             if (!_twoFactorService.VerifyCode(user.TwoFactorSecret, request.Code))
                 throw new UnAuthorizedAccessException("Invalid verification code.");
@@ -141,7 +142,7 @@ namespace Backend.Application.Services
                 throw new NotFoundException("User not found.");
 
             if (string.IsNullOrEmpty(user.TwoFactorSecret))
-                throw new InvalidOperationException("Two-factor authentication setup is not initiated.");
+                throw new BadRequestException("Two-factor authentication setup is not initiated.");
 
             if (!_twoFactorService.VerifyCode(user.TwoFactorSecret, code))
                 return false;

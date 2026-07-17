@@ -1,7 +1,6 @@
 using Backend.Application.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Backend.API.Logging;
 using System.Net;
 
 namespace Backend.API.Middlewares
@@ -14,7 +13,6 @@ namespace Backend.API.Middlewares
             , CancellationToken cancellationToken)
         {
 
-            AppLogger.LogException(exception, $"GlobalExceptionHandler catching request for: {httpContext.Request.Path}");
 
             var problemDetails = new ProblemDetails
             {
@@ -34,7 +32,7 @@ namespace Backend.API.Middlewares
                 problemDetails.Detail = "An unexpected situation occured while the transaction was being processed.";
             }
 
-            httpContext.Response.StatusCode = 200;
+            httpContext.Response.StatusCode = (int)problemDetails.Status;
             httpContext.Response.ContentType = "application/problem+json";
 
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);

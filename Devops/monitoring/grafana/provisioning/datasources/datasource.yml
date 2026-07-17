@@ -14,6 +14,8 @@ apiVersion: 1
 datasources:
   # Prometheus veri kaynağı tanımı
   - name: Prometheus
+    # Sabit UID — dashboard panelleri bu UID'yi referans alır
+    uid: prometheus-ds
     # Veri kaynağı türü: Prometheus
     type: prometheus
     # "proxy" modu: Grafana sunucusu Prometheus'a bağlanır
@@ -21,7 +23,7 @@ datasources:
     access: proxy
     # Prometheus'un Docker network içindeki adresi
     # docker-compose.yml'deki servis adı "prometheus" ve portu 9090
-    url: http://prometheus:9090
+    url: http://prometheus:9090/prometheus
     # Bu datasource'u varsayılan olarak ayarla
     # Yeni dashboard oluştururken otomatik seçili olur
     isDefault: true

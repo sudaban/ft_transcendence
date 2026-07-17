@@ -34,24 +34,24 @@ groups:
       # 5 dakika boyunca yüksek kalırsa tetiklenir
       # rate(...[5m]): Son 5 dakikadaki ortalama CPU kullanım oranı
       - alert: HighCpuUsage
-        expr: (sum(rate(container_cpu_usage_seconds_total{name!=""}[5m])) by (name) * 100) > 80
+        expr: (sum(rate(container_cpu_usage_seconds_total{id=~"/docker/.*"}[5m])) by (id) * 100) > 80
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High CPU usage on {{ $labels.name }}"
-          description: "Container {{ $labels.name }} CPU usage is above 80% for 5 minutes. Current: {{ $value }}%"
+          summary: "High CPU usage on {{ $labels.id }}"
+          description: "Container {{ $labels.id }} CPU usage is above 80% for 5 minutes. Current: {{ $value }}%"
 
       # UYARI: Bir container'ın RAM kullanımı limitinin %85'ini aştı
       # memory_usage / memory_limit oranı hesaplanır
       - alert: HighMemoryUsage
-        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} * 100) > 85
+        expr: (container_memory_usage_bytes{id=~"/docker/.*"} / container_spec_memory_limit_bytes{id=~"/docker/.*"} * 100) > 85 and container_spec_memory_limit_bytes{id=~"/docker/.*"} > 0
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High memory usage on {{ $labels.name }}"
-          description: "Container {{ $labels.name }} memory usage is above 85%. Current: {{ $value }}%"
+          summary: "High memory usage on {{ $labels.id }}"
+          description: "Container {{ $labels.id }} memory usage is above 85%. Current: {{ $value }}%"
 
   # ---- Veritabanı Uyarıları ----
   - name: database_alerts
