@@ -17,7 +17,6 @@ public class ChatHubService : IChatHubService
 
     public async Task SendMessageToRoomAsync(int roomId, MessageDto message)
     {
-        // Hub üzerinden `ReceiveMessage` event'ini tetikleriz
         await _hubContext.Clients.Group($"Room_{roomId}").SendAsync("ReceiveMessage", message);
     }
 

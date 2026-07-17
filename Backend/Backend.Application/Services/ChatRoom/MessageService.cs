@@ -87,7 +87,7 @@ public class MessageService : IMessageService
 
         await _messageRepository.AddAsync(message);
         
-        // Odadaki tüm üyelerin IsHidden durumunu false yapalım (Sohbeti sildilerse bile yeni mesaj geldiği için geri gelsin)
+        
         var members = await _memberRepository.Table
             .Where(m => m.ChatRoomId == roomId)
             .ToListAsync();
@@ -105,7 +105,7 @@ public class MessageService : IMessageService
 
         var messageDto = _mapper.Map<MessageDto>(createdMessage);
 
-        // SignalR ile odaya anlık mesaj iletimi
+        
         await _chatHubService.SendMessageToRoomAsync(roomId, messageDto);
 
         if (chatRoom != null && !chatRoom.IsGroup)

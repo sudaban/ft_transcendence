@@ -14,8 +14,6 @@ public interface IUserService
     Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request);
     Task<UserDto> UpdateAvatarAsync(Microsoft.AspNetCore.Http.IFormFile file);
     Task DeleteUserAsync();
-    
-    // Admin yetkili metotlar
     Task AdminDeleteUserAsync(int targetUserId);
     Task AdminBanUserAsync(int targetUserId, bool isBanned);
 }

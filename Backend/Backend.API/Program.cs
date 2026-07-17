@@ -7,48 +7,36 @@ using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Verify Environment variables
 builder.VerifyEnvironmentVariables();
 
-// Database
 builder.Services.AddDatabase(builder.Configuration);
 
-// Handlers and Behaviors
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.ConfigureOptions<ConfigureApiBehaviorOptions>();
 
-// Scoped and Custom services
 builder.Services.AddCustomServices();
 
-// Application Services from Application layer
 builder.Services.AddApplicationServices();
 
-// JWT Authentication
 builder.Services.AddCustomAuthentication(builder.Configuration);
 
-// AutoMapper
 builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
-// CORS
 builder.Services.AddCustomCors();
 
-// Routing & Controller setup
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
 
-// Rate Limiting
 builder.Services.AddCustomRateLimiter();
 
 var app = builder.Build();
 
-// Run migrations and seed database
 app.SeedDatabase();
 
-// Middleware Pipeline
 app.UseExceptionHandler();
 app.UseCors("AllowAll");
 app.UseRateLimiter();

@@ -2,10 +2,10 @@ namespace Backend.Application.DTOs.Responses.Users;
 
 public record UserDto
 (
-    string Id,          // Veritabanında int, frontend string bekliyor (.ToString() ile dönüştüreceğiz)
+    string Id,          
     string Username,
-    string Handle,      // Frontend @username formatında bekliyor
-    string Avatar,      // Veritabanındaki ProfilePictureUrl ile eşleşecek
+    string Handle,      
+    string Avatar,      
     string? FullName,
     string? Bio,
     int FollowersCount,
