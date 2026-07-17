@@ -129,7 +129,7 @@
           <div class="flex flex-col flex-1 bg-gray-50 rounded-2xl rounded-tl-none p-3 border border-gray-100">
             <div class="flex items-center gap-1 mb-1 relative">
               <a href="/profile/{comment.user?.username}" class="font-bold text-[13px] hover:underline text-slate-900">{comment.user?.username}</a>
-              <!-- <span class="text-gray-400 text-[12px]">· {new Date(comment.createdAt).toLocaleDateString()}</span> -->
+              
               {#if authStore.user?.id?.toString() === comment.user?.id?.toString() || authStore.user?.role === 'Admin'}
                 <button onclick={() => handleDeleteComment(comment.id)} class="ml-auto text-gray-400 hover:text-red-500 transition-colors text-xs" title="Yorumu Sil">
                   🗑️
