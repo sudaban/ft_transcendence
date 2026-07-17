@@ -498,12 +498,6 @@
           {/if}
         {/each}
       {/if}
-      
-      {#if !searchQuery.trim()}
-        <button class="p-4 text-[#1d9bf0] hover:bg-gray-100 rounded-b-2xl text-left text-[15px] transition-colors">
-          Daha fazlası...
-        </button>
-      {/if}
     </div>
   </aside>
 
