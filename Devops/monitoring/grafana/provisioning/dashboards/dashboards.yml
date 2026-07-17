@@ -28,6 +28,6 @@ providers:
       # Dashboard JSON dosyalarının container içindeki yolu
       # docker-compose.yml'de bu dizine mount ediliyor:
       # ./Devops/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      path: /var/lib/grafana/dashboards
+      path: /etc/grafana/dashboards
       # Alt klasör yapısından otomatik klasör oluşturma (kapalı)
       foldersFromFilesStructure: false
