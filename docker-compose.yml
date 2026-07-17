@@ -116,6 +116,7 @@ services:
     image: prom/prometheus:latest
     container_name: transcendence-prometheus
     profiles: ["monitoring"]
+    user: root
     init: true
     labels:
       - "autoheal=true"
@@ -290,6 +291,7 @@ services:
     profiles: ["elk"]
     init: true
     environment:
+      - node.store.allow_mmap=false
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
@@ -311,6 +313,7 @@ services:
     image: docker.elastic.co/logstash/logstash:8.17.1
     container_name: transcendence-logstash
     profiles: ["elk"]
+    user: root
     init: true
     depends_on:
       elasticsearch:
@@ -354,7 +357,7 @@ services:
       - logstash
     volumes:
       - ./Devops/monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /goinfre/omadali/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: filebeat -e --strict.perms=false
     networks:

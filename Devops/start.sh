@@ -24,15 +24,17 @@ echo "   ✅ Docker çalışıyor"
 
 # 1.5. Elasticsearch için bellek ayarını kontrol et
 echo ""
-echo "⚙️ [1.5/3] Elasticsearch sistem ayarları kontrol ediliyor..."
 CURRENT_MAP_COUNT=$(sysctl -n vm.max_map_count)
 if [ "$CURRENT_MAP_COUNT" -lt 262144 ]; then
-    echo "⚠️ vm.max_map_count değeri çok düşük ($CURRENT_MAP_COUNT)."
-    echo "Elasticsearch'ün çalışabilmesi için bu değerin en az 262144 olması gerekiyor."
-    echo "Değeri şimdi güncelliyorum (Şifre sorulabilir)..."
-    sudo sysctl -w vm.max_map_count=262144
+    echo "⚠️ vm.max_map_count değeri düşük ($CURRENT_MAP_COUNT)."
+    if sudo -n true 2>/dev/null; then
+        echo "Değeri şimdi güncelliyorum..."
+        sudo sysctl -w vm.max_map_count=262144
+    else
+        echo "Sudo yetkisi yok, atlanıyor."
+        echo "Elasticsearch, node.store.allow_mmap=false ayarıyla mmap olmadan çalışacak şekilde yapılandırıldı."
+    fi
 fi
-echo "   ✅ Sistem ayarları uygun"
 
 # 2. Servisleri başlat
 echo ""
@@ -44,7 +46,7 @@ docker compose up -d
 echo ""
 echo "⏳ [3/3] Servisler hazır olana kadar bekleniyor..."
 
-MAX_WAIT=90
+MAX_WAIT=40
 WAITED=0
 
 while [ $WAITED -lt $MAX_WAIT ]; do
