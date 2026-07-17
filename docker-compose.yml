@@ -161,6 +161,7 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_SERVER_ROOT_URL: "https://localhost:${HTTPS_PORT}/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_LIVE_ALLOWED_ORIGINS: "*"
     volumes:
       - grafana_data:/var/lib/grafana
     # Port kaldırıldı — sadece Nginx üzerinden erişilir (/grafana/)
@@ -213,7 +214,7 @@ services:
     environment:
       - PORT=8000
     volumes:
-      - /run/user/103388/docker.sock:/var/run/docker.sock:ro
+      - /run/user/${UID}/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/metrics || exit 1"]
       interval: 30s
@@ -271,7 +272,7 @@ services:
       AUTOHEAL_INTERVAL: 30
       AUTOHEAL_START_PERIOD: 60
     volumes:
-      - /run/user/103388/docker.sock:/var/run/docker.sock
+      - /run/user/${UID}/docker.sock:/var/run/docker.sock
     networks:
       - transcendence-network
     restart: unless-stopped
@@ -349,8 +350,8 @@ services:
       - logstash
     volumes:
       - ./Devops/monitoring/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /goinfre/omadali/docker/containers:/var/lib/docker/containers:ro
-      - /run/user/103388/docker.sock:/var/run/docker.sock:ro
+      - /goinfre/${USER}/docker/containers:/var/lib/docker/containers:ro
+      - /run/user/${UID}/docker.sock:/var/run/docker.sock:ro
     command: filebeat -e --strict.perms=false
     networks:
       - transcendence-network
