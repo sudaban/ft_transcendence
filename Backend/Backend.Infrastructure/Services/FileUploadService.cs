@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Backend.Application.Abstractions;
 using Microsoft.Extensions.Configuration;
+using Backend.Application.Exceptions;
 
 namespace Backend.Infrastructure.Services;
 
 public class FileUploadService : IFileUploadService
 {
     private readonly string _uploadDirectory;
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".mp4" };
+    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png"};
     private readonly long _maxFileSize = 10 * 1024 * 1024; // 10 MB
 
     public FileUploadService(IConfiguration configuration)
@@ -32,13 +33,13 @@ public class FileUploadService : IFileUploadService
 
         if (fileStream.Length > _maxFileSize)
         {
-            throw new InvalidOperationException($"File size exceeds the limit of 10 MB.");
+            throw new BadRequestException($"File size exceeds the limit of 10 MB.");
         }
 
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(extension))
         {
-            throw new InvalidOperationException("Unsupported file type.");
+            throw new BadRequestException("Unsupported file type.");
         }
 
         var unique_file_name = $"{Guid.NewGuid()}{extension}";

@@ -28,6 +28,7 @@ rule_files:
 scrape_configs:
   # Prometheus kendisini de izler (iç metrikler)
   - job_name: "prometheus"
+    metrics_path: "/prometheus/metrics"
     static_configs:
       - targets: ["localhost:9090"]
 
