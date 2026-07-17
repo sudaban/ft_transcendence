@@ -50,10 +50,10 @@
     return found ? found.label : '';
   });
 
-  onMount(async () => {
-    
-    if (!authStore.token) return;
-    
+  let isInitialized = false;
+
+  async function initializeChat()
+  {
     try
     {
       chatRooms = await ApiService.getChatRooms(authStore.token);
@@ -133,6 +133,14 @@
     }
     
     scrollToBottom();
+  }
+
+  $effect(() => {
+    if (authStore.token && !isInitialized)
+    {
+      isInitialized = true;
+      initializeChat();
+    }
   });
 
   onDestroy(async () => {
@@ -183,10 +191,15 @@
 
     try
     {
-      const rawMessages = await ApiService.getChatMessages(roomId, authStore.token);
       const room = chatRooms.find(r => r.id === roomId);
       if (!room)
-        return;
+      {
+        selectedRoomId = null;
+        throw new Error("Bu sohbet odasına erişim izniniz yok veya oda mevcut değil.");
+      }
+
+      const rawMessages = await ApiService.getChatMessages(roomId, authStore.token);
+
       
       archivedSlices = [];
       asciiHistory = [];

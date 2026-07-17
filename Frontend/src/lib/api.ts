@@ -311,9 +311,12 @@ export const ApiService = {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok)
-      throw new Error("Failed to fetch user by username");
-    return res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok || (data && data.status >= 400))
+    {
+      throw new Error(data?.detail || data?.message || "Kullanıcı bulunamadı");
+    }
+    return data;
   },
 
   followUser: async (targetUserId: string, token: string) => {
@@ -435,12 +438,12 @@ export const ApiService = {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok)
+    const data = await res.json().catch(() => null);
+    if (!res.ok || (data && data.status >= 400) || (data && (data.detail || data.error)))
     {
-      const err = await res.json().catch(() => null);
-      throw new Error(err?.detail || err?.message || "Mesajlar alınamadı");
+      throw new Error(data?.detail || data?.message || data?.error || "Mesajlar alınamadı");
     }
-    return res.json();
+    return data;
   },
 
   sendMessage: async (roomId: number, content: string, token: string) => {

@@ -32,7 +32,7 @@ namespace Backend.API.Middlewares
                 problemDetails.Detail = "An unexpected situation occured while the transaction was being processed.";
             }
 
-            httpContext.Response.StatusCode = (int)problemDetails.Status;
+            httpContext.Response.StatusCode = 200;
             httpContext.Response.ContentType = "application/problem+json";
 
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);

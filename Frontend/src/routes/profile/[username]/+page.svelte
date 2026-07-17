@@ -150,8 +150,9 @@
       }, 50);
 
     }
-    catch (err)
+    catch (err: any)
     {
+      toastStore.error(err.message || "Kullanıcı bilgileri alınamadı.");
     }
     finally
     {
