@@ -9,5 +9,5 @@ public interface ICommentService
 {
     Task<CommentDto> AddCommentAsync(int postId, CreateCommentDto request);
     Task DeleteCommentAsync(int commentId);
-    Task<IEnumerable<CommentDto>> GetPostCommentsAsync(int postId);
+    Task<IEnumerable<CommentDto>> GetPostCommentsAsync(int postId, int page = 1, int pageSize = 50);
 }

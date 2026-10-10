@@ -42,17 +42,17 @@ public class PostsController : ControllerBase
 
     [HttpGet("feed")]
     [Authorize]
-    public async Task<IActionResult> GetFeed()
+    public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var feed = await _postService.GetFeedAsync();
+        var feed = await _postService.GetFeedAsync(page, pageSize);
         return Ok(feed);
     }
 
     [HttpGet("user/{userId}")]
     [Authorize]
-    public async Task<IActionResult> GetUserPosts(int userId)
+    public async Task<IActionResult> GetUserPosts(int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var posts = await _postService.GetUserPostsAsync(userId);
+        var posts = await _postService.GetUserPostsAsync(userId, page, pageSize);
         return Ok(posts);
     }
 }

@@ -19,9 +19,9 @@ public class MessagesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetRoomMessages(int roomId)
+    public async Task<IActionResult> GetRoomMessages(int roomId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var messages = await _messageService.GetRoomMessagesAsync(roomId);
+        var messages = await _messageService.GetRoomMessagesAsync(roomId, page, pageSize);
         return Ok(messages);
     }
 

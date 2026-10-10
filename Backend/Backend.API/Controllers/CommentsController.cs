@@ -19,9 +19,9 @@ public class CommentsController : ControllerBase
     }
 
     [HttpGet("posts/{postId}/comments")]
-    public async Task<IActionResult> GetPostComments(int postId)
+    public async Task<IActionResult> GetPostComments(int postId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var comments = await _commentService.GetPostCommentsAsync(postId);
+        var comments = await _commentService.GetPostCommentsAsync(postId, page, pageSize);
         return Ok(comments);
     }
 

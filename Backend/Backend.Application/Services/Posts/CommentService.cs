@@ -101,10 +101,12 @@ public class CommentService : ICommentService
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task<IEnumerable<CommentDto>> GetPostCommentsAsync(int postId)
+    public async Task<IEnumerable<CommentDto>> GetPostCommentsAsync(int postId, int page = 1, int pageSize = 50)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 50 : (pageSize > 100 ? 100 : pageSize);
 
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)
@@ -127,7 +129,11 @@ public class CommentService : ICommentService
             }
         }
 
-        var comments = await commentsQuery.OrderByDescending(c => c.CreatedAt).ToListAsync();
+        var comments = await commentsQuery
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return _mapper.Map<IEnumerable<CommentDto>>(comments);
     }

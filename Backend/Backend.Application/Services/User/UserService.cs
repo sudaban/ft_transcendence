@@ -40,7 +40,8 @@ public class UserService : IUserService
         IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
-            .Include(u => u.Posts);
+            .Include(u => u.Posts)
+            .AsSplitQuery();
 
         if (is_admin)
         {
@@ -58,6 +59,7 @@ public class UserService : IUserService
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
             .Include(u => u.Posts)
+            .AsSplitQuery()
             .Where(u => u.Id == id);
 
         if (is_admin)
@@ -79,6 +81,7 @@ public class UserService : IUserService
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
             .Include(u => u.Posts)
+            .AsSplitQuery()
             .Where(u => u.Username == username);
 
         if (is_admin)

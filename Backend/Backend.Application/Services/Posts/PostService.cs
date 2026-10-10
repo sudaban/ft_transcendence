@@ -118,9 +118,11 @@ public class PostService : IPostService
         return dto;
     }
 
-    public async Task<IEnumerable<PostDto>> GetFeedAsync()
+    public async Task<IEnumerable<PostDto>> GetFeedAsync(int page = 1, int pageSize = 20)
     {
         int currentUserId = _currentUserService.UserId;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         var followingIds = await _followRepository.TableNoTracking
             .Where(f => f.FollowerId == currentUserId)
@@ -140,8 +142,11 @@ public class PostService : IPostService
             .Include(p => p.User)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
+            .AsSplitQuery()
             .Where(p => feedIds.Contains(p.UserId))
             .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return posts.Select(p =>
@@ -152,10 +157,12 @@ public class PostService : IPostService
         });
     }
 
-    public async Task<IEnumerable<PostDto>> GetUserPostsAsync(int userId)
+    public async Task<IEnumerable<PostDto>> GetUserPostsAsync(int userId, int page = 1, int pageSize = 20)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         if (!isAdmin && userId != currentUserId)
         {
@@ -171,8 +178,11 @@ public class PostService : IPostService
             .Include(p => p.User)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
+            .AsSplitQuery()
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return posts.Select(p =>

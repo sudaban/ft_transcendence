@@ -125,10 +125,12 @@ public class MessageService : IMessageService
         return messageDto;
     }
 
-    public async Task<IEnumerable<MessageDto>> GetRoomMessagesAsync(int roomId)
+    public async Task<IEnumerable<MessageDto>> GetRoomMessagesAsync(int roomId, int page = 1, int pageSize = 50)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 50 : (pageSize > 100 ? 100 : pageSize);
 
         var member = await _memberRepository.TableNoTracking
             .FirstOrDefaultAsync(m => m.ChatRoomId == roomId && m.UserId == currentUserId);
@@ -148,7 +150,11 @@ public class MessageService : IMessageService
             query = query.Where(m => m.SentAt > member.ClearedAt.Value);
         }
 
-        var messages = await query.OrderBy(m => m.SentAt).ToListAsync();
+        var messages = await query
+            .OrderBy(m => m.SentAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return _mapper.Map<IEnumerable<MessageDto>>(messages);
     }

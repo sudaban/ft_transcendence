@@ -36,10 +36,36 @@ public class FileUploadService : IFileUploadService
             throw new BadRequestException($"File size exceeds the limit of 10 MB.");
         }
 
+        var allowedMimeTypes = new[] { "image/jpeg", "image/png" };
+        if (string.IsNullOrEmpty(contentType) || !allowedMimeTypes.Contains(contentType.ToLowerInvariant()))
+        {
+            throw new BadRequestException("Unsupported Content-Type.");
+        }
+
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(extension))
         {
             throw new BadRequestException("Unsupported file type.");
+        }
+
+        var headerBytes = new byte[8];
+        var originalPosition = fileStream.Position;
+        int bytesRead = await fileStream.ReadAsync(headerBytes, 0, headerBytes.Length);
+        fileStream.Position = originalPosition;
+
+        bool isValidImage = false;
+        if (bytesRead >= 3 && headerBytes[0] == 0xFF && headerBytes[1] == 0xD8 && headerBytes[2] == 0xFF)
+        {
+            isValidImage = extension == ".jpg" || extension == ".jpeg";
+        }
+        else if (bytesRead >= 8 && headerBytes[0] == 0x89 && headerBytes[1] == 0x50 && headerBytes[2] == 0x4E && headerBytes[3] == 0x47)
+        {
+            isValidImage = extension == ".png";
+        }
+
+        if (!isValidImage)
+        {
+            throw new BadRequestException("File content does not match allowed image formats.");
         }
 
         var unique_file_name = $"{Guid.NewGuid()}{extension}";

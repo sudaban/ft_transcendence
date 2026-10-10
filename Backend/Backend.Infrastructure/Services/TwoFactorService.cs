@@ -9,6 +9,8 @@ namespace Backend.Infrastructure.Services
     {
         private readonly ILogger<TwoFactorService> _logger;
 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> _usedCodes = new();
+
         public TwoFactorService(ILogger<TwoFactorService> logger)
         {
             _logger = logger;
@@ -48,9 +50,32 @@ namespace Backend.Infrastructure.Services
 
                 for (int i = -1; i <= 1; i++)
                 {
-                    var temp_code = GenerateTotp(key_bytes, counter + i);
-                    if (temp_code == cleaned_code)
+                    var checkCounter = counter + i;
+                    var temp_code = GenerateTotp(key_bytes, checkCounter);
+
+                    if (CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(temp_code), Encoding.UTF8.GetBytes(cleaned_code)))
+                    {
+                        var replayKey = $"{secret_key}_{checkCounter}";
+                        if (!_usedCodes.TryAdd(replayKey, unix_time))
+                        {
+                            _logger.LogWarning("2FA code replay attempt detected.");
+                            return false;
+                        }
+
+                        if (_usedCodes.Count > 200)
+                        {
+                            var expiryThreshold = unix_time - 120;
+                            foreach (var item in _usedCodes)
+                            {
+                                if (item.Value < expiryThreshold)
+                                {
+                                    _usedCodes.TryRemove(item.Key, out _);
+                                }
+                            }
+                        }
+
                         return true;
+                    }
                 }
             }
             catch (Exception ex)
