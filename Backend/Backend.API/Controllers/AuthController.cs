@@ -86,13 +86,5 @@ namespace Backend.API.Controllers
             var response = await _authService.RefreshTokenAsync(request);
             return Ok(response);
         }
-
-        [HttpGet("test")]
-        [Authorize]
-        public IActionResult TestToken()
-        {
-            var username = User.Identity?.Name;
-            return Ok(new { Message = $"Token is completely valid! Welcome to the secure area, {username}." });
-        }
     }
 }

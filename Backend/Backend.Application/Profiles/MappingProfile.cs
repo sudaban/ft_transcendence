@@ -18,7 +18,6 @@ namespace Backend.Application.Profiles
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
 
-            CreateMap<CreatePostRequestDto, Post>();
             CreateMap<UpdateProfileRequestDto, User>();
             CreateMap<CreateChatRoomDto, ChatRoom>();
         
@@ -48,14 +47,7 @@ namespace Backend.Application.Profiles
                 .ForCtorParam("Members", opt => opt.MapFrom(src => src.Members.Select(m => m.User).ToList()));
             CreateMap<Comment, CommentDto>();
             CreateMap<Message, MessageDto>();
-
-            CreateMap<Post, DatabasePostDto>()
-                .ForCtorParam("Id", opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForCtorParam("AuthorId", opt => opt.MapFrom(src => src.UserId.ToString()))
-                .ForCtorParam("CreatedAt", opt => opt.MapFrom(src => src.CreatedAt.ToString("0"))) 
-                .ForCtorParam("Likes", opt => opt.MapFrom(src => src.Likes.Select(l => l.UserId.ToString()).ToList())) 
-                .ForCtorParam("Comments", opt => opt.MapFrom(src => src.Comments.Select(c => c.Id.ToString()).ToList()))
-                .ForCtorParam("Saves", opt => opt.MapFrom(src => src.SavedByUsers.Select(s => s.UserId.ToString()).ToList())); 
+ 
 
         }
     }
