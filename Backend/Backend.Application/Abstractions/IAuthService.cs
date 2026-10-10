@@ -10,7 +10,7 @@ namespace Backend.Application.Abstractions
         Task<LoginResponseDto> Verify2FaLoginAsync(TwoFactorLoginRequestDto request);
         Task<TwoFactorSetupDto> SetupTwoFactorAsync(int user_id);
         Task<bool> EnableTwoFactorAsync(int user_id, string code);
-        Task<bool> DisableTwoFactorAsync(int user_id);
+        Task<bool> DisableTwoFactorAsync(int user_id, DisableTwoFactorRequestDto request);
         Task<LoginResponseDto> OAuthLoginAsync(OAuthLoginRequestDto request);
         Task<LoginResponseDto> RefreshTokenAsync(TokenRequestDto request);
     }

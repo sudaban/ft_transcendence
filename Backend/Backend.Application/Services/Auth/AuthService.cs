@@ -178,11 +178,37 @@ namespace Backend.Application.Services
             return true;
         }
 
-        public async Task<bool> DisableTwoFactorAsync(int user_id)
+        public async Task<bool> DisableTwoFactorAsync(int user_id, DisableTwoFactorRequestDto request)
         {
             var user = await _userRepository.GetByIdAsync(user_id);
             if (user == null)
                 throw new NotFoundException("User not found.");
+
+            if (!user.IsTwoFactorEnabled)
+                throw new BadRequestException("Two-factor authentication is not enabled.");
+
+            bool isVerified = false;
+
+            if (!string.IsNullOrEmpty(request.Password))
+            {
+                if (!string.IsNullOrEmpty(user.PasswordSalt))
+                {
+                    isVerified = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt);
+                }
+                else
+                {
+                    isVerified = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
+                }
+            }
+            else if (!string.IsNullOrEmpty(request.Code) && !string.IsNullOrEmpty(user.TwoFactorSecret))
+            {
+                isVerified = _twoFactorService.VerifyCode(user.TwoFactorSecret, request.Code);
+            }
+
+            if (!isVerified)
+            {
+                throw new UnAuthorizedAccessException("Invalid password or verification code provided to disable 2FA.");
+            }
 
             user.IsTwoFactorEnabled = false;
             user.TwoFactorSecret = null;
@@ -217,6 +243,13 @@ namespace Backend.Application.Services
             else
             {
                 throw new BadRequestException("Unsupported OAuth provider.");
+            }
+
+            if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out var parsedRedirectUri) ||
+                (!parsedRedirectUri.AbsolutePath.EndsWith("/auth/callback", StringComparison.OrdinalIgnoreCase) &&
+                 !parsedRedirectUri.AbsolutePath.EndsWith("/auth/callback/", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new BadRequestException("Invalid OAuth redirect URI.");
             }
 
             var http_client = _httpClientFactory.CreateClient();
@@ -270,6 +303,22 @@ namespace Backend.Application.Services
             }
             else if (provider == "google")
             {
+                if (user_info_doc.RootElement.TryGetProperty("email_verified", out var verifiedProp))
+                {
+                    bool isVerified = verifiedProp.ValueKind switch
+                    {
+                        JsonValueKind.True => true,
+                        JsonValueKind.False => false,
+                        JsonValueKind.String => bool.TryParse(verifiedProp.GetString(), out var parsed) && parsed,
+                        _ => false
+                    };
+
+                    if (!isVerified)
+                    {
+                        throw new BadRequestException("OAuth email is not verified by provider.");
+                    }
+                }
+
                 email = user_info_doc.RootElement.GetProperty("email").GetString() ?? "";
                 username = user_info_doc.RootElement.TryGetProperty("name", out var name_prop) ? name_prop.GetString() ?? "" : email.Split('@')[0];
             }

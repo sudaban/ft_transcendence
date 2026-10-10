@@ -63,9 +63,9 @@ namespace Backend.API.Controllers
 
         [HttpPost("2fa/disable")]
         [Authorize]
-        public async Task<IActionResult> DisableTwoFactor()
+        public async Task<IActionResult> DisableTwoFactor([FromBody] DisableTwoFactorRequestDto request)
         {
-            var success = await _authService.DisableTwoFactorAsync(User.GetCurrentUserId());
+            var success = await _authService.DisableTwoFactorAsync(User.GetCurrentUserId(), request);
             if (!success)
             {
                 throw new BadRequestException("Failed to disable two-factor authentication.");
