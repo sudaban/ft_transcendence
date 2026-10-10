@@ -18,17 +18,17 @@ public class ChatRoomsController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetAllChatRooms()
+    public async Task<IActionResult> GetAllChatRooms([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var chat_rooms = await _chatRoomService.GetAllChatRoomsAsync();
+        var chat_rooms = await _chatRoomService.GetAllChatRoomsAsync(page, pageSize);
         return Ok(chat_rooms);
     }
 
     [HttpGet("my")]
     [Authorize]
-    public async Task<IActionResult> GetMyChatRooms()
+    public async Task<IActionResult> GetMyChatRooms([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var chat_rooms = await _chatRoomService.GetMyChatRoomsAsync();
+        var chat_rooms = await _chatRoomService.GetMyChatRoomsAsync(page, pageSize);
         return Ok(chat_rooms);
     }
 

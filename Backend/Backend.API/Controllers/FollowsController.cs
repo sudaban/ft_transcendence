@@ -33,25 +33,25 @@ public class FollowsController : ControllerBase
 
     [HttpGet("{userId}/followers")]
     [Authorize]
-    public async Task<IActionResult> GetFollowers(int userId)
+    public async Task<IActionResult> GetFollowers(int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var followers = await _followService.GetFollowersAsync(userId);
+        var followers = await _followService.GetFollowersAsync(userId, page, pageSize);
         return Ok(followers);
     }
 
     [HttpGet("{userId}/following")]
     [Authorize]
-    public async Task<IActionResult> GetFollowing(int userId)
+    public async Task<IActionResult> GetFollowing(int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var following = await _followService.GetFollowingAsync(userId);
+        var following = await _followService.GetFollowingAsync(userId, page, pageSize);
         return Ok(following);
     }
 
     [HttpGet("{userId}/friends")]
     [Authorize]
-    public async Task<IActionResult> GetFriends(int userId)
+    public async Task<IActionResult> GetFriends(int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var friends = await _followService.GetFriendsAsync(userId);
+        var friends = await _followService.GetFriendsAsync(userId, page, pageSize);
         return Ok(friends);
     }
 }

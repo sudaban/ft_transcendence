@@ -55,34 +55,48 @@ public class ChatRoomService : IChatRoomService
         return _mapper.Map<ChatRoomDto>(chat_room);
     }
 
-    public async Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync()
+    public async Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync(int page = 1, int pageSize = 20)
     {
         var user_id = _currentUserService.UserId;
         var is_admin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         IQueryable<ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
-                .ThenInclude(crm => crm.User);
+                .ThenInclude(crm => crm.User)
+            .AsSplitQuery();
 
         if (!is_admin)
         {
             query = query.Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
         }
 
-        var chat_rooms = await query.ToListAsync();
+        var chat_rooms = await query
+            .OrderByDescending(cr => cr.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         return _mapper.Map<IEnumerable<ChatRoomDto>>(chat_rooms);
     }
 
-    public async Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync()
+    public async Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync(int page = 1, int pageSize = 20)
     {
         var user_id = _currentUserService.UserId;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         IQueryable<ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
                 .ThenInclude(crm => crm.User)
+            .AsSplitQuery()
             .Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
 
-        var chat_rooms = await query.ToListAsync();
+        var chat_rooms = await query
+            .OrderByDescending(cr => cr.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         return _mapper.Map<IEnumerable<ChatRoomDto>>(chat_rooms);
     }
 

@@ -104,13 +104,13 @@ public class UserService : IUserService
             return new List<UserDto>();
         }
 
-        query = query.ToLower();
+        query = query.Trim();
 
         var users = await _userRepository.TableNoTracking
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
             .Include(u => u.Posts)
-            .Where(u => u.Username.ToLower().StartsWith(query))
+            .Where(u => EF.Functions.Like(u.Username.ToLower(), $"{query.ToLower()}%"))
             .Take(10)
             .ToListAsync();
 
@@ -130,7 +130,20 @@ public class UserService : IUserService
 
         if (request.FullName != null) user.FullName = request.FullName;
         if (request.Bio != null) user.Bio = request.Bio;
-        if (request.ProfilePictureUrl != null) user.ProfilePictureUrl = request.ProfilePictureUrl;
+        if (request.ProfilePictureUrl != null)
+        {
+            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
+            {
+                bool isValidUrl = Uri.TryCreate(request.ProfilePictureUrl, UriKind.Absolute, out var uriResult)
+                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                bool isValidRelative = request.ProfilePictureUrl.StartsWith("/uploads/") || request.ProfilePictureUrl.StartsWith("/");
+                if (!isValidUrl && !isValidRelative)
+                {
+                    throw new BadRequestException("Invalid profile picture URL.");
+                }
+            }
+            user.ProfilePictureUrl = request.ProfilePictureUrl;
+        }
 
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync();

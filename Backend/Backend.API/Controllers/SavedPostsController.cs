@@ -18,9 +18,9 @@ public class SavedPostsController : ControllerBase
     }
 
     [HttpGet("saved-posts")]
-    public async Task<IActionResult> GetSavedPosts()
+    public async Task<IActionResult> GetSavedPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var posts = await _savedPostService.GetSavedPostsAsync();
+        var posts = await _savedPostService.GetSavedPostsAsync(page, pageSize);
         return Ok(posts);
     }
 

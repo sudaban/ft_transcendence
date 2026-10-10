@@ -5,11 +5,8 @@ using Backend.Application.Exceptions;
 using Backend.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace Backend.Application.Services
 {
@@ -20,8 +17,7 @@ namespace Backend.Application.Services
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITwoFactorService _twoFactorService;
         private readonly IGenericRepository<User> _userRepository;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
+        private readonly IOAuthService _oauthService;
 
         public AuthService(
             IUnitOfWork unitOfWork,
@@ -29,16 +25,14 @@ namespace Backend.Application.Services
             IPasswordHasher passwordHasher,
             ITwoFactorService twoFactorService,
             IGenericRepository<User> userRepository,
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IOAuthService oauthService)
         {
             _unitOfWork = unitOfWork;
             _tokenService = tokenService;
             _passwordHasher = passwordHasher;
             _twoFactorService = twoFactorService;
             _userRepository = userRepository;
-            _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
+            _oauthService = oauthService;
         }
 
         public async Task<string> RegisterAsync(RegisterRequestDto request)
@@ -205,113 +199,9 @@ namespace Backend.Application.Services
 
         public async Task<LoginResponseDto> OAuthLoginAsync(OAuthLoginRequestDto request)
         {
-            var provider = request.Provider.ToLowerInvariant();
-            string client_id = "";
-            string client_secret = "";
-            string token_endpoint = "";
-            string user_info_endpoint = "";
-
-            if (provider == "42")
-            {
-                client_id = _configuration["OAUTH_INTRA_CLIENT_ID"] ?? "";
-                client_secret = _configuration["OAUTH_INTRA_CLIENT_SECRET"] ?? "";
-                token_endpoint = "https://api.intra.42.fr/oauth/token";
-                user_info_endpoint = "https://api.intra.42.fr/v2/me";
-            }
-            else if (provider == "google")
-            {
-                client_id = _configuration["OAUTH_GOOGLE_CLIENT_ID"] ?? "";
-                client_secret = _configuration["OAUTH_GOOGLE_CLIENT_SECRET"] ?? "";
-                token_endpoint = "https://oauth2.googleapis.com/token";
-                user_info_endpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
-            }
-            else
-            {
-                throw new BadRequestException("Unsupported OAuth provider.");
-            }
-
-            if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out var parsedRedirectUri) ||
-                (!parsedRedirectUri.AbsolutePath.EndsWith("/auth/callback", StringComparison.OrdinalIgnoreCase) &&
-                 !parsedRedirectUri.AbsolutePath.EndsWith("/auth/callback/", StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new BadRequestException("Invalid OAuth redirect URI.");
-            }
-
-            var http_client = _httpClientFactory.CreateClient();
-            var dict = new Dictionary<string, string>
-            {
-                { "grant_type", "authorization_code" },
-                { "client_id", client_id },
-                { "client_secret", client_secret },
-                { "code", request.Code },
-                { "redirect_uri", request.RedirectUri }
-            };
-
-            var req = new HttpRequestMessage(HttpMethod.Post, token_endpoint)
-            {
-                Content = new FormUrlEncodedContent(dict)
-            };
-
-            var res = await http_client.SendAsync(req);
-            if (!res.IsSuccessStatusCode)
-            {
-                throw new BadRequestException("Failed to exchange OAuth code for access token.");
-            }
-
-            var token_content = await res.Content.ReadAsStringAsync();
-            using var token_doc = JsonDocument.Parse(token_content);
-            var access_token = token_doc.RootElement.GetProperty("access_token").GetString();
-
-            if (string.IsNullOrEmpty(access_token))
-            {
-                throw new BadRequestException("Access token not found in response.");
-            }
-
-            var user_info_req = new HttpRequestMessage(HttpMethod.Get, user_info_endpoint);
-            user_info_req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-
-            var user_info_res = await http_client.SendAsync(user_info_req);
-            if (!user_info_res.IsSuccessStatusCode)
-            {
-                throw new BadRequestException("Failed to retrieve user info from provider.");
-            }
-
-            var user_info_content = await user_info_res.Content.ReadAsStringAsync();
-            using var user_info_doc = JsonDocument.Parse(user_info_content);
-            string email = "";
-            string username = "";
-
-            if (provider == "42")
-            {
-                email = user_info_doc.RootElement.GetProperty("email").GetString() ?? "";
-                username = user_info_doc.RootElement.GetProperty("login").GetString() ?? "";
-            }
-            else if (provider == "google")
-            {
-                if (user_info_doc.RootElement.TryGetProperty("email_verified", out var verifiedProp))
-                {
-                    bool isVerified = verifiedProp.ValueKind switch
-                    {
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        JsonValueKind.String => bool.TryParse(verifiedProp.GetString(), out var parsed) && parsed,
-                        _ => false
-                    };
-
-                    if (!isVerified)
-                    {
-                        throw new BadRequestException("OAuth email is not verified by provider.");
-                    }
-                }
-
-                email = user_info_doc.RootElement.GetProperty("email").GetString() ?? "";
-                username = user_info_doc.RootElement.TryGetProperty("name", out var name_prop) ? name_prop.GetString() ?? "" : email.Split('@')[0];
-            }
-
-            if (string.IsNullOrEmpty(email))
-            {
-                throw new BadRequestException("Email not found in user info.");
-            }
+            var userInfo = await _oauthService.GetOAuthUserInfoAsync(request.Provider, request.Code, request.RedirectUri);
+            var email = userInfo.Email;
+            var username = userInfo.Username;
 
             var user = await _userRepository.Table.FirstOrDefaultAsync(u => u.Email == email);
 
@@ -376,9 +266,20 @@ namespace Backend.Application.Services
             }
 
             var user = await _userRepository.GetByIdAsync(user_id);
-            if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 throw new UnAuthorizedAccessException("Invalid refresh token.");
+            }
+
+            var hashedRequestToken = HashRefreshToken(request.RefreshToken);
+            bool isValid = user.RefreshToken == hashedRequestToken || user.RefreshToken == request.RefreshToken;
+            if (!isValid)
+            {
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+                await _userRepository.UpdateAsync(user);
+                await _unitOfWork.CommitAsync();
+                throw new UnAuthorizedAccessException("Invalid refresh token. Token reuse detected.");
             }
 
             return await GenerateAuthResponseAsync(user);
@@ -389,13 +290,20 @@ namespace Backend.Application.Services
             var token = _tokenService.CreateToken(user);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
-            user.RefreshToken = refreshToken;
+            user.RefreshToken = HashRefreshToken(refreshToken);
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
             await _userRepository.UpdateAsync(user);
             await _unitOfWork.CommitAsync();
 
             return new LoginResponseDto(false, token, refreshToken, null);
+        }
+
+        private static string HashRefreshToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(hashBytes);
         }
     }
 }

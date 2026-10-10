@@ -8,9 +8,9 @@ namespace Backend.Application.Abstractions;
 public interface IChatRoomService
 {
     Task<ChatRoomDto> GetChatRoomByIdAsync(int id);
-    Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync();
+    Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync(int page = 1, int pageSize = 20);
     Task<ChatRoomDto> CreateChatRoomAsync(CreateChatRoomDto request);
     Task DeleteChatRoomAsync(int id);
     Task HideChatRoomAsync(int id);
-    Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync();
+    Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync(int page = 1, int pageSize = 20);
 } 

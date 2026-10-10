@@ -83,10 +83,12 @@ public class FollowService : IFollowService
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task<IEnumerable<UserDto>> GetFollowersAsync(int userId)
+    public async Task<IEnumerable<UserDto>> GetFollowersAsync(int userId, int page = 1, int pageSize = 20)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowingId == userId)
@@ -104,14 +106,20 @@ public class FollowService : IFollowService
             query = query.Where(u => !blockedIds.Contains(u.Id));
         }
 
-        var followers = await query.ToListAsync();
+        var followers = await query
+            .OrderBy(u => u.Username)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         return _mapper.Map<IEnumerable<UserDto>>(followers);
     }
 
-    public async Task<IEnumerable<UserDto>> GetFollowingAsync(int userId)
+    public async Task<IEnumerable<UserDto>> GetFollowingAsync(int userId, int page = 1, int pageSize = 20)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowerId == userId)
@@ -129,14 +137,20 @@ public class FollowService : IFollowService
             query = query.Where(u => !blockedIds.Contains(u.Id));
         }
 
-        var following = await query.ToListAsync();
+        var following = await query
+            .OrderBy(u => u.Username)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         return _mapper.Map<IEnumerable<UserDto>>(following);
     }
 
-    public async Task<IEnumerable<UserDto>> GetFriendsAsync(int userId)
+    public async Task<IEnumerable<UserDto>> GetFriendsAsync(int userId, int page = 1, int pageSize = 20)
     {
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowerId == userId)
@@ -155,7 +169,11 @@ public class FollowService : IFollowService
             query = query.Where(u => !blockedIds.Contains(u.Id));
         }
 
-        var friends = await query.ToListAsync();
+        var friends = await query
+            .OrderBy(u => u.Username)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         return _mapper.Map<IEnumerable<UserDto>>(friends);
     }
 }

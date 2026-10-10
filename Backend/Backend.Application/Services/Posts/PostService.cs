@@ -2,6 +2,7 @@ using AutoMapper;
 using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Posts;
 using Backend.Application.DTOs.Responses.Posts;
+using Backend.Application.DTOs.Responses.Users;
 using Backend.Application.Exceptions;
 using Backend.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -94,28 +95,50 @@ public class PostService : IPostService
         int currentUserId = _currentUserService.UserId;
         bool isAdmin = _currentUserService.IsAdmin;
 
-        var post = await _postRepository.TableNoTracking
-            .Include(p => p.User)
-            .Include(p => p.Likes)
-            .Include(p => p.Comments)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var postData = await _postRepository.TableNoTracking
+            .Where(p => p.Id == id)
+            .Select(p => new
+            {
+                p.Id,
+                p.UserId,
+                p.User,
+                p.ImageUrl,
+                p.Content,
+                p.ViewsCount,
+                p.IsVideo,
+                p.CreatedAt,
+                LikesCount = p.Likes.Count(),
+                CommentsCount = p.Comments.Count(),
+                IsLiked = p.Likes.Any(l => l.UserId == currentUserId)
+            })
+            .FirstOrDefaultAsync();
 
-        if (post == null)
+        if (postData == null)
             throw new NotFoundException($"Post with ID {id} not found.");
 
-        if (!isAdmin && post.UserId != currentUserId)
+        if (!isAdmin && postData.UserId != currentUserId)
         {
             bool hasBlock = await _userBlockRepository.TableNoTracking
-                .AnyAsync(ub => (ub.BlockerId == currentUserId && ub.BlockedId == post.UserId) ||
-                                (ub.BlockerId == post.UserId && ub.BlockedId == currentUserId));
+                .AnyAsync(ub => (ub.BlockerId == currentUserId && ub.BlockedId == postData.UserId) ||
+                                (ub.BlockerId == postData.UserId && ub.BlockedId == currentUserId));
 
             if (hasBlock)
                 throw new UnAuthorizedAccessException("You cannot view this post.");
         }
 
-        var dto = _mapper.Map<PostDto>(post);
-        dto.IsLiked = post.Likes.Any(l => l.UserId == currentUserId);
-        return dto;
+        return new PostDto
+        {
+            Id = postData.Id,
+            Author = _mapper.Map<UserDto>(postData.User),
+            ImageUrl = postData.ImageUrl,
+            Content = postData.Content,
+            ViewsCount = postData.ViewsCount,
+            IsVideo = postData.IsVideo,
+            CreatedAt = postData.CreatedAt,
+            LikesCount = postData.LikesCount,
+            CommentsCount = postData.CommentsCount,
+            IsLiked = postData.IsLiked
+        };
     }
 
     public async Task<IEnumerable<PostDto>> GetFeedAsync(int page = 1, int pageSize = 20)
@@ -139,21 +162,37 @@ public class PostService : IPostService
         var feedIds = followingIds.Except(blockedIds).ToList();
 
         var posts = await _postRepository.TableNoTracking
-            .Include(p => p.User)
-            .Include(p => p.Likes)
-            .Include(p => p.Comments)
-            .AsSplitQuery()
             .Where(p => feedIds.Contains(p.UserId))
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(p => new
+            {
+                p.Id,
+                p.User,
+                p.ImageUrl,
+                p.Content,
+                p.ViewsCount,
+                p.IsVideo,
+                p.CreatedAt,
+                LikesCount = p.Likes.Count(),
+                CommentsCount = p.Comments.Count(),
+                IsLiked = p.Likes.Any(l => l.UserId == currentUserId)
+            })
             .ToListAsync();
 
-        return posts.Select(p =>
+        return posts.Select(p => new PostDto
         {
-            var dto = _mapper.Map<PostDto>(p);
-            dto.IsLiked = p.Likes.Any(l => l.UserId == currentUserId);
-            return dto;
+            Id = p.Id,
+            Author = _mapper.Map<UserDto>(p.User),
+            ImageUrl = p.ImageUrl,
+            Content = p.Content,
+            ViewsCount = p.ViewsCount,
+            IsVideo = p.IsVideo,
+            CreatedAt = p.CreatedAt,
+            LikesCount = p.LikesCount,
+            CommentsCount = p.CommentsCount,
+            IsLiked = p.IsLiked
         });
     }
 
@@ -175,21 +214,37 @@ public class PostService : IPostService
         }
 
         var posts = await _postRepository.TableNoTracking
-            .Include(p => p.User)
-            .Include(p => p.Likes)
-            .Include(p => p.Comments)
-            .AsSplitQuery()
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(p => new
+            {
+                p.Id,
+                p.User,
+                p.ImageUrl,
+                p.Content,
+                p.ViewsCount,
+                p.IsVideo,
+                p.CreatedAt,
+                LikesCount = p.Likes.Count(),
+                CommentsCount = p.Comments.Count(),
+                IsLiked = p.Likes.Any(l => l.UserId == currentUserId)
+            })
             .ToListAsync();
 
-        return posts.Select(p =>
+        return posts.Select(p => new PostDto
         {
-            var dto = _mapper.Map<PostDto>(p);
-            dto.IsLiked = p.Likes.Any(l => l.UserId == currentUserId);
-            return dto;
+            Id = p.Id,
+            Author = _mapper.Map<UserDto>(p.User),
+            ImageUrl = p.ImageUrl,
+            Content = p.Content,
+            ViewsCount = p.ViewsCount,
+            IsVideo = p.IsVideo,
+            CreatedAt = p.CreatedAt,
+            LikesCount = p.LikesCount,
+            CommentsCount = p.CommentsCount,
+            IsLiked = p.IsLiked
         });
     }
 

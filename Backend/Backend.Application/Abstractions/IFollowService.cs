@@ -8,7 +8,7 @@ public interface IFollowService
 {
     Task FollowUserAsync(int targetUserId);
     Task UnfollowUserAsync(int targetUserId);
-    Task<IEnumerable<UserDto>> GetFollowersAsync(int userId);
-    Task<IEnumerable<UserDto>> GetFollowingAsync(int userId);
-    Task<IEnumerable<UserDto>> GetFriendsAsync(int userId);
+    Task<IEnumerable<UserDto>> GetFollowersAsync(int userId, int page = 1, int pageSize = 20);
+    Task<IEnumerable<UserDto>> GetFollowingAsync(int userId, int page = 1, int pageSize = 20);
+    Task<IEnumerable<UserDto>> GetFriendsAsync(int userId, int page = 1, int pageSize = 20);
 }

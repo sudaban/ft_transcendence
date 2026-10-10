@@ -45,12 +45,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
+        services.AddScoped<IOAuthService, OAuthService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFileUploadService, FileUploadService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IChatRoomService, ChatRoomService>();
+        services.AddScoped<IChatPresenceService, ChatPresenceService>();
         services.AddHttpClient();
         services.AddScoped<IUserBlockService, UserBlockService>();
         services.AddScoped<IFollowService, FollowService>();

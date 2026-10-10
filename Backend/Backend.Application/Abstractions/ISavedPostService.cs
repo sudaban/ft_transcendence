@@ -8,5 +8,5 @@ public interface ISavedPostService
 {
     Task SavePostAsync(int postId);
     Task UnsavePostAsync(int postId);
-    Task<IEnumerable<PostDto>> GetSavedPostsAsync();
+    Task<IEnumerable<PostDto>> GetSavedPostsAsync(int page = 1, int pageSize = 20);
 }

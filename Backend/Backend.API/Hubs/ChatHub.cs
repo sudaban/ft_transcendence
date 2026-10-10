@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Backend.Application.Abstractions;
 using Backend.Application.Extensions;
-using Backend.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Backend.API.Hubs;
@@ -15,20 +14,14 @@ namespace Backend.API.Hubs;
 public class ChatHub : Hub
 {
     private static readonly ConcurrentDictionary<int, HashSet<string>> _userConnections = new();
-    private readonly IGenericRepository<User> _userRepository;
-    private readonly IGenericRepository<ChatRoomMember> _memberRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IChatPresenceService _chatPresenceService;
     private readonly ILogger<ChatHub> _logger;
 
     public ChatHub(
-        IGenericRepository<User> userRepository,
-        IGenericRepository<ChatRoomMember> memberRepository,
-        IUnitOfWork unitOfWork,
+        IChatPresenceService chatPresenceService,
         ILogger<ChatHub> logger)
     {
-        _userRepository = userRepository;
-        _memberRepository = memberRepository;
-        _unitOfWork = unitOfWork;
+        _chatPresenceService = chatPresenceService;
         _logger = logger;
     }
 
@@ -48,14 +41,10 @@ public class ChatHub : Hub
 
             if (isFirstConnection)
             {
-                var user = await _userRepository.GetByIdAsync(user_id);
-                if (user != null)
+                var lastSeenAt = await _chatPresenceService.SetUserOnlineStatusAsync(user_id, true);
+                if (lastSeenAt.HasValue)
                 {
-                    user.IsOnline = true;
-                    user.LastSeenAt = DateTime.UtcNow;
-                    await _userRepository.UpdateAsync(user);
-                    await _unitOfWork.CommitAsync();
-                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), true, user.LastSeenAt);
+                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user_id.ToString(), true, lastSeenAt.Value);
                 }
             }
         }
@@ -86,14 +75,10 @@ public class ChatHub : Hub
 
             if (isLastConnection)
             {
-                var user = await _userRepository.GetByIdAsync(user_id);
-                if (user != null)
+                var lastSeenAt = await _chatPresenceService.SetUserOnlineStatusAsync(user_id, false);
+                if (lastSeenAt.HasValue)
                 {
-                    user.IsOnline = false;
-                    user.LastSeenAt = DateTime.UtcNow;
-                    await _userRepository.UpdateAsync(user);
-                    await _unitOfWork.CommitAsync();
-                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), false, user.LastSeenAt);
+                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user_id.ToString(), false, lastSeenAt.Value);
                 }
             }
         }
@@ -109,9 +94,7 @@ public class ChatHub : Hub
         if (int.TryParse(roomId, out int parsedRoomId))
         {
             var userId = Context.User!.GetCurrentUserId();
-            bool isMember = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(
-                _memberRepository.TableNoTracking,
-                m => m.ChatRoomId == parsedRoomId && m.UserId == userId);
+            bool isMember = await _chatPresenceService.IsRoomMemberAsync(parsedRoomId, userId);
 
             if (!isMember)
             {
