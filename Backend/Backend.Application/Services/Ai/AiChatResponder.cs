@@ -40,6 +40,22 @@ public class AiChatResponder : IAiChatResponder
     private static RateState CheckRateLimit(int userId)
     {
         var now = DateTime.UtcNow;
+
+        if (_usage.Count > 50)
+        {
+            foreach (var kvp in _usage)
+            {
+                lock (kvp.Value)
+                {
+                    kvp.Value.RemoveAll(t => now - t > Window);
+                    if (kvp.Value.Count == 0 && kvp.Key != userId)
+                    {
+                        _usage.TryRemove(kvp.Key, out _);
+                    }
+                }
+            }
+        }
+
         var timestamps = _usage.GetOrAdd(userId, _ => new List<DateTime>());
         lock (timestamps)
         {
@@ -154,8 +170,9 @@ public class AiChatResponder : IAiChatResponder
 
                 await chatHubService.SendMessageToRoomAsync(roomId, mapper.Map<MessageDto>(createdFallback));
             }
-            catch (Exception)
+            catch (Exception fallbackEx)
             {
+                _logger.LogError(fallbackEx, "Failed to send AI fallback message for room {RoomId}", roomId);
             }
         }
         finally
@@ -164,8 +181,9 @@ public class AiChatResponder : IAiChatResponder
             {
                 await chatHubService.SendAiTypingAsync(roomId, false);
             }
-            catch (Exception)
+            catch (Exception typingEx)
             {
+                _logger.LogWarning(typingEx, "Failed to update AI typing status for room {RoomId}", roomId);
             }
         }
     }

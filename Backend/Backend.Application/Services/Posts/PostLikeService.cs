@@ -1,8 +1,6 @@
 using Backend.Application.Abstractions;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
@@ -14,26 +12,26 @@ public class PostLikeService : ILikeService
     private readonly IGenericRepository<Post> _postRepository;
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
 
     public PostLikeService(
         IGenericRepository<PostLike> postLikeRepository,
         IGenericRepository<Post> postRepository,
         IGenericRepository<UserBlock> userBlockRepository,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor)
+        ICurrentUserService currentUserService)
     {
         _postLikeRepository = postLikeRepository;
         _postRepository = postRepository;
         _userBlockRepository = userBlockRepository;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
     }
 
     public async Task LikePostAsync(int postId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)
@@ -53,7 +51,7 @@ public class PostLikeService : ILikeService
             .AnyAsync(pl => pl.PostId == postId && pl.UserId == currentUserId);
 
         if (alreadyLiked)
-            return ;
+            return;
 
         var postLike = new PostLike
         {
@@ -68,7 +66,7 @@ public class PostLikeService : ILikeService
 
     public async Task UnlikePostAsync(int postId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var postLike = await _postLikeRepository.Table
             .FirstOrDefaultAsync(pl => pl.PostId == postId && pl.UserId == currentUserId);

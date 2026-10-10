@@ -1,13 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.ChatRooms;
 using Backend.Application.DTOs.Responses.ChatRooms;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Application.Services.ChatRoom;
@@ -18,26 +17,26 @@ public class ChatRoomService : IChatRoomService
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
 
     public ChatRoomService(
         IGenericRepository<Backend.Domain.Entities.ChatRoom> chatRoomRepository,
         IGenericRepository<UserBlock> userBlockRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IHttpContextAccessor httpContextAccessor)
+        ICurrentUserService currentUserService)
     {
         _chatRoomRepository = chatRoomRepository;
         _userBlockRepository = userBlockRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ChatRoomDto> GetChatRoomByIdAsync(int id)
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        var user_id = _currentUserService.UserId;
+        var is_admin = _currentUserService.IsAdmin;
 
         IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
@@ -58,8 +57,8 @@ public class ChatRoomService : IChatRoomService
 
     public async Task<IEnumerable<ChatRoomDto>> GetAllChatRoomsAsync()
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        var is_admin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        var user_id = _currentUserService.UserId;
+        var is_admin = _currentUserService.IsAdmin;
 
         IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
@@ -76,7 +75,7 @@ public class ChatRoomService : IChatRoomService
 
     public async Task<IEnumerable<ChatRoomDto>> GetMyChatRoomsAsync()
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _currentUserService.UserId;
 
         IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
@@ -89,7 +88,7 @@ public class ChatRoomService : IChatRoomService
 
     public async Task<ChatRoomDto> CreateChatRoomAsync(CreateChatRoomDto request)
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _currentUserService.UserId;
 
         var chat_room = new Backend.Domain.Entities.ChatRoom
         {
@@ -132,7 +131,7 @@ public class ChatRoomService : IChatRoomService
 
     public async Task DeleteChatRoomAsync(int id)
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _currentUserService.UserId;
 
         var chat_room = await _chatRoomRepository.GetByIdAsync(id);
         if (chat_room == null)
@@ -144,7 +143,7 @@ public class ChatRoomService : IChatRoomService
 
     public async Task HideChatRoomAsync(int id)
     {
-        var user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        var user_id = _currentUserService.UserId;
 
         var chat_room = await _chatRoomRepository.Table
             .Include(cr => cr.Members)

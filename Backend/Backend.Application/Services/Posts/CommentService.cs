@@ -3,9 +3,7 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Posts;
 using Backend.Application.DTOs.Responses.Posts;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +18,7 @@ public class CommentService : ICommentService
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IAiService _aiService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public CommentService(
@@ -29,7 +27,7 @@ public class CommentService : ICommentService
         IGenericRepository<UserBlock> userBlockRepository,
         IAiService aiService,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _commentRepository = commentRepository;
@@ -37,14 +35,14 @@ public class CommentService : ICommentService
         _userBlockRepository = userBlockRepository;
         _aiService = aiService;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task<CommentDto> AddCommentAsync(int postId, CreateCommentDto request)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var moderation = await _aiService.ModerateContentAsync(request.Content ?? string.Empty);
         if (!moderation.IsAllowed)
@@ -68,7 +66,7 @@ public class CommentService : ICommentService
         {
             PostId = postId,
             UserId = currentUserId,
-            Content = request.Content,
+            Content = request.Content ?? string.Empty,
             CreatedAt = System.DateTime.UtcNow
         };
 
@@ -84,8 +82,8 @@ public class CommentService : ICommentService
 
     public async Task DeleteCommentAsync(int commentId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var comment = await _commentRepository.Table
             .Include(c => c.Post)
@@ -105,8 +103,8 @@ public class CommentService : ICommentService
 
     public async Task<IEnumerable<CommentDto>> GetPostCommentsAsync(int postId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)

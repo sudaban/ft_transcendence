@@ -3,7 +3,6 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Posts;
 using Backend.Application.DTOs.Responses.Posts;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,7 @@ public class PostService : IPostService
     private readonly IFileUploadService _fileUploadService;
     private readonly IAiService _aiService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public PostService(
@@ -32,7 +31,7 @@ public class PostService : IPostService
         IFileUploadService fileUploadService,
         IAiService aiService,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _postRepository = postRepository;
@@ -41,13 +40,13 @@ public class PostService : IPostService
         _fileUploadService = fileUploadService;
         _aiService = aiService;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task<PostDto> CreatePostAsync(CreatePostDto request)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var moderation = await _aiService.ModerateContentAsync(request.Content ?? string.Empty);
         if (!moderation.IsAllowed)
@@ -75,8 +74,8 @@ public class PostService : IPostService
 
     public async Task DeletePostAsync(int id)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var post = await _postRepository.GetByIdAsync(id);
         
@@ -92,8 +91,8 @@ public class PostService : IPostService
 
     public async Task<PostDto> GetPostByIdAsync(int id)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var post = await _postRepository.TableNoTracking
             .Include(p => p.User)
@@ -121,7 +120,7 @@ public class PostService : IPostService
 
     public async Task<IEnumerable<PostDto>> GetFeedAsync()
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var followingIds = await _followRepository.TableNoTracking
             .Where(f => f.FollowerId == currentUserId)
@@ -155,8 +154,8 @@ public class PostService : IPostService
 
     public async Task<IEnumerable<PostDto>> GetUserPostsAsync(int userId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         if (!isAdmin && userId != currentUserId)
         {

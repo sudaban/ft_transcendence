@@ -1,4 +1,5 @@
 using Backend.Application.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -23,12 +24,14 @@ public class GeminiAiService : IAiService
         "Respond with ONLY a JSON object, no markdown: {\"allowed\": true|false, \"reason\": \"short reason in the same language as the content\"}";
 
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<GeminiAiService> _logger;
     private readonly string? _apiKey;
     private readonly string _model;
 
-    public GeminiAiService(IHttpClientFactory httpClientFactory)
+    public GeminiAiService(IHttpClientFactory httpClientFactory, ILogger<GeminiAiService> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _logger = logger;
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         _model = Environment.GetEnvironmentVariable("GEMINI_MODEL") ?? "gemini-3-flash-preview";
     }
@@ -187,8 +190,9 @@ public class GeminiAiService : IAiService
 
             return new AiModerationResult(allowed, reason);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to complete AI moderation check.");
             return new AiModerationResult(true, null);
         }
     }

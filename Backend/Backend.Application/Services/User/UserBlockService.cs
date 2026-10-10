@@ -2,9 +2,7 @@ using AutoMapper;
 using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Responses.Users;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +16,7 @@ public class UserBlockService : IUserBlockService
     private readonly IGenericRepository<Follow> _followRepository;
     private readonly IGenericRepository<User> _userRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public UserBlockService(
@@ -26,20 +24,20 @@ public class UserBlockService : IUserBlockService
         IGenericRepository<Follow> followRepository,
         IGenericRepository<User> userRepository,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _userBlockRepository = userBlockRepository;
         _followRepository = followRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task BlockUserAsync(int targetUserId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         if (currentUserId == targetUserId)
             throw new BadRequestException("You cannot block yourself.");
@@ -76,7 +74,7 @@ public class UserBlockService : IUserBlockService
 
     public async Task UnblockUserAsync(int targetUserId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var blockRecord = await _userBlockRepository.Table
             .FirstOrDefaultAsync(ub => ub.BlockerId == currentUserId && ub.BlockedId == targetUserId);
@@ -90,7 +88,7 @@ public class UserBlockService : IUserBlockService
 
     public async Task<IEnumerable<UserDto>> GetBlockedUsersAsync()
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var blockedUsers = await _userBlockRepository.TableNoTracking
             .Where(ub => ub.BlockerId == currentUserId)

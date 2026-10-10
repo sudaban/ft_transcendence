@@ -1,4 +1,5 @@
 using Backend.Application.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,6 +7,13 @@ namespace Backend.Infrastructure.Services
 {
     public class TwoFactorService : ITwoFactorService
     {
+        private readonly ILogger<TwoFactorService> _logger;
+
+        public TwoFactorService(ILogger<TwoFactorService> logger)
+        {
+            _logger = logger;
+        }
+
         public string GenerateSecretKey()
         {
             var bytes = new byte[20];
@@ -45,8 +53,9 @@ namespace Backend.Infrastructure.Services
                         return true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to verify two factor code.");
                 return false;
             }
 

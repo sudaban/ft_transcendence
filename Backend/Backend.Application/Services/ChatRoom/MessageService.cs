@@ -3,9 +3,7 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.ChatRooms;
 using Backend.Application.DTOs.Responses.ChatRooms;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +20,7 @@ public class MessageService : IMessageService
     private readonly IChatHubService _chatHubService;
     private readonly IAiChatResponder _aiChatResponder;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public MessageService(
@@ -33,7 +31,7 @@ public class MessageService : IMessageService
         IChatHubService chatHubService,
         IAiChatResponder aiChatResponder,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _messageRepository = messageRepository;
@@ -43,13 +41,13 @@ public class MessageService : IMessageService
         _chatHubService = chatHubService;
         _aiChatResponder = aiChatResponder;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task<MessageDto> SendMessageAsync(int roomId, SendMessageDto request)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         bool isMember = await _memberRepository.TableNoTracking
             .AnyAsync(m => m.ChatRoomId == roomId && m.UserId == currentUserId);
@@ -59,20 +57,21 @@ public class MessageService : IMessageService
 
         var room = await _memberRepository.TableNoTracking
             .Include(m => m.ChatRoom)
-            .Where(m => m.ChatRoomId == roomId)
-            .ToListAsync();
+            .FirstOrDefaultAsync(m => m.ChatRoomId == roomId);
 
-        var chatRoom = room.FirstOrDefault()?.ChatRoom;
-        if (chatRoom != null && !chatRoom.IsGroup)
+        if (room != null && !room.ChatRoom.IsGroup)
         {
-            var otherMember = room.FirstOrDefault(m => m.UserId != currentUserId);
+            var otherMember = await _memberRepository.TableNoTracking
+                .FirstOrDefaultAsync(m => m.ChatRoomId == roomId && m.UserId != currentUserId);
+
             if (otherMember != null)
             {
                 bool hasBlock = await _userBlockRepository.TableNoTracking
                     .AnyAsync(ub => (ub.BlockerId == currentUserId && ub.BlockedId == otherMember.UserId) ||
                                     (ub.BlockerId == otherMember.UserId && ub.BlockedId == currentUserId));
+
                 if (hasBlock)
-                    throw new UnAuthorizedAccessException("You cannot send messages in this room due to a block.");
+                    throw new UnAuthorizedAccessException("You cannot send messages to this room due to a block.");
             }
         }
 
@@ -86,15 +85,14 @@ public class MessageService : IMessageService
         };
 
         await _messageRepository.AddAsync(message);
-        
-        
-        var members = await _memberRepository.Table
-            .Where(m => m.ChatRoomId == roomId)
+
+        var hiddenMembers = await _memberRepository.Table
+            .Where(m => m.ChatRoomId == roomId && m.IsHidden)
             .ToListAsync();
-            
-        foreach (var member in members)
+
+        foreach (var hm in hiddenMembers)
         {
-            member.IsHidden = false;
+            hm.IsHidden = false;
         }
 
         await _unitOfWork.CommitAsync();
@@ -105,18 +103,22 @@ public class MessageService : IMessageService
 
         var messageDto = _mapper.Map<MessageDto>(createdMessage);
 
-        
         await _chatHubService.SendMessageToRoomAsync(roomId, messageDto);
 
-        if (chatRoom != null && !chatRoom.IsGroup)
+        if (room != null && !room.ChatRoom.IsGroup)
         {
-            var otherMember = room.FirstOrDefault(m => m.UserId != currentUserId);
+            var otherMember = await _memberRepository.TableNoTracking
+                .FirstOrDefaultAsync(m => m.ChatRoomId == roomId && m.UserId != currentUserId);
+
             if (otherMember != null)
             {
-                bool otherIsAi = await _userRepository.TableNoTracking
-                    .AnyAsync(u => u.Id == otherMember.UserId && u.IsAiAssistant);
-                if (otherIsAi)
-                    _aiChatResponder.QueueReply(roomId, otherMember.UserId, currentUserId);
+                var otherUser = await _userRepository.TableNoTracking
+                    .FirstOrDefaultAsync(u => u.Id == otherMember.UserId);
+
+                if (otherUser != null && otherUser.IsAiAssistant)
+                {
+                    _aiChatResponder.QueueReply(roomId, otherUser.Id, currentUserId);
+                }
             }
         }
 
@@ -125,8 +127,8 @@ public class MessageService : IMessageService
 
     public async Task<IEnumerable<MessageDto>> GetRoomMessagesAsync(int roomId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var member = await _memberRepository.TableNoTracking
             .FirstOrDefaultAsync(m => m.ChatRoomId == roomId && m.UserId == currentUserId);
@@ -153,8 +155,8 @@ public class MessageService : IMessageService
 
     public async Task DeleteMessageAsync(int messageId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var message = await _messageRepository.GetByIdAsync(messageId);
         if (message == null)
@@ -171,7 +173,7 @@ public class MessageService : IMessageService
 
     public async Task DeleteMessageForMeAsync(int messageId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var message = await _messageRepository.Table
             .Include(m => m.DeletedByUsers)

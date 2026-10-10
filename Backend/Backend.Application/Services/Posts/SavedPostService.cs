@@ -2,9 +2,7 @@ using AutoMapper;
 using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Responses.Posts;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,26 +15,26 @@ public class SavedPostService : ISavedPostService
     private readonly IGenericRepository<SavedPost> _savedPostRepository;
     private readonly IGenericRepository<Post> _postRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public SavedPostService(
         IGenericRepository<SavedPost> savedPostRepository,
         IGenericRepository<Post> postRepository,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _savedPostRepository = savedPostRepository;
         _postRepository = postRepository;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task SavePostAsync(int postId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)
@@ -47,8 +45,6 @@ public class SavedPostService : ISavedPostService
 
         if (existingSavedPost != null)
         {
-            await _savedPostRepository.DeleteAsync(existingSavedPost);
-            await _unitOfWork.CommitAsync();
             return;
         }
 
@@ -65,7 +61,7 @@ public class SavedPostService : ISavedPostService
 
     public async Task UnsavePostAsync(int postId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var savedPost = await _savedPostRepository.Table
             .FirstOrDefaultAsync(sp => sp.PostId == postId && sp.UserId == currentUserId);
@@ -79,7 +75,7 @@ public class SavedPostService : ISavedPostService
 
     public async Task<IEnumerable<PostDto>> GetSavedPostsAsync()
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var savedPosts = await _savedPostRepository.TableNoTracking
             .Include(sp => sp.Post)

@@ -6,15 +6,19 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+using Microsoft.Extensions.Logging;
+
 namespace Backend.Infrastructure
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<TokenService> _logger;
 
-        public TokenService(IConfiguration configuration)
+        public TokenService(IConfiguration configuration, ILogger<TokenService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public string CreateToken(User user)
@@ -110,8 +114,9 @@ namespace Backend.Infrastructure
                 email = email_claim;
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to validate temp token.");
                 return false;
             }
         }
@@ -150,8 +155,9 @@ namespace Backend.Infrastructure
                 }
                 return principal;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to validate expired token.");
                 return null;
             }
         }

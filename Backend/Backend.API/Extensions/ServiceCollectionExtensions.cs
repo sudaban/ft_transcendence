@@ -26,11 +26,11 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var con_str = configuration.GetConnectionString("DefaultConnection") 
+        var connectionString = configuration.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("'DefaultConnection' not found.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(con_str, npgsqlOptions => 
+            options.UseNpgsql(connectionString, npgsqlOptions => 
                 npgsqlOptions.MigrationsAssembly("Backend.Persistence"))
         );
 
@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFileUploadService, FileUploadService>();
         services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IChatRoomService, ChatRoomService>();
         services.AddHttpClient();
@@ -66,8 +67,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var secret_key = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? configuration["JwtOptions:SecretKey"];
-        if (string.IsNullOrEmpty(secret_key))
+        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? configuration["JwtOptions:SecretKey"];
+        if (string.IsNullOrEmpty(secretKey))
         {
             throw new InvalidOperationException("Insecure or missing JWT SecretKey!");
         }
@@ -82,7 +83,7 @@ public static class ServiceCollectionExtensions
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret_key)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                 ValidateIssuer = true,
                 ValidIssuer = configuration["JwtOptions:Issuer"],
                 ValidateAudience = true,

@@ -2,9 +2,7 @@ using AutoMapper;
 using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Responses.Users;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +16,7 @@ public class FollowService : IFollowService
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IGenericRepository<Backend.Domain.Entities.User> _userRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public FollowService(
@@ -26,20 +24,20 @@ public class FollowService : IFollowService
         IGenericRepository<UserBlock> userBlockRepository,
         IGenericRepository<Backend.Domain.Entities.User> userRepository,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IMapper mapper)
     {
         _followRepository = followRepository;
         _userBlockRepository = userBlockRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _mapper = mapper;
     }
 
     public async Task FollowUserAsync(int targetUserId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         if (currentUserId == targetUserId)
             throw new BadRequestException("You cannot follow yourself.");
@@ -73,7 +71,7 @@ public class FollowService : IFollowService
 
     public async Task UnfollowUserAsync(int targetUserId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int currentUserId = _currentUserService.UserId;
 
         var followRecord = await _followRepository.Table
             .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowingId == targetUserId);
@@ -87,8 +85,8 @@ public class FollowService : IFollowService
 
     public async Task<IEnumerable<UserDto>> GetFollowersAsync(int userId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowingId == userId)
@@ -112,8 +110,8 @@ public class FollowService : IFollowService
 
     public async Task<IEnumerable<UserDto>> GetFollowingAsync(int userId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowerId == userId)
@@ -137,8 +135,8 @@ public class FollowService : IFollowService
 
     public async Task<IEnumerable<UserDto>> GetFriendsAsync(int userId)
     {
-        int currentUserId = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
-        bool isAdmin = _httpContextAccessor.HttpContext!.User.IsAdmin();
+        int currentUserId = _currentUserService.UserId;
+        bool isAdmin = _currentUserService.IsAdmin;
 
         var query = _followRepository.TableNoTracking
             .Where(f => f.FollowerId == userId)

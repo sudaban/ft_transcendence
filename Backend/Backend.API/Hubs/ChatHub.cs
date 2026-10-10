@@ -2,22 +2,31 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Backend.Application.Abstractions;
 using Backend.Application.Extensions;
 using Backend.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Backend.API.Hubs;
 
 [Authorize]
 public class ChatHub : Hub
 {
+    private static readonly ConcurrentDictionary<int, HashSet<string>> _userConnections = new();
     private readonly IGenericRepository<User> _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ChatHub> _logger;
 
-    public ChatHub(IGenericRepository<User> userRepository, IUnitOfWork unitOfWork)
+    public ChatHub(
+        IGenericRepository<User> userRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<ChatHub> logger)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public override async Task OnConnectedAsync()
@@ -26,17 +35,31 @@ public class ChatHub : Hub
         try
         {
             var user_id = Context.User!.GetCurrentUserId();
-            var user = await _userRepository.GetByIdAsync(user_id);
-            if (user != null)
+            var connections = _userConnections.GetOrAdd(user_id, _ => new HashSet<string>());
+            bool isFirstConnection;
+            lock (connections)
             {
-                user.IsOnline = true;
-                user.LastSeenAt = DateTime.UtcNow;
-                await _userRepository.UpdateAsync(user);
-                await _unitOfWork.CommitAsync();
-                await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), true, user.LastSeenAt);
+                isFirstConnection = connections.Count == 0;
+                connections.Add(Context.ConnectionId);
+            }
+
+            if (isFirstConnection)
+            {
+                var user = await _userRepository.GetByIdAsync(user_id);
+                if (user != null)
+                {
+                    user.IsOnline = true;
+                    user.LastSeenAt = DateTime.UtcNow;
+                    await _userRepository.UpdateAsync(user);
+                    await _unitOfWork.CommitAsync();
+                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), true, user.LastSeenAt);
+                }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling user connection status in ChatHub");
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -44,17 +67,37 @@ public class ChatHub : Hub
         try
         {
             var user_id = Context.User!.GetCurrentUserId();
-            var user = await _userRepository.GetByIdAsync(user_id);
-            if (user != null)
+            bool isLastConnection = false;
+            if (_userConnections.TryGetValue(user_id, out var connections))
             {
-                user.IsOnline = false;
-                user.LastSeenAt = DateTime.UtcNow;
-                await _userRepository.UpdateAsync(user);
-                await _unitOfWork.CommitAsync();
-                await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), false, user.LastSeenAt);
+                lock (connections)
+                {
+                    connections.Remove(Context.ConnectionId);
+                    if (connections.Count == 0)
+                    {
+                        isLastConnection = true;
+                        _userConnections.TryRemove(user_id, out _);
+                    }
+                }
+            }
+
+            if (isLastConnection)
+            {
+                var user = await _userRepository.GetByIdAsync(user_id);
+                if (user != null)
+                {
+                    user.IsOnline = false;
+                    user.LastSeenAt = DateTime.UtcNow;
+                    await _userRepository.UpdateAsync(user);
+                    await _unitOfWork.CommitAsync();
+                    await Clients.Others.SendAsync("UserOnlineStatusChanged", user.Id.ToString(), false, user.LastSeenAt);
+                }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling user disconnection status in ChatHub");
+        }
         await base.OnDisconnectedAsync(exception);
     }
 

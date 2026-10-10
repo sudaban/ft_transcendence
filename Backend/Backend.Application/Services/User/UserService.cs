@@ -6,7 +6,6 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Users;
 using Backend.Application.DTOs.Responses.Users;
 using Backend.Application.Exceptions;
-using Backend.Application.Extensions;
 using Backend.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -18,26 +17,26 @@ public class UserService : IUserService
     private readonly IGenericRepository<Backend.Domain.Entities.User> _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IFileUploadService _file_upload_service;
 
     public UserService(
         IGenericRepository<Backend.Domain.Entities.User> userRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService,
         IFileUploadService file_upload_service)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
         _file_upload_service = file_upload_service;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _currentUserService.IsAdmin;
         IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
@@ -54,7 +53,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> GetUserByIdAsync(int id)
     {
-        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _currentUserService.IsAdmin;
         IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
@@ -75,7 +74,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> GetUserByUsernameAsync(string username)
     {
-        var is_admin = _httpContextAccessor.HttpContext?.User?.IsAdmin() ?? false;
+        var is_admin = _currentUserService.IsAdmin;
         IQueryable<Backend.Domain.Entities.User> query = _userRepository.TableNoTracking
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
@@ -117,7 +116,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> UpdateProfileAsync(UpdateProfileRequestDto request)
     {
-        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int user_id = _currentUserService.UserId;
         var user = await _userRepository.Table
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
@@ -138,7 +137,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> UpdateAvatarAsync(IFormFile file)
     {
-        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int user_id = _currentUserService.UserId;
         var user = await _userRepository.Table
             .Include(u => u.FollowedBy)
             .Include(u => u.Following)
@@ -164,7 +163,7 @@ public class UserService : IUserService
 
     public async Task DeleteUserAsync()
     {
-        int user_id = _httpContextAccessor.HttpContext!.User.GetCurrentUserId();
+        int user_id = _currentUserService.UserId;
         var user = await _userRepository.GetByIdAsync(user_id);
         if (user == null)
             throw new NotFoundException($"User with ID {user_id} not found.");
@@ -176,7 +175,7 @@ public class UserService : IUserService
 
     public async Task AdminDeleteUserAsync(int targetUserId)
     {
-        _httpContextAccessor.HttpContext!.User.CheckIfAdmin();
+        _currentUserService.CheckIfAdmin();
 
         var target_user = await _userRepository.GetByIdAsync(targetUserId);
         if (target_user == null)
@@ -189,7 +188,7 @@ public class UserService : IUserService
 
     public async Task AdminBanUserAsync(int targetUserId, bool isBanned)
     {
-        _httpContextAccessor.HttpContext!.User.CheckIfAdmin();
+        _currentUserService.CheckIfAdmin();
 
         var target_user = await _userRepository.GetByIdAsync(targetUserId);
         if (target_user == null)
