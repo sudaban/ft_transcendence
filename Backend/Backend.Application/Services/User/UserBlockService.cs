@@ -98,4 +98,19 @@ public class UserBlockService : IUserBlockService
 
         return _mapper.Map<IEnumerable<UserDto>>(blockedUsers);
     }
+
+    public async Task<bool> HasBlockRelationshipAsync(int userA, int userB)
+    {
+        return await _userBlockRepository.TableNoTracking
+            .AnyAsync(ub => (ub.BlockerId == userA && ub.BlockedId == userB) ||
+                            (ub.BlockerId == userB && ub.BlockedId == userA));
+    }
+
+    public async Task<List<int>> GetBlockedUserIdsAsync(int userId)
+    {
+        return await _userBlockRepository.TableNoTracking
+            .Where(ub => ub.BlockerId == userId || ub.BlockedId == userId)
+            .Select(ub => ub.BlockerId == userId ? ub.BlockedId : ub.BlockerId)
+            .ToListAsync();
+    }
 }

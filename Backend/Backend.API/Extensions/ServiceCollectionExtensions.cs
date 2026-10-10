@@ -4,7 +4,7 @@ using Backend.Application.Profiles;
 using Backend.Application.Services;
 using Backend.Application.Services.Users;
 using Backend.Application.Services.Posts;
-using Backend.Application.Services.ChatRoom;
+using Backend.Application.Services.ChatRooms;
 using Backend.Application.Services.Ai;
 using Backend.API.Services;
 using Backend.Infrastructure;

@@ -2,7 +2,6 @@ using Backend.Application.Abstractions;
 using Backend.Application.DTOs.Requests.Auth;
 using Backend.Application.DTOs.Responses.Auth;
 using Backend.Application.Exceptions;
-using InvalidOperationException = Backend.Application.Exceptions.InvalidOperationException;
 using Backend.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
@@ -69,7 +68,7 @@ namespace Backend.Application.Services
             var user = await _userRepository.Table.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
-                throw new NotFoundException("Invalid email or password.");
+                throw new UnAuthorizedAccessException("Invalid email or password.");
 
             if (user.IsBanned)
                 throw new UnAuthorizedAccessException("Your account has been banned.");
@@ -105,14 +104,7 @@ namespace Backend.Application.Services
                 return new LoginResponseDto(true, null, null, temp_token, user.Email);
             }
 
-            var token = _tokenService.CreateToken(user);
-            var refresh_token = _tokenService.GenerateRefreshToken();
-            user.RefreshToken = refresh_token;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userRepository.UpdateAsync(user);
-            await _unitOfWork.CommitAsync();
-
-            return new LoginResponseDto(false, token, refresh_token, null);
+            return await GenerateAuthResponseAsync(user);
         }
 
         public async Task<LoginResponseDto> Verify2FaLoginAsync(TwoFactorLoginRequestDto request)
@@ -134,14 +126,7 @@ namespace Backend.Application.Services
             if (!_twoFactorService.VerifyCode(user.TwoFactorSecret, request.Code))
                 throw new UnAuthorizedAccessException("Invalid verification code.");
 
-            var token = _tokenService.CreateToken(user);
-            var refresh_token = _tokenService.GenerateRefreshToken();
-            user.RefreshToken = refresh_token;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userRepository.UpdateAsync(user);
-            await _unitOfWork.CommitAsync();
-
-            return new LoginResponseDto(false, token, refresh_token, null);
+            return await GenerateAuthResponseAsync(user);
         }
 
         public async Task<TwoFactorSetupDto> SetupTwoFactorAsync(int user_id)
@@ -373,14 +358,7 @@ namespace Backend.Application.Services
                 return new LoginResponseDto(true, null, null, temp_token, user.Email);
             }
 
-            var token = _tokenService.CreateToken(user);
-            var refresh_token = _tokenService.GenerateRefreshToken();
-            user.RefreshToken = refresh_token;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userRepository.UpdateAsync(user);
-            await _unitOfWork.CommitAsync();
-
-            return new LoginResponseDto(false, token, refresh_token, null);
+            return await GenerateAuthResponseAsync(user);
         }
 
         public async Task<LoginResponseDto> RefreshTokenAsync(TokenRequestDto request)
@@ -403,16 +381,21 @@ namespace Backend.Application.Services
                 throw new UnAuthorizedAccessException("Invalid refresh token.");
             }
 
-            var new_token = _tokenService.CreateToken(user);
-            var new_refresh_token = _tokenService.GenerateRefreshToken();
+            return await GenerateAuthResponseAsync(user);
+        }
 
-            user.RefreshToken = new_refresh_token;
+        private async Task<LoginResponseDto> GenerateAuthResponseAsync(User user)
+        {
+            var token = _tokenService.CreateToken(user);
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
             await _userRepository.UpdateAsync(user);
             await _unitOfWork.CommitAsync();
 
-            return new LoginResponseDto(false, new_token, new_refresh_token, null);
+            return new LoginResponseDto(false, token, refreshToken, null);
         }
     }
 }

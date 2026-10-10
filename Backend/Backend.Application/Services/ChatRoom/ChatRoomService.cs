@@ -9,18 +9,18 @@ using Backend.Application.Exceptions;
 using Backend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Application.Services.ChatRoom;
+namespace Backend.Application.Services.ChatRooms;
 
 public class ChatRoomService : IChatRoomService
 {
-    private readonly IGenericRepository<Backend.Domain.Entities.ChatRoom> _chatRoomRepository;
+    private readonly IGenericRepository<ChatRoom> _chatRoomRepository;
     private readonly IGenericRepository<UserBlock> _userBlockRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
 
     public ChatRoomService(
-        IGenericRepository<Backend.Domain.Entities.ChatRoom> chatRoomRepository,
+        IGenericRepository<ChatRoom> chatRoomRepository,
         IGenericRepository<UserBlock> userBlockRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
@@ -38,7 +38,7 @@ public class ChatRoomService : IChatRoomService
         var user_id = _currentUserService.UserId;
         var is_admin = _currentUserService.IsAdmin;
 
-        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+        IQueryable<ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
                 .ThenInclude(crm => crm.User)
             .Where(cr => cr.Id == id);
@@ -60,7 +60,7 @@ public class ChatRoomService : IChatRoomService
         var user_id = _currentUserService.UserId;
         var is_admin = _currentUserService.IsAdmin;
 
-        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+        IQueryable<ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
                 .ThenInclude(crm => crm.User);
 
@@ -77,7 +77,7 @@ public class ChatRoomService : IChatRoomService
     {
         var user_id = _currentUserService.UserId;
 
-        IQueryable<Backend.Domain.Entities.ChatRoom> query = _chatRoomRepository.TableNoTracking
+        IQueryable<ChatRoom> query = _chatRoomRepository.TableNoTracking
             .Include(cr => cr.Members)
                 .ThenInclude(crm => crm.User)
             .Where(cr => cr.Members.Any(m => m.UserId == user_id && !m.IsHidden));
@@ -90,7 +90,7 @@ public class ChatRoomService : IChatRoomService
     {
         var user_id = _currentUserService.UserId;
 
-        var chat_room = new Backend.Domain.Entities.ChatRoom
+        var chat_room = new ChatRoom
         {
             IsGroup = request.IsGroup,
             CreatedAt = System.DateTime.UtcNow
