@@ -339,17 +339,15 @@ Her container'ın sağlık kontrolü tanımlıdır. Docker bu kontrolleri düzen
 
 | Komut | Ne Yapar |
 |-------|----------|
-| `make nuke` | Core servisleri durdur, volume'ları sil, upload'ları temizle, sıfırdan rebuild et ve başlat. **Image silmez.** |
-| `make full-nuke` | Yukarıdakinin aynısı + monitoring + ELK dahil. **Image silmez.** |
-| `make nuke-extra` | Full-nuke + **tüm proje image'larını siler**. En temiz başlangıç. |
-| `make elk-up` | ELK stack'i başlat |
-| `make elk-down` | ELK stack'i durdur |
-| `make elk-logs` | ELK loglarını izle |
-| `make monitoring-up` | Monitoring servislerini başlat |
-| `make monitoring-down` | Monitoring servislerini durdur |
-| `make monitoring-logs` | Monitoring loglarını izle |
-| `make full-up` | Core + Monitoring + ELK hepsini başlat |
-| `make full-down` | Hepsini durdur |
+| `make all` | Varsayılan komut. Core servisleri build eder ve arka planda başlatır. |
+| `make build` | Core servisleri build eder. |
+| `make up` | Core servisleri arka planda başlatır. |
+| `make elk` | ELK ve Monitoring profilleri dahil tüm servisleri build edip başlatır. |
+| `make down` | Tüm servisleri ve profilleri durdurur. |
+| `make clean` | Servisleri durdurur, container'ları ve uploads dizinini temizler. |
+| `make fclean` | Container'ları, volume'ları ve imajları tamamen siler, uploads'ı temizler. |
+| `make re` | Tam temizlik (`fclean`) sonrası core servisleri baştan kurup başlatır. |
+| `make database-shell` | PostgreSQL terminaline bağlanır. |
 
 ---
 
