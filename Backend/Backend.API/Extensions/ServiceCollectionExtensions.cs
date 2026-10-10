@@ -43,6 +43,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFileUploadService, FileUploadService>();
@@ -115,12 +116,12 @@ public static class ServiceCollectionExtensions
                 OnChallenge = async context =>
                 {
                     context.HandleResponse();
-                    context.Response.StatusCode = 200;
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     context.Response.ContentType = "application/problem+json";
 
                     var problemDetails = new ProblemDetails
                     {
-                        Status = 401,
+                        Status = StatusCodes.Status401Unauthorized,
                         Title = "Unauthorized",
                         Detail = "You are not authorized to access this resource. Please log in.",
                         Instance = context.Request.Path
@@ -130,12 +131,12 @@ public static class ServiceCollectionExtensions
                 },
                 OnForbidden = async context =>
                 {
-                    context.Response.StatusCode = 200;
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     context.Response.ContentType = "application/problem+json";
 
                     var problemDetails = new ProblemDetails
                     {
-                        Status = 403,
+                        Status = StatusCodes.Status403Forbidden,
                         Title = "Forbidden",
                         Detail = "You do not have permission to access this resource.",
                         Instance = context.Request.Path
@@ -149,13 +150,23 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddCustomCors(this IServiceCollection services)
+    public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
     {
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? new[]
+            {
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://localhost",
+                "http://localhost"
+            };
+
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.SetIsOriginAllowed(origin => true)
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials();
@@ -169,15 +180,15 @@ public static class ServiceCollectionExtensions
     {
         services.AddRateLimiter(options =>
         {
-            options.RejectionStatusCode = StatusCodes.Status200OK;
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.OnRejected = async (context, token) =>
             {
-                context.HttpContext.Response.StatusCode = 200;
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.ContentType = "application/problem+json";
 
                 var problemDetails = new ProblemDetails
                 {
-                    Status = 429,
+                    Status = StatusCodes.Status429TooManyRequests,
                     Title = "Too Many Requests",
                     Detail = "Rate limit exceeded. Please try again later.",
                     Instance = context.HttpContext.Request.Path

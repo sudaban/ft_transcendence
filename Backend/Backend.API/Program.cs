@@ -23,7 +23,7 @@ builder.Services.AddCustomAuthentication(builder.Configuration);
 
 builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
-builder.Services.AddCustomCors();
+builder.Services.AddCustomCors(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();

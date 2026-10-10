@@ -1,3 +1,4 @@
+using Backend.Application.Abstractions;
 using Backend.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -35,6 +36,7 @@ public static class ApplicationBuilderExtensions
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
             context.Database.Migrate();
 
             var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
@@ -42,19 +44,17 @@ public static class ApplicationBuilderExtensions
 
             if (!string.IsNullOrEmpty(adminEmail) && !string.IsNullOrEmpty(adminPassword))
             {
-                var adminExists = context.Users.Any(u => u.Email == adminEmail);
-                if (!adminExists)
+                var adminUser = context.Users.FirstOrDefault(u => u.Email == adminEmail);
+                if (adminUser == null)
                 {
-                    using var hmac = new HMACSHA512();
-                    var passwordHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(adminPassword)));
-                    var passwordSalt = Convert.ToBase64String(hmac.Key);
+                    var passwordHash = passwordHasher.HashPassword(adminPassword);
 
-                    var adminUser = new Backend.Domain.Entities.User
+                    adminUser = new Backend.Domain.Entities.User
                     {
                         Username = "admin",
                         Email = adminEmail,
                         PasswordHash = passwordHash,
-                        PasswordSalt = passwordSalt,
+                        PasswordSalt = string.Empty,
                         Role = Backend.Domain.Enums.UserRole.Admin,
                         IsTosAccepted = true,
                         TosAcceptedAt = DateTime.UtcNow
@@ -62,15 +62,20 @@ public static class ApplicationBuilderExtensions
                     context.Users.Add(adminUser);
                     context.SaveChanges();
                 }
+                else if (passwordHasher.NeedsRehash(adminUser.PasswordHash))
+                {
+                    adminUser.PasswordHash = passwordHasher.HashPassword(adminPassword);
+                    adminUser.PasswordSalt = string.Empty;
+                    context.Users.Update(adminUser);
+                    context.SaveChanges();
+                }
             }
 
             var aiExists = context.Users.Any(u => u.IsAiAssistant);
             if (!aiExists)
             {
-                using var aiHmac = new HMACSHA512();
                 var aiPassword = Guid.NewGuid().ToString("N");
-                var aiPasswordHash = Convert.ToBase64String(aiHmac.ComputeHash(Encoding.UTF8.GetBytes(aiPassword)));
-                var aiPasswordSalt = Convert.ToBase64String(aiHmac.Key);
+                var aiPasswordHash = passwordHasher.HashPassword(aiPassword);
 
                 var aiUser = new Backend.Domain.Entities.User
                 {
@@ -79,7 +84,7 @@ public static class ApplicationBuilderExtensions
                     Email = "ai@transcendence.local",
                     Bio = "🤖 I am the platform's AI assistant. Send me a message and let's chat!",
                     PasswordHash = aiPasswordHash,
-                    PasswordSalt = aiPasswordSalt,
+                    PasswordSalt = string.Empty,
                     Role = Backend.Domain.Enums.UserRole.User,
                     IsAiAssistant = true,
                     IsTosAccepted = true,

@@ -18,6 +18,7 @@ namespace Backend.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly ITwoFactorService _twoFactorService;
         private readonly IGenericRepository<User> _userRepository;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -26,6 +27,7 @@ namespace Backend.Application.Services
         public AuthService(
             IUnitOfWork unitOfWork,
             ITokenService tokenService,
+            IPasswordHasher passwordHasher,
             ITwoFactorService twoFactorService,
             IGenericRepository<User> userRepository,
             IHttpClientFactory httpClientFactory,
@@ -33,6 +35,7 @@ namespace Backend.Application.Services
         {
             _unitOfWork = unitOfWork;
             _tokenService = tokenService;
+            _passwordHasher = passwordHasher;
             _twoFactorService = twoFactorService;
             _userRepository = userRepository;
             _httpClientFactory = httpClientFactory;
@@ -44,14 +47,14 @@ namespace Backend.Application.Services
             if (await _userRepository.TableNoTracking.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
                 throw new OverlapException("This username or email is already taken.");
 
-            CreatePasswordHash(request.Password, out string password_hash, out string password_salt);
+            var passwordHash = _passwordHasher.HashPassword(request.Password);
 
             var user = new User
             {
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = password_hash,
-                PasswordSalt = password_salt,
+                PasswordHash = passwordHash,
+                PasswordSalt = string.Empty,
                 Role = Backend.Domain.Enums.UserRole.User
             };
 
@@ -71,8 +74,30 @@ namespace Backend.Application.Services
             if (user.IsBanned)
                 throw new UnAuthorizedAccessException("Your account has been banned.");
 
-            if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+            if (!string.IsNullOrEmpty(user.PasswordSalt) && _passwordHasher.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
+            {
+                if (_passwordHasher.NeedsRehash(user.PasswordHash))
+                {
+                    user.PasswordHash = _passwordHasher.HashPassword(request.Password);
+                    user.PasswordSalt = string.Empty;
+                    await _userRepository.UpdateAsync(user);
+                    await _unitOfWork.CommitAsync();
+                }
+            }
+            else if (_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                if (_passwordHasher.NeedsRehash(user.PasswordHash))
+                {
+                    user.PasswordHash = _passwordHasher.HashPassword(request.Password);
+                    user.PasswordSalt = string.Empty;
+                    await _userRepository.UpdateAsync(user);
+                    await _unitOfWork.CommitAsync();
+                }
+            }
+            else
+            {
                 throw new UnAuthorizedAccessException("Invalid email or password.");
+            }
 
             if (user.IsTwoFactorEnabled)
             {
@@ -258,7 +283,7 @@ namespace Backend.Application.Services
 
             if (user == null)
             {
-                CreatePasswordHash(Guid.NewGuid().ToString(), out string password_hash, out string password_salt);
+                var passwordHash = _passwordHasher.HashPassword(Guid.NewGuid().ToString("N"));
 
                 string base_username = username.Replace(" ", "_").ToLower();
                 base_username = new string(base_username.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
@@ -280,8 +305,8 @@ namespace Backend.Application.Services
                 {
                     Username = final_username,
                     Email = email,
-                    PasswordHash = password_hash,
-                    PasswordSalt = password_salt
+                    PasswordHash = passwordHash,
+                    PasswordSalt = string.Empty
                 };
 
                 await _userRepository.AddAsync(user);
@@ -339,24 +364,6 @@ namespace Backend.Application.Services
             await _unitOfWork.CommitAsync();
 
             return new LoginResponseDto(false, new_token, new_refresh_token, null);
-        }
-
-        private void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = Convert.ToBase64String(hmac.Key);
-                passwordHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(password)));
-            }
-        }
-
-        private bool VerifyPasswordHash(string password, string passwordHash, string passwordSalt)
-        {
-            using (var hmac = new HMACSHA512(Convert.FromBase64String(passwordSalt)))
-            {
-                var computedHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(password)));
-                return computedHash == passwordHash;
-            }
         }
     }
 }

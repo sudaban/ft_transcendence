@@ -16,15 +16,18 @@ public class ChatHub : Hub
 {
     private static readonly ConcurrentDictionary<int, HashSet<string>> _userConnections = new();
     private readonly IGenericRepository<User> _userRepository;
+    private readonly IGenericRepository<ChatRoomMember> _memberRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ChatHub> _logger;
 
     public ChatHub(
         IGenericRepository<User> userRepository,
+        IGenericRepository<ChatRoomMember> memberRepository,
         IUnitOfWork unitOfWork,
         ILogger<ChatHub> logger)
     {
         _userRepository = userRepository;
+        _memberRepository = memberRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -103,7 +106,21 @@ public class ChatHub : Hub
 
     public async Task JoinRoom(string roomId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"Room_{roomId}");
+        if (int.TryParse(roomId, out int parsedRoomId))
+        {
+            var userId = Context.User!.GetCurrentUserId();
+            bool isMember = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(
+                _memberRepository.TableNoTracking,
+                m => m.ChatRoomId == parsedRoomId && m.UserId == userId);
+
+            if (!isMember)
+            {
+                _logger.LogWarning("User {UserId} unauthorized attempt to join room {RoomId}", userId, roomId);
+                return;
+            }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"Room_{roomId}");
+        }
     }
 
     public async Task LeaveRoom(string roomId)

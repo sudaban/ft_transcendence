@@ -132,10 +132,17 @@ public class ChatRoomService : IChatRoomService
     public async Task DeleteChatRoomAsync(int id)
     {
         var user_id = _currentUserService.UserId;
+        var is_admin = _currentUserService.IsAdmin;
 
-        var chat_room = await _chatRoomRepository.GetByIdAsync(id);
+        var chat_room = await _chatRoomRepository.Table
+            .Include(cr => cr.Members)
+            .FirstOrDefaultAsync(cr => cr.Id == id);
+
         if (chat_room == null)
             throw new NotFoundException($"ChatRoom with ID {id} not found.");
+
+        if (!is_admin && !chat_room.Members.Any(m => m.UserId == user_id))
+            throw new UnAuthorizedAccessException("You are not authorized to delete this chat room.");
 
         await _chatRoomRepository.DeleteAsync(chat_room);
         await _unitOfWork.CommitAsync();

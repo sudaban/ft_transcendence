@@ -35,7 +35,7 @@ namespace Backend.API.Middlewares
                     Instance = context.HttpContext.Request.Path
                 };
 
-                return new OkObjectResult(problemDetails)
+                return new BadRequestObjectResult(problemDetails)
                 {
                     ContentTypes = { "application/problem+json" }
                 };
