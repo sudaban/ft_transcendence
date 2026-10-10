@@ -17,3 +17,5 @@ coverage/
 # .NET (Backend) Build folders
 **/bin/
 **/obj/
+*.user
+*.suo
