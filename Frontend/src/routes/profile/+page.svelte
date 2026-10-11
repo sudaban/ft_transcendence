@@ -163,7 +163,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "Profil güncellenirken bir hata oluştu.");
-      alert("Profil güncellenirken bir hata oluştu.");
     }
     finally
     {
@@ -212,7 +211,6 @@
       catch (err: any)
       {
         toastStore.error(err.message || "Avatar yüklenemedi.");
-        alert("Avatar yüklenirken bir hata oluştu.");
       }
       finally
       {

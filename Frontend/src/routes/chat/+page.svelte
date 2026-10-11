@@ -98,9 +98,21 @@
         }
       });
 
+      hubConnection.onreconnected(async () => {
+        if (selectedRoomId)
+        {
+          try
+          {
+            await hubConnection?.invoke("JoinRoom", selectedRoomId.toString());
+          }
+          catch (e)
+          {
+          }
+        }
+      });
+
       connectionPromise = hubConnection.start();
       await connectionPromise;
-      
     }
     catch(err: any)
     {
@@ -360,7 +372,7 @@
 
     if (selectedSliceId !== null)
     {
-      alert("Geçmiş modundasınız. Mesaj göndermek için sol üstten canlı yayına dönün.");
+      toastStore.warning("Geçmiş modundasınız. Mesaj göndermek için canlı yayına dönün.");
       return;
     }
 
@@ -427,8 +439,7 @@
     }
     catch (err: any)
     {
-      toastStore.error(err.message || "Sohbet silinirken hata.");
-      alert("Sohbet silinemedi.");
+      toastStore.error(err.message || "Sohbet silinirken hata oluştu.");
     }
   }
 
@@ -593,12 +604,12 @@
         
         {#if currentDisplayMessages.length === 0}
           <div class="text-center text-xs text-slate-400 font-mono py-12 tracking-wide animate-pulse">
-            // Buffer flushed into history repository. Standby for new bits...
+            Geçmiş kaydı bulunmuyor. Canlı mesajlar bekleniyor...
           </div>
         {/if}
 
         {#each currentDisplayMessages as msg (msg.id)}
-          <div use:popIn class="timeline-bubble relative group flex flex-col {msg.sender === 'Player 1' ? 'pl-8' : ''}">
+          <div use:popIn class="timeline-bubble relative group flex flex-col">
 
             <div class="absolute -left-[33px] top-0.5 w-5 h-5 rounded-full bg-[#fcfcfc] flex items-center justify-center font-mono text-xs font-bold transition-all duration-200 group-hover:scale-125
               {msg.sender === currentDisplayLeader ? 'text-slate-900 scale-110' : 'text-slate-300'}"
@@ -607,7 +618,7 @@
             </div>
 
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="text-xs font-semibold tracking-tight {msg.sender === 'Player 1' ? 'text-slate-900' : 'text-slate-500'}">
+              <span class="text-xs font-semibold tracking-tight {msg.sender === currentDisplayLeader ? 'text-slate-900' : 'text-slate-500'}">
                 {msg.sender}
               </span>
               <span class="text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

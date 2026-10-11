@@ -222,7 +222,7 @@
       return;
     if (!selectedFile && !newPostContent.trim())
     {
-      alert("Gönderi paylaşmak için fotoğraf seçmeli veya metin yazmalısınız!");
+      toastStore.warning("Gönderi paylaşmak için fotoğraf seçmeli veya metin yazmalısınız!");
       return;
     }
     
@@ -285,7 +285,6 @@
     catch (error: any)
     {
       toastStore.error(error.message || "Post paylaşılamadı.");
-      alert(error instanceof Error ? error.message : "Gönderi paylaşılırken bir hata oluştu.");
     }
     finally
     {
@@ -308,7 +307,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "Post silinemedi.");
-      alert("Gönderi silinirken bir hata oluştu.");
     }
   }
 </script>

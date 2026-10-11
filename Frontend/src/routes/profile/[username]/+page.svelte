@@ -68,7 +68,6 @@
       catch (err: any)
       {
         toastStore.error(err.message || "Avatar yüklenemedi.");
-        alert("Avatar yüklenirken bir hata oluştu.");
       }
       finally
       {
@@ -184,7 +183,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "Takip işlemi başarısız oldu.");
-      alert("İşlem sırasında bir hata oluştu.");
     }
     finally
     {

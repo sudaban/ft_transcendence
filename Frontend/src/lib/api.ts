@@ -1,23 +1,11 @@
 import type { PostDTO, UserDTO } from './types';
 
-const MOCK_USERS: UserDTO[] = [
-  { id: 'u1', username: 'enes_celten', handle: '@idkahram', avatar: 'FE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
-  { id: 'u2', username: 'adalomer51', handle: '@omadali', avatar: 'OP', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
-  { id: 'u3', username: 'sametncs', handle: '@saincesu', avatar: 'BE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
-  { id: 'u4', username: 'umutdbn77', handle: '@sdaban', avatar: 'BE', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false },
-  { id: 'u5', username: 'Ahmetks', handle: '@asezgin', avatar: 'DB', followersCount: 0, followingCount: 0, postsCount: 0, isTwoFactorEnabled: false }
-];
-
 export const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const ApiService = {
   getSuggestedUsers: async (): Promise<UserDTO[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(MOCK_USERS);
-      }, 300);
-    });
+    return [];
   },
 
   getFollowers: async (userId: string, token: string): Promise<UserDTO[]> => {
@@ -340,18 +328,6 @@ export const ApiService = {
     });
     if (!res.ok)
       throw new Error("Failed to unfollow user");
-    return res.json();
-  },
-
-  getFollowing: async (userId: string, token: string): Promise<UserDTO[]> => {
-    if (!userId)
-      throw new Error("Invalid userId");
-    const res = await fetch(`${API_URL}/follows/${userId}/following`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok)
-      throw new Error("Failed to fetch following");
     return res.json();
   },
 

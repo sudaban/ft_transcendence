@@ -43,7 +43,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "Yorum gönderilemedi.");
-      alert(err instanceof Error ? err.message : "Yorum gönderilirken bir hata oluştu.");
     }
     finally
     {
@@ -73,7 +72,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "Yorum silinemedi.");
-      alert("Yorum silinirken hata oluştu.");
     }
   }
 </script>

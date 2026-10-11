@@ -55,7 +55,6 @@
     catch (err: any)
     {
       toastStore.error(err.message || "2FA Kurulumu başlatılamadı.");
-      alert("2FA Kurulumu başlatılamadı.");
     }
     finally
     {
@@ -71,7 +70,7 @@
     try
     {
       await ApiService.enable2fa(verifyCode, authStore.token);
-      alert("Harika! İki Aşamalı Doğrulama başarıyla aktifleştirildi!");
+      toastStore.success("İki Aşamalı Doğrulama başarıyla aktifleştirildi.");
       setupMode = false;
       is2faEnabled = true;
       secretKey = '';
@@ -80,8 +79,7 @@
     }
     catch (err: any)
     {
-      toastStore.error(err.message || "2FA aktifleştirilemedi.");
-      alert("Girdiğiniz kod hatalı veya süresi dolmuş olabilir. Tekrar deneyin.");
+      toastStore.error(err.message || "Girdiğiniz kod hatalı veya süresi dolmuş olabilir.");
     }
     finally
     {
@@ -99,14 +97,13 @@
     try
     {
       await ApiService.disable2fa(authStore.token);
-      alert("2FA başarıyla devre dışı bırakıldı.");
+      toastStore.success("2FA başarıyla devre dışı bırakıldı.");
       setupMode = false;
       is2faEnabled = false;
     }
     catch (err: any)
     {
       toastStore.error(err.message || "2FA devre dışı bırakılamadı.");
-      alert("2FA devre dışı bırakılamadı.");
     }
     finally
     {
