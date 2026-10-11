@@ -9,13 +9,18 @@
   let errorMsg = $state('');
 
   onMount(async () => {
-    const provider = $page.url.searchParams.get('state');
+    const returnedState = $page.url.searchParams.get('state');
     const code = $page.url.searchParams.get('code');
     const redirectUri = `${window.location.origin}/auth/callback`;
 
-    if (!code || !provider)
+    const savedState = sessionStorage.getItem('oauth_state');
+    const provider = sessionStorage.getItem('oauth_provider');
+    sessionStorage.removeItem('oauth_state');
+    sessionStorage.removeItem('oauth_provider');
+
+    if (!code || !returnedState || !savedState || returnedState !== savedState || !provider)
     {
-      errorMsg = 'OAuth bilgileri eksik veya hatalı.';
+      errorMsg = 'OAuth bilgileri eksik veya geçersiz güvenlik doğrulaması.';
       isProcessing = false;
       return;
     }
@@ -26,7 +31,9 @@
       
       if (res.requiresTwoFactor)
       {
-        window.location.href = `/login?tempToken=${res.tempToken}&email=${encodeURIComponent(res.email || '')}`;
+        sessionStorage.setItem('two_factor_temp_token', res.tempToken || '');
+        sessionStorage.setItem('two_factor_email', res.email || '');
+        window.location.href = '/login';
       }
       else
       {

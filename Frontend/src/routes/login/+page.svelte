@@ -26,9 +26,8 @@
   let eyeElement: HTMLElement;
 
   onMount(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tToken = urlParams.get('tempToken');
-    const eml = urlParams.get('email');
+    const tToken = sessionStorage.getItem('two_factor_temp_token');
+    const eml = sessionStorage.getItem('two_factor_email');
     
     if (tToken && eml)
     {
@@ -36,6 +35,8 @@
       email = eml;
       is2faPending = true;
       timeRemaining = 300;
+      sessionStorage.removeItem('two_factor_temp_token');
+      sessionStorage.removeItem('two_factor_email');
       
       if (timerInterval)
         clearInterval(timerInterval);
@@ -198,8 +199,11 @@
       triggerError("42 Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
       return;
     }
+    const state = crypto.randomUUID();
+    sessionStorage.setItem('oauth_state', state);
+    sessionStorage.setItem('oauth_provider', '42');
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=42`;
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}`;
   }
 
   function initiateGoogleLogin()
@@ -210,8 +214,11 @@
       triggerError("Google Client ID bulunamadı. Lütfen .env dosyasını kontrol edin.");
       return;
     }
+    const state = crypto.randomUUID();
+    sessionStorage.setItem('oauth_state', state);
+    sessionStorage.setItem('oauth_provider', 'google');
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=google`;
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=${state}`;
   }
 
   async function handleOtpKeydown(e: KeyboardEvent, index: number)
