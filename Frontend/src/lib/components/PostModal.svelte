@@ -68,7 +68,7 @@
       class="bg-white rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl w-full {post.imageUrl ? 'max-w-5xl' : 'max-w-2xl'} h-[90dvh] md:h-[85vh] flex flex-col md:flex-row relative"
       onclick={(e) => e.stopPropagation()}
     >
-      <button onclick={onClose} class="absolute top-4 right-4 z-20 w-8 h-8 {post.imageUrl ? 'bg-black/50 hover:bg-black text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'} rounded-full flex items-center justify-center transition-colors">
+      <button onclick={onClose} aria-label="Kapat" class="absolute top-4 right-4 z-20 w-8 h-8 {post.imageUrl ? 'bg-black/50 hover:bg-black text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'} rounded-full flex items-center justify-center transition-colors">
         ✕
       </button>
 
@@ -105,13 +105,13 @@
 
         <div class="p-4 border-t border-slate-100 bg-white">
           <div class="flex items-center gap-4 mb-2">
-            <button onclick={toggleLike} class="flex items-center gap-1.5 text-2xl {post.isLiked ? 'text-[#f91880]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
+            <button onclick={toggleLike} aria-label="Beğen" class="flex items-center gap-1.5 text-2xl {post.isLiked ? 'text-[#f91880]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
               {post.isLiked ? '❤️' : '🤍'}
             </button>
-            <button class="flex items-center gap-1.5 text-2xl text-slate-800 hover:text-slate-500 transition-colors">
+            <button aria-label="Yorumlar" class="flex items-center gap-1.5 text-2xl text-slate-800 hover:text-slate-500 transition-colors">
               💬
             </button>
-            <button onclick={toggleSave} class="flex items-center gap-1.5 text-2xl ml-auto {post.isSaved ? 'text-[#1d9bf0]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
+            <button onclick={toggleSave} aria-label="Kaydet" class="flex items-center gap-1.5 text-2xl ml-auto {post.isSaved ? 'text-[#1d9bf0]' : 'text-slate-800 hover:text-slate-500'} transition-colors">
               {post.isSaved ? '📥' : '💾'}
             </button>
           </div>
@@ -123,9 +123,6 @@
 {/if}
 
 <style>
-  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>

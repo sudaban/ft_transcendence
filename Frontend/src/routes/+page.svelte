@@ -453,7 +453,7 @@
       <span class="pl-4 pr-3 text-gray-500 group-focus-within:text-[#1d9bf0]">🔍</span>
       <input type="text" bind:value={searchQuery} oninput={handleSearch} placeholder="Ara..." class="bg-transparent border-none outline-none py-3 w-full rounded-r-full text-[15px]">
       {#if searchQuery}
-        <button onclick={() => { searchQuery = ''; searchResults = []; isSearching = false; }} class="absolute right-4 text-gray-400 hover:text-gray-600">
+        <button onclick={() => { searchQuery = ''; searchResults = []; isSearching = false; }} aria-label="Aramayı temizle" class="absolute right-4 text-gray-400 hover:text-gray-600">
           ✕
         </button>
       {/if}

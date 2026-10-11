@@ -416,9 +416,3 @@
     onclose={() => isUserListOpen = false} 
   />
 </div>
-
-<style>
-  .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-</style>

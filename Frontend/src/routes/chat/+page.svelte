@@ -698,16 +698,4 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .custom-scrollbar::-webkit-scrollbar
-  {
-    width: 3px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track
-  {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb
-  {
-    background: #e2e8f0;
-  }
 </style>

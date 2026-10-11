@@ -24,7 +24,7 @@
         </span>
         <span class="leading-relaxed">{toast.message}</span>
       </div>
-      <button onclick={() => toastStore.remove(toast.id)} class="text-xl opacity-50 hover:opacity-100 transition-opacity shrink-0">
+      <button onclick={() => toastStore.remove(toast.id)} aria-label="Bildirimi kapat" class="text-xl opacity-50 hover:opacity-100 transition-opacity shrink-0">
         &times;
       </button>
     </div>
